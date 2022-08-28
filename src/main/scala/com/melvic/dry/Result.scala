@@ -6,6 +6,6 @@ object Result {
   def success[A](value: A): Result[A] =
     Right(value)
 
-  def error[A](error: Error): Result[A] =
+  def fail[A](error: Error): Result[A] =
     Left(error)
 }

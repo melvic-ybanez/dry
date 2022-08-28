@@ -28,5 +28,11 @@ object Main {
   }
 
   def runSource(source: String): Option[Error] =
-    Lexer.scanTokens(source).map(_.foreach(println)).left.toOption
+    Lexer
+      .scanTokens(source)
+      .flatMap { tokens =>
+        Parser.fromTokens(tokens).parse.map(println)
+      }
+      .left
+      .toOption
 }

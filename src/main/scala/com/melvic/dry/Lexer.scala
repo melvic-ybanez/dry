@@ -1,5 +1,6 @@
 package com.melvic.dry
 
+import com.melvic.dry.Result.Result
 import com.melvic.dry.Token.TokenType
 
 import scala.annotation.tailrec
@@ -9,13 +10,16 @@ final case class Lexer(
     start: Int,
     current: Int,
     line: Int,
-    tokens: Vector[Token]
+    tokens: List[Token]
 ) {
   def lexeme: String = source.substring(start, current)
 
   def currentChar: Char = source(current)
 
   def scanNext: Result[Lexer] = prepareNext.scan
+
+  def updateTokens(f: List[Token] => List[Token]): Lexer =
+    copy(tokens = f(tokens))
 
   def scan: Result[Lexer] = {
     val (char, lexer) = readAndAdvance
@@ -41,7 +45,7 @@ final case class Lexer(
       case '"'                   => lexer.scanString
       case c if Lexer.isDigit(c) => lexer.scanDigit.success
       case c if Lexer.isAlpha(c) => lexer.scanIdentifier.success
-      case c                     => Result.error(Error.invalidCharacter(line, c))
+      case c                     => Result.fail(Error.invalidCharacter(line, c))
     }
   }
 
@@ -74,7 +78,7 @@ final case class Lexer(
     copy(line = line + 1)
 
   def addToken(tokenType: TokenType): Lexer =
-    copy(tokens = tokens :+ Token(tokenType, lexeme, line))
+    updateTokens(_ :+ Token(tokenType, lexeme, line))
 
   def addTokenSuccess(tokenType: TokenType): Result[Lexer] =
     addToken(tokenType).success
@@ -101,7 +105,7 @@ final case class Lexer(
       else loop(lexer.advance)
 
     val lexer = loop(this)
-    if (lexer.isAtEnd) Result.error(Error.unterminatedString(line))
+    if (lexer.isAtEnd) Result.fail(Error.unterminatedString(line))
     else {
       val newLexer = lexer.advance // remove the closing quotation mark
       val stringContent = newLexer.source.substring(newLexer.start + 1, newLexer.current - 1)
@@ -149,7 +153,7 @@ object Lexer {
     "self" -> TokenType.Self
   )
 
-  def scanTokens(source: String): Result[Vector[Token]] =
+  def scanTokens(source: String): Result[List[Token]] =
     Lexer.fromSource(source).map(_.tokens)
 
   def fromSource(source: String): Result[Lexer] = {
@@ -162,7 +166,8 @@ object Lexer {
           case Right(lexer)    => loop(lexer)
         }
 
-    loop(Lexer(source, 0, 0, 1, Vector.empty))
+    loop(Lexer(source, 0, 0, 1, Nil))
+      .map(lexer => lexer.updateTokens(_ :+ Token(TokenType.Eof, "", lexer.line)))
   }
 
   def isDigit(char: Char): Boolean =

@@ -1,8 +1,9 @@
 package com.melvic.dry
 
-sealed trait Error {
-  def line: Int
-}
+import com.melvic.dry.Error.ParseError.Expected
+import com.melvic.dry.Token.TokenType
+
+sealed trait Error
 
 object Error {
   final case class Line(line: Int, where: String, message: String) extends Error
@@ -21,8 +22,9 @@ object Error {
   def show(error: Error): String =
     error match {
       case Line(line, where, message) => showFullLine(line, where, message)
-      case InvalidCharacter(line, c) => showLineAndMessage(line, s"Invalid character: $c")
-      case UnterminatedString(line) => showLineAndMessage(line, "Unterminated string")
+      case InvalidCharacter(line, c)  => showLineAndMessage(line, s"Invalid character: $c")
+      case UnterminatedString(line)   => showLineAndMessage(line, "Unterminated string")
+      case Expected(start, expected, where)     => showFullLine(start.line, where, s"Expected $expected.")
     }
 
   def showFullLine(line: Int, where: String, message: String): String =
@@ -30,4 +32,14 @@ object Error {
 
   def showLineAndMessage(line: Int, message: String): String =
     showFullLine(line, "", message)
+
+  sealed trait ParseError extends Error
+
+  object ParseError {
+    final case class Expected(start: Token, expected: String, where: String) extends ParseError
+
+    def expected(start: Token, end: String): ParseError =
+      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end")
+      else Expected(start, end, s" at '${start.lexeme}'")
+  }
 }

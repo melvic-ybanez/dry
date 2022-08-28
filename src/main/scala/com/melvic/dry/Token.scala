@@ -7,7 +7,9 @@ final case class Token(tokenType: TokenType, lexeme: String, line: Int)
 object Token {
   sealed trait TokenType
 
-  object TokenType extends ShortTokens with Literals with Keywords
+  object TokenType extends ShortTokens with Literals with Keywords {
+    case object Eof extends TokenType
+  }
 
   trait ShortTokens {
     case object LeftParen extends TokenType
