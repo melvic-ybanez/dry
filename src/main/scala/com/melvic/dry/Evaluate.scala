@@ -12,6 +12,8 @@ object Evaluate {
   def expr: Evaluate[Expr] = {
     case literal: Literal => Evaluate.literal(literal)
     case Grouping(expr)   => Evaluate.expr(expr)
+    case unary: Unary     => Evaluate.unary(unary)
+    case binary: Binary   => Evaluate.binary(binary)
   }
 
   def unary: Evaluate[Unary] = { case Unary(operator @ Token(operatorType, _, _), operandTree) =>
@@ -30,7 +32,7 @@ object Evaluate {
       def binary[O, V <: Value](fold: (Double, Double) => O, toValue: O => V): Result[V] =
         Result.fromOption(
           for {
-            leftNum <- left.toNum
+            leftNum  <- left.toNum
             rightNum <- right.toNum
           } yield toValue(fold(leftNum.value, rightNum.value)),
           Error.numberOperands(operator)
@@ -65,8 +67,8 @@ object Evaluate {
     }
 
     for {
-      left <- Evaluate.expr(leftTree)
-      right <- Evaluate.expr(rightTree)
+      left   <- Evaluate.expr(leftTree)
+      right  <- Evaluate.expr(rightTree)
       result <- fromValueOperands(left, right)
     } yield result
   }
