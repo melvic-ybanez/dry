@@ -1,6 +1,7 @@
 package com.melvic.dry
 
 import com.melvic.dry.Result.Result
+import com.melvic.dry.Result.impilcits.ResultOps
 import com.melvic.dry.Token.TokenType
 
 import scala.annotation.tailrec
@@ -24,27 +25,27 @@ final case class Lexer(
   def scan: Result[Lexer] = {
     val (char, lexer) = readAndAdvance
     char match {
-      case '(' => lexer.addTokenSuccess(TokenType.LeftParen)
-      case ')' => lexer.addTokenSuccess(TokenType.RightParen)
-      case '{' => lexer.addTokenSuccess(TokenType.LeftBrace)
-      case '}' => lexer.addTokenSuccess(TokenType.RightBrace)
-      case ',' => lexer.addTokenSuccess(TokenType.Comma)
-      case '.' => lexer.addTokenSuccess(TokenType.Dot)
-      case '+' => lexer.addTokenSuccess(TokenType.Plus)
-      case '*' => lexer.addTokenSuccess(TokenType.Star)
-      case '-' => lexer.addTokenSuccess(TokenType.Minus)
-      case ';' => lexer.addTokenSuccess(TokenType.Semicolon)
+      case '(' => lexer.addToken(TokenType.LeftParen).ok
+      case ')' => lexer.addToken(TokenType.RightParen).ok
+      case '{' => lexer.addToken(TokenType.LeftBrace).ok
+      case '}' => lexer.addToken(TokenType.RightBrace).ok
+      case ',' => lexer.addToken(TokenType.Comma).ok
+      case '.' => lexer.addToken(TokenType.Dot).ok
+      case '+' => lexer.addToken(TokenType.Plus).ok
+      case '*' => lexer.addToken(TokenType.Star).ok
+      case '-' => lexer.addToken(TokenType.Minus).ok
+      case ';' => lexer.addToken(TokenType.Semicolon).ok
       case '!' => lexer.addTokenOrElse('=', TokenType.NotEqual, TokenType.Not)
       case '=' => lexer.addTokenOrElse('=', TokenType.EqualEqual, TokenType.Equal)
       case '<' => lexer.addTokenOrElse('=', TokenType.LessEqual, TokenType.Less)
       case '>' => lexer.addTokenOrElse('=', TokenType.GreaterEqual, TokenType.Greater)
       case '/' =>
-        lexer.matchChar('/').fold(lexer.addTokenSuccess(TokenType.Slash))(_.scanComment.success)
-      case ' ' | '\r' | '\t'     => lexer.success
-      case '\n'                  => lexer.nextLine.success
+        lexer.matchChar('/').fold(lexer.addToken(TokenType.Slash).ok)(_.scanComment.ok)
+      case ' ' | '\r' | '\t'     => lexer.ok
+      case '\n'                  => lexer.nextLine.ok
       case '"'                   => lexer.scanString
-      case c if Lexer.isDigit(c) => lexer.scanDigit.success
-      case c if Lexer.isAlpha(c) => lexer.scanIdentifier.success
+      case c if Lexer.isDigit(c) => lexer.scanDigit.ok
+      case c if Lexer.isAlpha(c) => lexer.scanIdentifier.ok
       case c                     => Result.fail(Error.invalidCharacter(line, c))
     }
   }
@@ -80,11 +81,8 @@ final case class Lexer(
   def addToken(tokenType: TokenType): Lexer =
     updateTokens(_ :+ Token(tokenType, lexeme, line))
 
-  def addTokenSuccess(tokenType: TokenType): Result[Lexer] =
-    addToken(tokenType).success
-
   def addTokenOrElse(char: Char, typeIfMatch: TokenType, typeIfNotMatch: TokenType): Result[Lexer] =
-    matchChar(char).fold(addToken(typeIfNotMatch))(_.addToken(typeIfMatch)).success
+    matchChar(char).fold(addToken(typeIfNotMatch))(_.addToken(typeIfMatch)).ok
 
   def matchChar(expected: Char): Option[Lexer] =
     if (isAtEnd || source(current) != expected) None
@@ -109,7 +107,7 @@ final case class Lexer(
     else {
       val newLexer = lexer.advance // remove the closing quotation mark
       val stringContent = newLexer.source.substring(newLexer.start + 1, newLexer.current - 1)
-      newLexer.addToken(TokenType.Str(stringContent)).success
+      newLexer.addToken(TokenType.Str(stringContent)).ok
     }
   }
 
@@ -128,9 +126,6 @@ final case class Lexer(
     val tokenType = Lexer.Keywords.getOrElse(lexer.lexeme, TokenType.Identifier)
     lexer.addToken(tokenType)
   }
-
-  def success: Result[Lexer] =
-    Result.success(this)
 }
 
 object Lexer {
