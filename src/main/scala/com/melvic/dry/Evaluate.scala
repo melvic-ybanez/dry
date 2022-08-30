@@ -18,7 +18,7 @@ object Evaluate {
     val operand = Evaluate.expr(operandTree)
     operatorType match {
       case TokenType.Minus => Num(-operand.toNum.value)
-      case TokenType.Not   => Bool(!isTruthy(operand).value)
+      case TokenType.Not   => Bool(!isTruthy(operand))
       case _               => VNone
     }
   }
@@ -33,10 +33,16 @@ object Evaluate {
           case (Str(l), Str(r)) => Str(l + r)
           case _                => VNone
         }
-      case TokenType.Minus => left + right
-      case TokenType.Star  => left * right
-      case TokenType.Slash => left / right
-      case _               => VNone
+      case TokenType.Minus        => left + right
+      case TokenType.Star         => left * right
+      case TokenType.Slash        => left / right
+      case TokenType.Greater      => Bool(left > right)
+      case TokenType.GreaterEqual => Bool(left >= right)
+      case TokenType.Less         => Bool(left < right)
+      case TokenType.LessEqual    => Bool(left <= right)
+      case TokenType.NotEqual     => Bool(left != right)
+      case TokenType.EqualEqual   => Bool(left == right)
+      case _                      => VNone
     }
   }
 
@@ -48,11 +54,11 @@ object Evaluate {
     case Literal.Str(string)   => Str(string)
   }
 
-  def isTruthy(value: Value): Bool =
+  def isTruthy(value: Value): Boolean =
     value match {
-      case VNone         => Bool(false)
-      case Str("")       => Bool(false)
-      case boolean: Bool => boolean
-      case _             => Bool(true)
+      case VNone       => false
+      case Str("")     => false
+      case Bool(value) => value
+      case _           => true
     }
 }
