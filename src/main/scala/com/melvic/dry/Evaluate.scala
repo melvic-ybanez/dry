@@ -20,7 +20,7 @@ object Evaluate {
     Evaluate.expr(operandTree).flatMap { operand =>
       operatorType match {
         case TokenType.Minus =>
-          Result.fromOption(operand.toNum.map(num => Num(-num.value)), Error.numberOperand(operator))
+          Result.fromOption(operand.toNum.map(num => Num(-num.value)), Error.invalidOperand(operator, "number" :: Nil))
         case TokenType.Not => Bool(!isTruthy(operand)).ok
         case _             => VNone.ok
       }
@@ -35,7 +35,7 @@ object Evaluate {
             leftNum  <- left.toNum
             rightNum <- right.toNum
           } yield toValue(fold(leftNum.value, rightNum.value)),
-          Error.numberOperands(operator)
+          Error.invalidOperands(operator, "number" :: Nil)
         )
 
       def combine(f: (Double, Double) => Result[Double]): Result[Num] =
@@ -52,8 +52,8 @@ object Evaluate {
           (left, right) match {
             case (Num(l), Num(r)) => Num(l + r).ok
             case (Str(l), Str(r)) => Str(l + r).ok
-            case _ =>
-              val error = Error.runtimeError(operator, "Operands must be either both numbers or both strings")
+            case (l, r) =>
+              val error = Error.invalidOperands(operator, List("number", "string"))
               Result.fail(error)
           }
         case TokenType.Minus => combineUnsafe(_ - _)

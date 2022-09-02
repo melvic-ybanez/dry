@@ -22,8 +22,8 @@ object Run {
     val bytes  = Files.readAllBytes(Paths.get(path))
     val result = Run.source(bytes.toString)
     result match {
-      case Some(RuntimeError(_, _)) => System.exit(70)
-      case Some(_)                  => System.exit(65)
+      case Some(_: RuntimeError) => System.exit(70)
+      case Some(_)               => System.exit(65)
     }
   }
 
