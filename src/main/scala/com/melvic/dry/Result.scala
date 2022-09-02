@@ -13,7 +13,7 @@ object Result {
     option.toRight(error)
 
   object impilcits {
-    implicit class ResultOps[A](value: A) {
+    implicit class ToResult[A](value: A) {
       def ok: Result[A] =
         Result.success(value)
     }

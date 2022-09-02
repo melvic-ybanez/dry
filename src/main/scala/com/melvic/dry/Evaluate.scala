@@ -2,7 +2,7 @@ package com.melvic.dry
 
 import com.melvic.dry.Expr.{Binary, Grouping, Literal, Unary}
 import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ResultOps
+import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
 
@@ -29,7 +29,7 @@ object Evaluate {
 
   def binary: Evaluate[Binary] = { case Binary(leftTree, operator @ Token(operatorType, _, _), rightTree) =>
     def fromValueOperands(left: Value, right: Value): Result[Value] = {
-      def binary[O, V <: Value](fold: (Double, Double) => O, toValue: O => V): Result[V] =
+      def binary[O, V](fold: (Double, Double) => O, toValue: O => V): Result[V] =
         Result.fromOption(
           for {
             leftNum  <- left.toNum
@@ -38,8 +38,11 @@ object Evaluate {
           Error.numberOperands(operator)
         )
 
-      def combine(f: (Double, Double) => Double): Result[Num] =
-        binary(f, Num)
+      def combine(f: (Double, Double) => Result[Double]): Result[Num] =
+        binary(f, (result: Result[Double]) => result.map(Num)).flatten
+
+      def combineUnsafe(f: (Double, Double) => Double): Result[Num] =
+        combine((x, y) => f(x, y).ok)
 
       def compare(f: (Double, Double) => Boolean): Result[Bool] =
         binary(f, Bool)
@@ -53,9 +56,14 @@ object Evaluate {
               val error = Error.runtimeError(operator, "Operands must be either both numbers or both strings")
               Result.fail(error)
           }
-        case TokenType.Minus        => combine(_ - _)
-        case TokenType.Star         => combine(_ * _)
-        case TokenType.Slash        => combine(_ / _)
+        case TokenType.Minus => combineUnsafe(_ - _)
+        case TokenType.Star  => combineUnsafe(_ * _)
+        case TokenType.Slash =>
+          combine {
+            case (_, 0) =>
+              Result.fail(Error.divisionByZero(operator))
+            case (x, y) => (x / y).ok
+          }
         case TokenType.Greater      => compare(_ > _)
         case TokenType.GreaterEqual => compare(_ >= _)
         case TokenType.Less         => compare(_ < _)

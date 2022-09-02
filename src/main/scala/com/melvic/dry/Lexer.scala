@@ -1,7 +1,7 @@
 package com.melvic.dry
 
 import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ResultOps
+import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
 
 import scala.annotation.tailrec

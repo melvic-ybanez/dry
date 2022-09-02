@@ -7,9 +7,9 @@ sealed trait Error
 
 object Error {
   final case class Line(line: Int, where: String, message: String) extends Error
-  final case class InvalidCharacter(line: Int, char: Char) extends Error
-  final case class UnterminatedString(line: Int) extends Error
-  final case class RuntimeError(token: Token, message: String) extends Error
+  final case class InvalidCharacter(line: Int, char: Char)         extends Error
+  final case class UnterminatedString(line: Int)                   extends Error
+  final case class RuntimeError(token: Token, message: String)     extends Error
 
   def line(line: Int, message: String): Error =
     Line(line, "", message)
@@ -22,6 +22,9 @@ object Error {
 
   def runtimeError(token: Token, message: String): Error =
     RuntimeError(token, message)
+
+  def divisionByZero(token: Token): Error =
+    RuntimeError(token, "Division by zero")
 
   def numberOperand(operator: Token): RuntimeError =
     RuntimeError(operator, "Operand must be a number")
