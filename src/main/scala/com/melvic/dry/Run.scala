@@ -13,7 +13,7 @@ object Run {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      Run.source(input).foreach(System.err.println)
+      Run.source(input).foreach(error => System.err.println(Error.show(error)))
       prompt()
     }
   }
