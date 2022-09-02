@@ -17,14 +17,20 @@ final case class Parser(tokens: List[Token], current: Int) {
   def equality: ParseResult[Expr] =
     leftAssociativeBinary(_.comparison, TokenType.NotEqual, TokenType.EqualEqual)
 
+  /**
+   * Parses a left-associative binary expression given a set of valid operators. The matched operator and
+   * right-hand operand can appear at-least zero times.
+   */
   def leftAssociativeBinary(operand: Parser => ParseResult[Expr], operators: TokenType*): ParseResult[Expr] =
     operand(this).flatMap { case (expr, parser) =>
       def recurse(expr: Expr, parser: Parser): ParseResult[Expr] =
         parser
-          .matchTokens(operators: _*)
+          .matchAny(operators: _*)
           .map { parser =>
             val operator = parser.previous
             operand(parser).flatMap { case (right, newParser) =>
+              // recursively check if another operator from the given set, followed by
+              // the same operand, is found again
               recurse(Binary(expr, operator, right), newParser)
             }
           }
@@ -49,7 +55,7 @@ final case class Parser(tokens: List[Token], current: Int) {
     leftAssociativeBinary(_.unary, TokenType.Slash, TokenType.Star)
 
   def unary: ParseResult[Expr] =
-    matchTokens(TokenType.Not, TokenType.Minus)
+    matchAny(TokenType.Not, TokenType.Minus)
       .map { parser =>
         val operator = parser.previous
         parser.unary.map { case (right, newParser) =>
@@ -59,12 +65,12 @@ final case class Parser(tokens: List[Token], current: Int) {
       .getOrElse(primary)
 
   def primary: ParseResult[Expr] =
-    matchTokens(TokenType.False)
+    matchAny(TokenType.False)
       .map((Literal.False, _))
-      .orElse(matchTokens(TokenType.True).map((Literal.True, _)))
-      .orElse(matchTokens(TokenType.None).map((Literal.None, _)))
+      .orElse(matchAny(TokenType.True).map((Literal.True, _)))
+      .orElse(matchAny(TokenType.None).map((Literal.None, _)))
       .orElse {
-        matchTokensWith {
+        matchAnyWith {
           case TokenType.Number(_) => true
           case TokenType.Str(_)    => true
         }.map { parser =>
@@ -75,19 +81,21 @@ final case class Parser(tokens: List[Token], current: Int) {
         }
       }
       .map(Result.success)
-      .getOrElse(matchTokens(TokenType.LeftParen)
-        .fold[ParseResult[Expr]](Result.fail(ParseError.expected(peek, "expression"))) { parser =>
-          parser.expression.flatMap { case (expr, newParser) =>
-            newParser.consume(TokenType.RightParen, ")").map { case (_, parser) =>
-              (Grouping(expr), parser)
+      .getOrElse(
+        matchAny(TokenType.LeftParen)
+          .fold[ParseResult[Expr]](Result.fail(ParseError.expected(peek, "expression"))) { parser =>
+            parser.expression.flatMap { case (expr, newParser) =>
+              newParser.consume(TokenType.RightParen, ")").map { case (_, parser) =>
+                (Grouping(expr), parser)
+              }
             }
           }
-        })
+      )
 
-  def matchTokens(tokenTypes: TokenType*): Option[Parser] =
-    matchTokensWith(tokenType => tokenTypes.contains(tokenType))
+  def matchAny(tokenTypes: TokenType*): Option[Parser] =
+    matchAnyWith(tokenType => tokenTypes.contains(tokenType))
 
-  def matchTokensWith(predicate: PartialFunction[TokenType, Boolean]): Option[Parser] =
+  def matchAnyWith(predicate: PartialFunction[TokenType, Boolean]): Option[Parser] =
     checkWith(predicate).pipe {
       case true  => Some(advance._2)
       case false => None
@@ -122,7 +130,7 @@ final case class Parser(tokens: List[Token], current: Int) {
 }
 
 object Parser {
-  type Parsed[A] = (A, Parser)
+  type Parsed[A]      = (A, Parser)
   type ParseResult[A] = Result[Parsed[A]]
 
   def fromTokens(tokens: List[Token]): Parser =

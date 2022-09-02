@@ -20,7 +20,10 @@ object Evaluate {
     Evaluate.expr(operandTree).flatMap { operand =>
       operatorType match {
         case TokenType.Minus =>
-          Result.fromOption(operand.toNum.map(num => Num(-num.value)), Error.invalidOperand(operator, "number" :: Nil))
+          Result.fromOption(
+            operand.toNum.map(num => Num(-num.value)),
+            Error.invalidOperand(operator, "number" :: Nil)
+          )
         case TokenType.Not => Bool(!isTruthy(operand)).ok
         case _             => VNone.ok
       }
@@ -52,7 +55,7 @@ object Evaluate {
           (left, right) match {
             case (Num(l), Num(r)) => Num(l + r).ok
             case (Str(l), Str(r)) => Str(l + r).ok
-            case (l, r) =>
+            case _ =>
               val error = Error.invalidOperands(operator, List("number", "string"))
               Result.fail(error)
           }
@@ -60,8 +63,7 @@ object Evaluate {
         case TokenType.Star  => combineUnsafe(_ * _)
         case TokenType.Slash =>
           combine {
-            case (_, 0) =>
-              Result.fail(Error.divisionByZero(operator))
+            case (_, 0) => Result.fail(Error.divisionByZero(operator))
             case (x, y) => (x / y).ok
           }
         case TokenType.Greater      => compare(_ > _)
