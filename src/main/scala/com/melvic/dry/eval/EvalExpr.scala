@@ -1,14 +1,16 @@
-package com.melvic.dry
+package com.melvic.dry.eval
 
-import com.melvic.dry.Expr.{Binary, Grouping, Literal, Unary}
+import com.melvic.dry.Error.{ParseError, RuntimeError}
 import com.melvic.dry.Result.Result
 import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.{Error, Result, Token, Value}
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
+import com.melvic.dry.ast.Expr
+import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
+import com.melvic.dry.eval.Evaluate.{Evaluate, isTruthy}
 
-object Evaluate {
-  type Evaluate[A <: Expr] = A => Result[Value]
-
+private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
     case literal: Literal => Evaluate.literal(literal)
     case Grouping(expr)   => Evaluate.expr(expr)
@@ -22,7 +24,7 @@ object Evaluate {
         case TokenType.Minus =>
           Result.fromOption(
             operand.toNum.map(num => Num(-num.value)),
-            Error.invalidOperand(operator, "number" :: Nil)
+            RuntimeError.invalidOperand(operator, "number" :: Nil)
           )
         case TokenType.Not => Bool(!isTruthy(operand)).ok
         case _             => VNone.ok
@@ -38,7 +40,7 @@ object Evaluate {
             leftNum  <- left.toNum
             rightNum <- right.toNum
           } yield toValue(fold(leftNum.value, rightNum.value)),
-          Error.invalidOperands(operator, "number" :: Nil)
+          RuntimeError.invalidOperands(operator, "number" :: Nil)
         )
 
       def combine(f: (Double, Double) => Result[Double]): Result[Num] =
@@ -56,14 +58,14 @@ object Evaluate {
             case (Num(l), Num(r)) => Num(l + r).ok
             case (Str(l), Str(r)) => Str(l + r).ok
             case _ =>
-              val error = Error.invalidOperands(operator, List("number", "string"))
+              val error = RuntimeError.invalidOperands(operator, List("number", "string"))
               Result.fail(error)
           }
         case TokenType.Minus => combineUnsafe(_ - _)
         case TokenType.Star  => combineUnsafe(_ * _)
         case TokenType.Slash =>
           combine {
-            case (_, 0) => Result.fail(Error.divisionByZero(operator))
+            case (_, 0) => Result.fail(RuntimeError.divisionByZero(operator))
             case (x, y) => (x / y).ok
           }
         case TokenType.Greater      => compare(_ > _)
@@ -91,11 +93,4 @@ object Evaluate {
     case Literal.Str(string)   => Str(string).ok
   }
 
-  def isTruthy(value: Value): Boolean =
-    value match {
-      case VNone       => false
-      case Str("")     => false
-      case Bool(value) => value
-      case _           => true
-    }
 }

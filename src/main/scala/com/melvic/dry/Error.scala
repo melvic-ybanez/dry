@@ -27,15 +27,6 @@ object Error {
   def unterminatedString(line: Int): Error =
     UnterminatedString(line)
 
-  def divisionByZero(token: Token): RuntimeError =
-    DivisionByZero(token)
-
-  def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
-    InvalidOperand(operator, expected)
-
-  def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
-    InvalidOperands(operator, expected)
-
   def show(error: Error): String =
     error match {
       case Line(line, where, message)       => showFullLine(line, where, message)
@@ -63,12 +54,21 @@ object Error {
 
     def expected(start: Token, end: String): ParseError =
       if (start.tokenType == TokenType.Eof) Expected(start, end, "at end")
-      else Expected(start, end, s" at '${start.lexeme}'")
+      else Expected(start, end, s"at '${start.lexeme}'")
   }
 
   object RuntimeError {
     final case class DivisionByZero(token: Token)                          extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String])  extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
+
+    def divisionByZero(token: Token): RuntimeError =
+      DivisionByZero(token)
+
+    def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
+      InvalidOperand(operator, expected)
+
+    def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
+      InvalidOperands(operator, expected)
   }
 }

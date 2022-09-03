@@ -122,7 +122,6 @@ final case class Lexer(
 
   def scanIdentifier: Lexer = {
     val lexer = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))
-      .addToken(TokenType.Identifier)
     val tokenType = Lexer.Keywords.getOrElse(lexer.lexeme, TokenType.Identifier)
     lexer.addToken(tokenType)
   }

@@ -1,10 +1,10 @@
 package com.melvic.dry
 
 import com.melvic.dry.Error.RuntimeError
-import com.melvic.dry.Main.interpret
+import com.melvic.dry.parsers.Parser
 
-import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
+import scala.io.Source
 import scala.io.StdIn.readLine
 
 object Run {
@@ -19,20 +19,24 @@ object Run {
   }
 
   def path(path: String): Unit = {
-    val bytes  = Files.readAllBytes(Paths.get(path))
-    val result = Run.source(bytes.toString)
+    val source = Source.fromFile(path)
+    val code   = source.getLines.mkString("\n")
+
+    val result = Run.source(code)
     result match {
       case Some(_: RuntimeError) => System.exit(70)
       case Some(_)               => System.exit(65)
+      case _                     => ()
     }
+    source.close
   }
 
   def source(source: String): Option[Error] = {
     val result = for {
       tokens <- Lexer.scanTokens(source)
-      expr   <- Parser.fromTokens(tokens).parse
-      value  <- interpret(expr)
-    } yield println(value)
+      stmts  <- Parser.fromTokens(tokens).parse
+      _      <- Interpreter.interpret(stmts)
+    } yield ()
     result.left.toOption
   }
 }

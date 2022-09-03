@@ -1,4 +1,6 @@
-package com.melvic.dry
+package com.melvic.dry.ast
+
+import com.melvic.dry.Token
 
 sealed trait Expr
 
