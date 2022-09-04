@@ -1,14 +1,14 @@
 package com.melvic.dry.eval
 
-import com.melvic.dry.Error.{ParseError, RuntimeError}
+import com.melvic.dry.Error.RuntimeError
 import com.melvic.dry.Result.Result
 import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.{Error, Result, Token, Value}
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
 import com.melvic.dry.eval.Evaluate.{Evaluate, isTruthy}
+import com.melvic.dry.{Result, Token, Value}
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
@@ -52,6 +52,9 @@ private[eval] trait EvalExpr {
       def compare(f: (Double, Double) => Boolean): Result[Bool] =
         binary(f, Bool)
 
+      def shift(f: (Long, Long) => Long): Result[Num] =
+        combineUnsafe { case (x, y) => f(x.toLong, y.toLong) }
+
       operatorType match {
         case TokenType.Plus =>
           (left, right) match {
@@ -68,7 +71,10 @@ private[eval] trait EvalExpr {
             case (_, 0) => Result.fail(RuntimeError.divisionByZero(operator))
             case (x, y) => (x / y).ok
           }
-        case TokenType.Modulo => combineUnsafe(_ % _)
+        case TokenType.Modulo       => combineUnsafe(_ % _)
+        case TokenType.LeftShift    => shift(_ << _)
+        case TokenType.RightShift   => shift(_ >> _)
+        case TokenType.URightShift  => shift(_ >>> _)
         case TokenType.Greater      => compare(_ > _)
         case TokenType.GreaterEqual => compare(_ >= _)
         case TokenType.Less         => compare(_ < _)

@@ -32,6 +32,9 @@ object Token {
     case object GreaterEqual extends TokenType
     case object Less extends TokenType
     case object LessEqual extends TokenType
+    case object LeftShift extends TokenType
+    case object RightShift extends TokenType
+    case object URightShift extends TokenType
   }
 
   trait Literals {

@@ -38,8 +38,18 @@ final case class Lexer(
       case ';' => lexer.addToken(TokenType.Semicolon).ok
       case '!' => lexer.addTokenOrElse('=', TokenType.NotEqual, TokenType.Not)
       case '=' => lexer.addTokenOrElse('=', TokenType.EqualEqual, TokenType.Equal)
-      case '<' => lexer.addTokenOrElse('=', TokenType.LessEqual, TokenType.Less)
-      case '>' => lexer.addTokenOrElse('=', TokenType.GreaterEqual, TokenType.Greater)
+      case '<' =>
+        lexer
+          .matchChar('<')
+          .fold(lexer.addTokenOrElse('=', TokenType.LessEqual, TokenType.Less))(
+            _.addToken(TokenType.LeftShift).ok
+          )
+      case '>' =>
+        lexer
+          .matchChar('>')
+          .fold(lexer.addTokenOrElse('=', TokenType.GreaterEqual, TokenType.Greater))(l =>
+            l.matchChar('>').fold(l.addToken(TokenType.RightShift).ok)(_.addToken(TokenType.URightShift).ok)
+          )
       case '/' =>
         lexer.matchChar('/').fold(lexer.addToken(TokenType.Slash).ok)(_.scanComment.ok)
       case ' ' | '\r' | '\t'     => lexer.ok
@@ -106,7 +116,7 @@ final case class Lexer(
     val lexer = loop(this)
     if (lexer.isAtEnd) Result.fail(Error.unterminatedString(line))
     else {
-      val newLexer = lexer.advance // remove the closing quotation mark
+      val newLexer      = lexer.advance // remove the closing quotation mark
       val stringContent = newLexer.source.substring(newLexer.start + 1, newLexer.current - 1)
       newLexer.addToken(TokenType.Str(stringContent)).ok
     }
@@ -122,7 +132,7 @@ final case class Lexer(
   }
 
   def scanIdentifier: Lexer = {
-    val lexer = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))
+    val lexer     = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))
     val tokenType = Lexer.Keywords.getOrElse(lexer.lexeme, TokenType.Identifier)
     lexer.addToken(tokenType)
   }
@@ -130,23 +140,23 @@ final case class Lexer(
 
 object Lexer {
   val Keywords: Map[String, TokenType] = Map(
-    "and" -> TokenType.And,
-    "or" -> TokenType.Or,
-    "class" -> TokenType.Class,
-    "if" -> TokenType.If,
-    "else" -> TokenType.Else,
-    "true" -> TokenType.True,
-    "false" -> TokenType.False,
-    "let" -> TokenType.Let,
-    "while" -> TokenType.While,
-    "for" -> TokenType.For,
-    "def" -> TokenType.Def,
-    "none" -> TokenType.None,
-    "print" -> TokenType.Print,
+    "and"    -> TokenType.And,
+    "or"     -> TokenType.Or,
+    "class"  -> TokenType.Class,
+    "if"     -> TokenType.If,
+    "else"   -> TokenType.Else,
+    "true"   -> TokenType.True,
+    "false"  -> TokenType.False,
+    "let"    -> TokenType.Let,
+    "while"  -> TokenType.While,
+    "for"    -> TokenType.For,
+    "def"    -> TokenType.Def,
+    "none"   -> TokenType.None,
+    "print"  -> TokenType.Print,
     "return" -> TokenType.Return,
-    "super" -> TokenType.Super,
-    "self" -> TokenType.Self,
-    "not" -> TokenType.Not,
+    "super"  -> TokenType.Super,
+    "self"   -> TokenType.Self,
+    "not"    -> TokenType.Not
   )
 
   def scanTokens(source: String): Result[List[Token]] =

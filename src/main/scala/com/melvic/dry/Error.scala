@@ -32,7 +32,7 @@ object Error {
       case Line(line, where, message)       => showFullLine(line, where, message)
       case InvalidCharacter(line, c)        => showLineAndMessage(line, s"Invalid character: $c")
       case UnterminatedString(line)         => showLineAndMessage(line, "Unterminated string")
-      case Expected(start, expected, where) => showFullLine(start.line, where, s"Expected $expected.")
+      case Expected(start, expected, where) => showFullLine(start.line, where, s"Expected '$expected'.")
       case DivisionByZero(token)            => showRuntimeError(token, "Division by zero")
       case InvalidOperand(token, expected) =>
         showRuntimeError(token, s"The operand must be any of the following: ${expected.toCsv}")

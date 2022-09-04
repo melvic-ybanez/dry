@@ -26,7 +26,14 @@ private[parsers] trait ExprParser { _: Parser =>
     )
 
   def term: ParseResult[Expr] =
-    leftAssocBinary(_.factor, TokenType.Minus, TokenType.Plus)
+    leftAssocBinary(
+      _.factor,
+      TokenType.Minus,
+      TokenType.Plus,
+      TokenType.LeftShift,
+      TokenType.RightShift,
+      TokenType.URightShift
+    )
 
   def factor: ParseResult[Expr] =
     leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star, TokenType.Modulo)
