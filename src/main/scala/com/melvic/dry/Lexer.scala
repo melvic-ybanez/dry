@@ -38,6 +38,9 @@ final case class Lexer(
       case ';' => lexer.addToken(TokenType.Semicolon).ok
       case '!' => lexer.addTokenOrElse('=', TokenType.NotEqual, TokenType.Not)
       case '=' => lexer.addTokenOrElse('=', TokenType.EqualEqual, TokenType.Equal)
+      case '&' => lexer.addToken(TokenType.BAnd).ok
+      case '|' => lexer.addToken(TokenType.BOr).ok
+      case '^' => lexer.addToken(TokenType.BXor).ok
       case '<' =>
         lexer
           .matchChar('<')

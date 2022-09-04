@@ -52,7 +52,7 @@ private[eval] trait EvalExpr {
       def compare(f: (Double, Double) => Boolean): Result[Bool] =
         binary(f, Bool)
 
-      def shift(f: (Long, Long) => Long): Result[Num] =
+      def bitwise(f: (Long, Long) => Long): Result[Num] =
         combineUnsafe { case (x, y) => f(x.toLong, y.toLong) }
 
       operatorType match {
@@ -72,9 +72,12 @@ private[eval] trait EvalExpr {
             case (x, y) => (x / y).ok
           }
         case TokenType.Modulo       => combineUnsafe(_ % _)
-        case TokenType.LeftShift    => shift(_ << _)
-        case TokenType.RightShift   => shift(_ >> _)
-        case TokenType.URightShift  => shift(_ >>> _)
+        case TokenType.BAnd         => bitwise(_ & _)
+        case TokenType.BOr          => bitwise(_ | _)
+        case TokenType.BXor         => bitwise(_ ^ _)
+        case TokenType.LeftShift    => bitwise(_ << _)
+        case TokenType.RightShift   => bitwise(_ >> _)
+        case TokenType.URightShift  => bitwise(_ >>> _)
         case TokenType.Greater      => compare(_ > _)
         case TokenType.GreaterEqual => compare(_ >= _)
         case TokenType.Less         => compare(_ < _)

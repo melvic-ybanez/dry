@@ -30,6 +30,9 @@ private[parsers] trait ExprParser { _: Parser =>
       _.factor,
       TokenType.Minus,
       TokenType.Plus,
+      TokenType.BAnd,
+      TokenType.BOr,
+      TokenType.BXor,
       TokenType.LeftShift,
       TokenType.RightShift,
       TokenType.URightShift
