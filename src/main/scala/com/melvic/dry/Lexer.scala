@@ -144,7 +144,8 @@ object Lexer {
     "print" -> TokenType.Print,
     "return" -> TokenType.Return,
     "super" -> TokenType.Super,
-    "self" -> TokenType.Self
+    "self" -> TokenType.Self,
+    "not" -> TokenType.Not,
   )
 
   def scanTokens(source: String): Result[List[Token]] =
