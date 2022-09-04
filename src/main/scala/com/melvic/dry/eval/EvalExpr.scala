@@ -68,6 +68,7 @@ private[eval] trait EvalExpr {
             case (_, 0) => Result.fail(RuntimeError.divisionByZero(operator))
             case (x, y) => (x / y).ok
           }
+        case TokenType.Modulo => combineUnsafe(_ % _)
         case TokenType.Greater      => compare(_ > _)
         case TokenType.GreaterEqual => compare(_ >= _)
         case TokenType.Less         => compare(_ < _)

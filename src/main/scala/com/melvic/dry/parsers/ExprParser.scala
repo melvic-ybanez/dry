@@ -29,7 +29,7 @@ private[parsers] trait ExprParser { _: Parser =>
     leftAssocBinary(_.factor, TokenType.Minus, TokenType.Plus)
 
   def factor: ParseResult[Expr] =
-    leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star)
+    leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star, TokenType.Modulo)
 
   def unary: ParseResult[Expr] =
     matchAny(TokenType.Not, TokenType.Minus)

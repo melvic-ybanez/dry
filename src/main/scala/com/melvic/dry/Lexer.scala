@@ -33,6 +33,7 @@ final case class Lexer(
       case '.' => lexer.addToken(TokenType.Dot).ok
       case '+' => lexer.addToken(TokenType.Plus).ok
       case '*' => lexer.addToken(TokenType.Star).ok
+      case '%' => lexer.addToken(TokenType.Modulo).ok
       case '-' => lexer.addToken(TokenType.Minus).ok
       case ';' => lexer.addToken(TokenType.Semicolon).ok
       case '!' => lexer.addTokenOrElse('=', TokenType.NotEqual, TokenType.Not)
