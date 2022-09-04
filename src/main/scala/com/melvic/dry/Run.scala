@@ -22,11 +22,16 @@ object Run {
     val source = Source.fromFile(path)
     val code   = source.getLines.mkString("\n")
 
+    def reportAndExit(error: Error, code: Int): Unit = {
+      System.err.println(Error.show(error))
+      System.exit(code)
+    }
+
     val result = Run.source(code)
     result match {
-      case Some(_: RuntimeError) => System.exit(70)
-      case Some(_)               => System.exit(65)
-      case _                     => ()
+      case Some(error: RuntimeError) => reportAndExit(error, 70)
+      case Some(error)               => reportAndExit(error, 65)
+      case _                         => ()
     }
     source.close
   }
