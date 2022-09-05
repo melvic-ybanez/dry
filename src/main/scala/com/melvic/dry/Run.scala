@@ -39,8 +39,8 @@ object Run {
   def source(source: String): Option[Error] = {
     val result = for {
       tokens <- Lexer.scanTokens(source)
-      stmts  <- Parser.fromTokens(tokens).parse
-      _      <- Interpreter.interpret(stmts)
+      decls  <- Parser.fromTokens(tokens).parse
+      _      <- Interpreter.interpret(decls)
     } yield ()
     result.left.toOption
   }

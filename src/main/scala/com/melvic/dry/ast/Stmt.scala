@@ -1,6 +1,6 @@
 package com.melvic.dry.ast
 
-sealed trait Stmt
+sealed trait Stmt extends Decl
 
 object Stmt {
   final case class ExprStmt(expr: Expr) extends Stmt

@@ -45,9 +45,7 @@ private[parsers] trait ExprParser { _: Parser =>
     matchAny(TokenType.Not, TokenType.Minus)
       .map { parser =>
         val operator = parser.previous
-        parser.unary.map { case (right, newParser) =>
-          (Unary(operator, right), newParser)
-        }
+        parser.unary.mapValue(Unary(operator, _))
       }
       .getOrElse(primary)
 
@@ -72,9 +70,7 @@ private[parsers] trait ExprParser { _: Parser =>
         matchAny(TokenType.LeftParen)
           .fold[ParseResult[Expr]](Result.fail(ParseError.expected(peek, "expression"))) { parser =>
             parser.expression.flatMap { case (expr, newParser) =>
-              newParser.consume(TokenType.RightParen, ")").map { case (_, parser) =>
-                (Grouping(expr), parser)
-              }
+              newParser.consume(TokenType.RightParen, ")").mapValue(_ => Grouping(expr))
             }
           }
       )

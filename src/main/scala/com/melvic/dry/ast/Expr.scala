@@ -18,4 +18,5 @@ object Expr {
   final case class Grouping(expr: Expr) extends Expr
   final case class Unary(operator: Token, operand: Expr) extends Expr
   final case class Binary(left: Expr, operator: Token, right: Expr) extends Expr
+  final case class Variable(token: Token) extends Expr
 }

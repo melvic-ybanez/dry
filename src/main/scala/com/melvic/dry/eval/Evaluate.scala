@@ -4,7 +4,7 @@ import com.melvic.dry.Result.Result
 import com.melvic.dry.Value
 import com.melvic.dry.Value.{Bool, Str, None => VNone}
 
-object Evaluate extends EvalExpr with EvalStmt {
+object Evaluate extends EvalExpr with EvalDecl {
   type Evaluate[A] = A => Result[Value]
 
   def isTruthy(value: Value): Boolean =

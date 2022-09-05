@@ -4,18 +4,18 @@ import com.melvic.dry.Error.ParseError
 import com.melvic.dry.Result.Result
 import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.ast.Stmt
+import com.melvic.dry.ast.Decl
 import com.melvic.dry.parsers.Parser.{ParseResult, State}
 import com.melvic.dry.{Result, Token}
 
 import scala.util.chaining._
 
-final case class Parser(tokens: List[Token], current: Int) extends ExprParser with StmtParser {
-  def parse: Result[List[Stmt]] = {
-    def recurse(parser: Parser, statements: List[Stmt]): Result[List[Stmt]] =
+final case class Parser(tokens: List[Token], current: Int) extends ExprParser with DeclParser {
+  def parse: Result[List[Decl]] = {
+    def recurse(parser: Parser, statements: List[Decl]): Result[List[Decl]] =
       if (parser.isAtEnd) statements.reverse.ok
       else
-        parser.statement.flatMap { case (stmt, newParser) =>
+        parser.declaration.flatMap { case (stmt, newParser) =>
           recurse(newParser, stmt :: statements)
         }
 
@@ -69,5 +69,13 @@ object Parser {
   implicit class StateOps[A](state: State[A]) {
     def value: A       = state._1
     def parser: Parser = state._2
+
+    def map[B](f: A => B): State[B] =
+      (f(value), parser)
+  }
+
+  implicit class ParseResultOps[A](result: ParseResult[A]) {
+    def mapValue[B](f: A => B): ParseResult[B] =
+      result.map(_.map(f))
   }
 }
