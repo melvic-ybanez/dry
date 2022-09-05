@@ -28,20 +28,19 @@ object Run {
     }
 
     val result = Run.source(code)
-    result match {
-      case Some(error: RuntimeError) => reportAndExit(error, 70)
-      case Some(error)               => reportAndExit(error, 65)
-      case _                         => ()
+    result foreach {
+      case error: RuntimeError => reportAndExit(error, 70)
+      case error               => reportAndExit(error, 65)
     }
     source.close
   }
 
-  def source(source: String): Option[Error] = {
+  def source(source: String): List[Error] = {
     val result = for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse
       _      <- Interpreter.interpret(decls)
     } yield ()
-    result.left.toOption
+    result.left.toOption.getOrElse(Nil)
   }
 }
