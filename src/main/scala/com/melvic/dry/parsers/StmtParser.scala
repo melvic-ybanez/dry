@@ -19,5 +19,5 @@ private[parsers] trait StmtParser { _: Parser =>
     for {
       state1 <- expression
       state2 <- state1.parser.consume(TokenType.Semicolon, ";")
-    } yield (f(state1.value), state2.parser)
+    } yield State(f(state1.value), state2.parser)
 }

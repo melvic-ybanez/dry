@@ -2,10 +2,12 @@ package com.melvic.dry.parsers
 
 import com.melvic.dry.Error.ParseError
 import com.melvic.dry.Result
+import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
 import com.melvic.dry.parsers.Parser.ParseResult
+import com.melvic.dry.parsers.Parser.implicits._
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -51,9 +53,9 @@ private[parsers] trait ExprParser { _: Parser =>
 
   def primary: ParseResult[Expr] =
     matchAny(TokenType.False)
-      .map((Literal.False, _))
-      .orElse(matchAny(TokenType.True).map((Literal.True, _)))
-      .orElse(matchAny(TokenType.None).map((Literal.None, _)))
+      .map(State(Literal.False, _))
+      .orElse(matchAny(TokenType.True).map(State(Literal.True, _)))
+      .orElse(matchAny(TokenType.None).map(State(Literal.None, _)))
       .orElse {
         matchAnyWith {
           case TokenType.Number(_) => true
@@ -62,14 +64,14 @@ private[parsers] trait ExprParser { _: Parser =>
           (parser.previous.tokenType match {
             case TokenType.Number(number) => Literal.Number(number)
             case TokenType.Str(string)    => Literal.Str(string)
-          }).pipe((_, parser))
+          }).pipe(State(_, parser))
         }
       }
       .map(Result.success)
       .getOrElse(
         matchAny(TokenType.LeftParen)
           .fold[ParseResult[Expr]](Result.fail(ParseError.expected(peek, "expression"))) { parser =>
-            parser.expression.flatMap { case (expr, newParser) =>
+            parser.expression.flatMap { case State(expr, newParser) =>
               newParser.consume(TokenType.RightParen, ")").mapValue(_ => Grouping(expr))
             }
           }
@@ -83,19 +85,19 @@ private[parsers] trait ExprParser { _: Parser =>
       operand: Parser => ParseResult[Expr],
       operators: TokenType*
   ): ParseResult[Expr] =
-    operand(this).flatMap { case (expr, parser) =>
+    operand(this).flatMap { case State(expr, parser) =>
       def recurse(expr: Expr, parser: Parser): ParseResult[Expr] =
         parser
           .matchAny(operators: _*)
           .map { parser =>
             val operator = parser.previous
-            operand(parser).flatMap { case (right, newParser) =>
+            operand(parser).flatMap { case State(right, newParser) =>
               // recursively check if another operator from the given set, followed by
               // the same operand, is found again
               recurse(Binary(expr, operator, right), newParser)
             }
           }
-          .getOrElse(Result.success(expr, parser))
+          .getOrElse(State(expr, parser).ok)
 
       recurse(expr, parser)
     }
