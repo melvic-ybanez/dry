@@ -13,7 +13,7 @@ object Run {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      Run.source(input).foreach(error => System.err.println(Failure.show(error)))
+      Run.source(input).foreach(_.foreach(error => System.err.println(Failure.show(error))))
       prompt()
     }
   }
@@ -28,19 +28,19 @@ object Run {
     }
 
     val result = Run.source(code)
-    result foreach {
+    result.foreach(_ foreach {
       case error: RuntimeError => reportAndExit(error, 70)
       case error               => reportAndExit(error, 65)
-    }
+    })
     source.close
   }
 
-  def source(source: String): List[Failure] = {
+  def source(source: String): Option[Nel[Failure]] = {
     val result = for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
       _      <- Interpreter.interpret(decls)
     } yield ()
-    result.left.toOption.getOrElse(Nil)
+    result.left.toOption
   }
 }

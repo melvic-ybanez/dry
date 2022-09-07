@@ -13,10 +13,9 @@ trait DeclParser extends StmtParser { _: Parser =>
       case Some(parser) => parser.letDecl
     }).pipe {
       case result @ ParseResult(Left(_), _) => result.mapParser(_.synchronize)
-      case result => result
+      case result                           => result
     }
 
   // TODO: Implement this function
-  def letDecl: ParseResult[LetDecl] =
-    ParseResult.failAll(Nil, this)
+  def letDecl: ParseResult[LetDecl] = ???
 }

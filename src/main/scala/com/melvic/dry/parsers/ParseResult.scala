@@ -1,7 +1,7 @@
 package com.melvic.dry.parsers
 
 import com.melvic.dry.Result.Result
-import com.melvic.dry.{Failure, Result}
+import com.melvic.dry.{Failure, Nel, Result}
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -21,7 +21,7 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
       case Left(errors) => ParseResult.failAll(errors, parser)
     }
 
-  def mapErrors(f: (List[Failure], Parser) => (List[Failure], Parser)): ParseResult[A] =
+  def mapErrors(f: (Nel[Failure], Parser) => (Nel[Failure], Parser)): ParseResult[A] =
     result match {
       case Left(errors) =>
         f(errors, parser).pipe { case (newErrors, newParser) => ParseResult.failAll(newErrors, newParser) }
@@ -39,6 +39,6 @@ object ParseResult {
   def fail[A](failure: Failure, parser: Parser): ParseResult[A] =
     ParseResult(Result.fail(failure), parser)
 
-  def failAll[A](failures: List[Failure], parser: Parser): ParseResult[A] =
+  def failAll[A](failures: Nel[Failure], parser: Parser): ParseResult[A] =
     ParseResult(Result.failAll(failures), parser)
 }

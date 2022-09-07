@@ -1,20 +1,21 @@
 package com.melvic.dry
 
+import com.melvic.dry.Nel.One
+
 object Result {
-  // TODO: Left channel can't be empty
-  type Result[+A] = Either[List[Failure], A]
+  type Result[+A] = Either[Nel[Failure], A]
 
   def success[A](value: A): Result[A] =
     Right(value)
 
   def fail[A](error: Failure): Result[A] =
-    Left(error :: Nil)
+    Left(One(error))
 
-  def failAll[A](errors: List[Failure]): Result[A] =
+  def failAll[A](errors: Nel[Failure]): Result[A] =
     Left(errors)
 
   def fromOption[A](option: Option[A], error: => Failure): Result[A] =
-    option.toRight(error :: Nil)
+    option.toRight(One(error))
 
   object impilcits {
     implicit class ToResult[A](value: A) {
