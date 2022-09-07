@@ -1,6 +1,6 @@
 package com.melvic.dry
 
-import com.melvic.dry.Error.RuntimeError
+import com.melvic.dry.Failure.RuntimeError
 import com.melvic.dry.parsers.Parser
 
 import scala.annotation.tailrec
@@ -13,7 +13,7 @@ object Run {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      Run.source(input).foreach(error => System.err.println(Error.show(error)))
+      Run.source(input).foreach(error => System.err.println(Failure.show(error)))
       prompt()
     }
   }
@@ -22,8 +22,8 @@ object Run {
     val source = Source.fromFile(path)
     val code   = source.getLines.mkString("\n")
 
-    def reportAndExit(error: Error, code: Int): Unit = {
-      System.err.println(Error.show(error))
+    def reportAndExit(error: Failure, code: Int): Unit = {
+      System.err.println(Failure.show(error))
       System.exit(code)
     }
 
@@ -35,10 +35,10 @@ object Run {
     source.close
   }
 
-  def source(source: String): List[Error] = {
+  def source(source: String): List[Failure] = {
     val result = for {
       tokens <- Lexer.scanTokens(source)
-      decls  <- Parser.fromTokens(tokens).parse
+      decls  <- Parser.fromTokens(tokens).parse.result
       _      <- Interpreter.interpret(decls)
     } yield ()
     result.left.toOption.getOrElse(Nil)

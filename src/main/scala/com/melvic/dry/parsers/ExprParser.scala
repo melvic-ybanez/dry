@@ -1,13 +1,9 @@
 package com.melvic.dry.parsers
 
-import com.melvic.dry.Error.ParseError
-import com.melvic.dry.Result
-import com.melvic.dry.Result.impilcits.ToResult
+import com.melvic.dry.Failure.ParseError
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
-import com.melvic.dry.parsers.Parser.ParseResult
-import com.melvic.dry.parsers.Parser.implicits._
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -67,13 +63,14 @@ private[parsers] trait ExprParser { _: Parser =>
           }).pipe(State(_, parser))
         }
       }
-      .map(Result.success)
+      .map(_.toParseResult)
       .getOrElse(
         matchAny(TokenType.LeftParen)
-          .fold[ParseResult[Expr]](Result.fail(ParseError.expected(peek, "expression"))) { parser =>
-            parser.expression.flatMap { case State(expr, newParser) =>
-              newParser.consume(TokenType.RightParen, ")").mapValue(_ => Grouping(expr))
-            }
+          .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression"), this)) {
+            parser =>
+              parser.expression.flatMap { case State(expr, newParser) =>
+                newParser.consume(TokenType.RightParen, ")").mapValue(_ => Grouping(expr))
+              }
           }
       )
 
@@ -97,7 +94,7 @@ private[parsers] trait ExprParser { _: Parser =>
               recurse(Binary(expr, operator, right), newParser)
             }
           }
-          .getOrElse(State(expr, parser).ok)
+          .getOrElse(State(expr, parser).toParseResult)
 
       recurse(expr, parser)
     }

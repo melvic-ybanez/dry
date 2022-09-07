@@ -1,12 +1,16 @@
 package com.melvic.dry.parsers
 
+import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.ast.Decl.StmtDecl
-import com.melvic.dry.parsers.Parser.ParseResult
-import com.melvic.dry.parsers.Parser.implicits._
+import com.melvic.dry.ast.Decl.{LetDecl, StmtDecl}
 
 trait DeclParser extends StmtParser { _: Parser =>
   // TODO: Implement declaration
   def declaration: ParseResult[Decl] =
-    statement.mapValue(StmtDecl)
+    matchAny(TokenType.Let) match {
+      case None         => statement.mapValue(StmtDecl)
+      case Some(parser) => parser.letDecl
+    }
+
+  def letDecl: ParseResult[LetDecl] = ???
 }

@@ -1,15 +1,18 @@
 package com.melvic.dry
 
 object Result {
-  type Result[+A] = Either[List[Error], A]
+  type Result[+A] = Either[List[Failure], A]
 
   def success[A](value: A): Result[A] =
     Right(value)
 
-  def fail[A](error: Error): Result[A] =
+  def fail[A](error: Failure): Result[A] =
     Left(error :: Nil)
 
-  def fromOption[A](option: Option[A], error: => Error): Result[A] =
+  def failAll[A](errors: List[Failure]): Result[A] =
+    Left(errors)
+
+  def fromOption[A](option: Option[A], error: => Failure): Result[A] =
     option.toRight(error :: Nil)
 
   object impilcits {

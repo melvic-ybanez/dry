@@ -1,33 +1,33 @@
 package com.melvic.dry
 
-import com.melvic.dry.Error.ParseError.Expected
-import com.melvic.dry.Error.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands}
+import com.melvic.dry.Failure.ParseError.Expected
+import com.melvic.dry.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands}
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.implicits.ListOps
 
-sealed trait Error
+sealed trait Failure
 
-object Error {
-  final case class Line(line: Int, where: String, message: String) extends Error
-  final case class InvalidCharacter(line: Int, char: Char)         extends Error
-  final case class UnterminatedString(line: Int)                   extends Error
+object Failure {
+  final case class Line(line: Int, where: String, message: String) extends Failure
+  final case class InvalidCharacter(line: Int, char: Char)         extends Failure
+  final case class UnterminatedString(line: Int)                   extends Failure
 
-  sealed trait ParseError extends Error
+  sealed trait ParseError extends Failure
 
-  sealed trait RuntimeError extends Error {
+  sealed trait RuntimeError extends Failure {
     def token: Token
   }
 
-  def line(line: Int, message: String): Error =
+  def line(line: Int, message: String): Failure =
     Line(line, "", message)
 
-  def invalidCharacter(line: Int, char: Char): Error =
+  def invalidCharacter(line: Int, char: Char): Failure =
     InvalidCharacter(line, char)
 
-  def unterminatedString(line: Int): Error =
+  def unterminatedString(line: Int): Failure =
     UnterminatedString(line)
 
-  def show(error: Error): String =
+  def show(error: Failure): String =
     error match {
       case Line(line, where, message)       => showFullLine(line, where, message)
       case InvalidCharacter(line, c)        => showLineAndMessage(line, s"Invalid character: $c")

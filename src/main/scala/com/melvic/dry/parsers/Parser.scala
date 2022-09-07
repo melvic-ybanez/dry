@@ -1,20 +1,17 @@
 package com.melvic.dry.parsers
 
-import com.melvic.dry.Error.ParseError
-import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ToResult
+import com.melvic.dry.Failure.ParseError
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.parsers.Parser.ParseResult
-import com.melvic.dry.{Result, Token}
 
 import scala.annotation.tailrec
 import scala.util.chaining._
 
 final case class Parser(tokens: List[Token], current: Int) extends ExprParser with DeclParser {
-  def parse: Result[List[Decl]] = {
-    def recurse(parser: Parser, statements: List[Decl]): Result[List[Decl]] =
-      if (parser.isAtEnd) statements.reverse.ok
+  def parse: ParseResult[List[Decl]] = {
+    def recurse(parser: Parser, statements: List[Decl]): ParseResult[List[Decl]] =
+      if (parser.isAtEnd) ParseResult.success(statements.reverse, parser)
       else
         parser.declaration.flatMap { case State(stmt, newParser) =>
           recurse(newParser, stmt :: statements)
@@ -47,8 +44,8 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
     }
 
   def consume(tokenType: TokenType, expected: String): ParseResult[Token] =
-    if (check(tokenType)) Result.success(advance)
-    else Result.fail(ParseError.expected(peek, expected))
+    if (check(tokenType)) advance.toParseResult
+    else ParseResult.fail(ParseError.expected(peek, expected), this)
 
   def isAtEnd: Boolean =
     peek.tokenType == TokenType.Eof
@@ -78,15 +75,6 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
 }
 
 object Parser {
-  type ParseResult[+A] = Result[State[A]]
-
   def fromTokens(tokens: List[Token]): Parser =
     Parser(tokens, 0)
-
-  object implicits {
-    implicit class ParseResultOps[A](result: ParseResult[A]) {
-      def mapValue[B](f: A => B): ParseResult[B] =
-        result.map(_.map(f))
-    }
-  }
 }

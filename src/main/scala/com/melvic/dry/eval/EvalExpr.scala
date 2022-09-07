@@ -1,6 +1,6 @@
 package com.melvic.dry.eval
 
-import com.melvic.dry.Error.RuntimeError
+import com.melvic.dry.Failure.RuntimeError
 import com.melvic.dry.Result.Result
 import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType

@@ -3,7 +3,6 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Stmt.{ExprStmt, PrintStmt}
 import com.melvic.dry.ast.{Expr, Stmt}
-import com.melvic.dry.parsers.Parser.ParseResult
 
 private[parsers] trait StmtParser { _: Parser =>
   def statement: ParseResult[Stmt] =
