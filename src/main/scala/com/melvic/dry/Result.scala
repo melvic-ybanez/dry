@@ -1,6 +1,7 @@
 package com.melvic.dry
 
 object Result {
+  // TODO: Left channel can't be empty
   type Result[+A] = Either[List[Failure], A]
 
   def success[A](value: A): Result[A] =

@@ -3,6 +3,8 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Result.Result
 import com.melvic.dry.{Failure, Result}
 
+import scala.util.chaining.scalaUtilChainingOps
+
 final case class ParseResult[+A](result: Result[A], parser: Parser) {
   def map[B](f: State[A] => State[B]): ParseResult[B] =
     result match {
@@ -18,6 +20,16 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
       case Right(value) => f(State(value, parser))
       case Left(errors) => ParseResult.failAll(errors, parser)
     }
+
+  def mapErrors(f: (List[Failure], Parser) => (List[Failure], Parser)): ParseResult[A] =
+    result match {
+      case Left(errors) =>
+        f(errors, parser).pipe { case (newErrors, newParser) => ParseResult.failAll(newErrors, newParser) }
+      case _ => this
+    }
+
+  def mapParser(f: Parser => Parser): ParseResult[A] =
+    copy(parser = f(parser))
 }
 
 object ParseResult {
