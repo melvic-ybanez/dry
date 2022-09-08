@@ -1,8 +1,9 @@
 package com.melvic.dry.parsers
 
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.ast.Decl.{LetDecl, StmtDecl}
+import com.melvic.dry.ast.Decl.{Let, LetDecl, LetInit, StmtDecl}
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -16,6 +17,17 @@ trait DeclParser extends StmtParser { _: Parser =>
       case result                           => result
     }
 
-  // TODO: Implement this function
-  def letDecl: ParseResult[LetDecl] = ???
+  def letDecl: ParseResult[Let] = {
+    def consumeSemicolon(parser: Parser): ParseResult[Token] =
+      parser.consume(TokenType.Semicolon, ";")
+
+    consume(TokenType.Identifier, "identifier").flatMap { case State(name, parser) =>
+      matchAny(TokenType.Equal)
+      .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
+        parser.expression.flatMap { case State(init, parser) =>
+          consumeSemicolon(parser).mapValue(_ => LetInit(name, init))
+        }
+      }
+    }
+  }
 }
