@@ -1,7 +1,7 @@
 package com.melvic.dry.parsers
 
-import com.melvic.dry.Result.Result
-import com.melvic.dry.{Failure, Nel, Result}
+import com.melvic.dry.result.{Failure, Nel, Result}
+import com.melvic.dry.result.Result.Result
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -34,7 +34,7 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 
 object ParseResult {
   def success[A](value: A, parser: Parser): ParseResult[A] =
-    ParseResult(Result.success(value), parser)
+    ParseResult(Result.succeed(value), parser)
 
   def fail[A](failure: Failure, parser: Parser): ParseResult[A] =
     ParseResult(Result.fail(failure), parser)

@@ -1,5 +1,7 @@
 package com.melvic.dry
 
+import com.melvic.dry.interpreter.Run
+
 object Main {
   def main(args: Array[String]): Unit =
     args match {

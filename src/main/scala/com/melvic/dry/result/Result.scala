@@ -1,11 +1,11 @@
-package com.melvic.dry
+package com.melvic.dry.result
 
-import com.melvic.dry.Nel.One
+import com.melvic.dry.result.Nel.One
 
 object Result {
   type Result[+A] = Either[Nel[Failure], A]
 
-  def success[A](value: A): Result[A] =
+  def succeed[A](value: A): Result[A] =
     Right(value)
 
   def fail[A](error: Failure): Result[A] =
@@ -17,10 +17,10 @@ object Result {
   def fromOption[A](option: Option[A], error: => Failure): Result[A] =
     option.toRight(One(error))
 
-  object impilcits {
+  object implicits {
     implicit class ToResult[A](value: A) {
       def ok: Result[A] =
-        Result.success(value)
+        Result.succeed(value)
     }
   }
 }

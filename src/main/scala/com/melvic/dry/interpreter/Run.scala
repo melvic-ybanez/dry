@@ -1,7 +1,9 @@
-package com.melvic.dry
+package com.melvic.dry.interpreter
 
-import com.melvic.dry.Failure.RuntimeError
+import com.melvic.dry.Lexer
 import com.melvic.dry.parsers.Parser
+import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.result.{Failure, Nel}
 
 import scala.annotation.tailrec
 import scala.io.Source

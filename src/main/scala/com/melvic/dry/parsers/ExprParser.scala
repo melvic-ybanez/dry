@@ -1,9 +1,9 @@
 package com.melvic.dry.parsers
 
-import com.melvic.dry.Failure.ParseError
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
+import com.melvic.dry.result.Failure.ParseError
 
 import scala.util.chaining.scalaUtilChainingOps
 

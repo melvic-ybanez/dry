@@ -1,14 +1,15 @@
 package com.melvic.dry.eval
 
-import com.melvic.dry.Failure.RuntimeError
-import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
 import com.melvic.dry.eval.Evaluate.{Evaluate, isTruthy}
-import com.melvic.dry.{Result, Token, Value}
+import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.result.Result
+import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.Result.implicits.ToResult
+import com.melvic.dry.{Token, Value}
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {

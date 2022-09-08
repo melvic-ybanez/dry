@@ -1,9 +1,10 @@
-package com.melvic.dry
+package com.melvic.dry.result
 
-import com.melvic.dry.Failure.ParseError.Expected
-import com.melvic.dry.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands}
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.implicits.ListOps
+import com.melvic.dry.result.Failure.ParseError.Expected
+import com.melvic.dry.result.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands}
 
 sealed trait Failure
 

@@ -1,9 +1,9 @@
-package com.melvic.dry
+package com.melvic.dry.interpreter
 
-import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ToResult
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.eval.Evaluate
+import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.Result.implicits.ToResult
 
 object Interpreter {
   def interpret(statements: List[Decl]): Result[Unit] = {

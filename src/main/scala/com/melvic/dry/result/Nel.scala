@@ -1,6 +1,6 @@
-package com.melvic.dry
+package com.melvic.dry.result
 
-import com.melvic.dry.Nel.{Many, One}
+import com.melvic.dry.result.Nel.{Many, One}
 
 /**
  * Non-empty list

@@ -1,8 +1,9 @@
 package com.melvic.dry
 
-import com.melvic.dry.Result.Result
-import com.melvic.dry.Result.impilcits.ToResult
+import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.result.{Failure, Result}
 
 import scala.annotation.tailrec
 
@@ -168,7 +169,7 @@ object Lexer {
   def fromSource(source: String): Result[Lexer] = {
     @tailrec
     def loop(lexer: Lexer): Result[Lexer] =
-      if (lexer.isAtEnd) Result.success(lexer)
+      if (lexer.isAtEnd) Result.succeed(lexer)
       else
         lexer.scanNext match {
           case error @ Left(_) => error
