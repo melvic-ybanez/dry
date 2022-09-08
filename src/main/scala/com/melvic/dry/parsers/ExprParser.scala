@@ -3,7 +3,7 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Failure.ParseError
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
-import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
+import com.melvic.dry.ast.Expr._
 
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -63,6 +63,7 @@ private[parsers] trait ExprParser { _: Parser =>
           }).pipe(State(_, parser))
         }
       }
+      .orElse(matchAny(TokenType.Identifier).map(p => State(Variable(p.previous), p)))
       .map(_.toParseResult)
       .getOrElse(
         matchAny(TokenType.LeftParen)
