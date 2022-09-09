@@ -16,7 +16,8 @@ object Value {
   final case class Bool(value: Boolean) extends Value
   final case class Num(value: Double) extends Value
   final case class Str(value: String) extends Value
-  case object Unit extends Value
+  sealed trait Unit extends Value
+  case object Unit extends Unit
 
   def show(value: Value): String =
     value match {

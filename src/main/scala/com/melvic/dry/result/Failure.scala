@@ -4,7 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.implicits.ListOps
 import com.melvic.dry.result.Failure.ParseError.Expected
-import com.melvic.dry.result.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands}
+import com.melvic.dry.result.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands, UndefinedVariable}
 
 sealed trait Failure
 
@@ -39,6 +39,7 @@ object Failure {
         showRuntimeError(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
         showRuntimeError(token, s"All operands must be any of the following: ${expected.toCsv}")
+      case UndefinedVariable(token) => showRuntimeError(token, s"Undefined variable: ${token.lexeme}")
     }
 
   def showFullLine(line: Int, where: String, message: String): String =
@@ -62,6 +63,7 @@ object Failure {
     final case class DivisionByZero(token: Token)                          extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String])  extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
+    final case class UndefinedVariable(token: Token)                       extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token)
@@ -71,5 +73,8 @@ object Failure {
 
     def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperands(operator, expected)
+
+    def undefinedVariable(token: Token): RuntimeError =
+      UndefinedVariable(token)
   }
 }
