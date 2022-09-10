@@ -15,11 +15,12 @@ import com.melvic.dry.{Env, Token, Value}
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
-    case literal: Literal   => Evaluate.literal(literal)
-    case Grouping(expr)     => Evaluate.expr(expr)
-    case unary: Unary       => Evaluate.unary(unary)
-    case binary: Binary     => Evaluate.binary(binary)
-    case variable: Variable => Evaluate.variable(variable)
+    case literal: Literal       => Evaluate.literal(literal)
+    case Grouping(expr)         => Evaluate.expr(expr)
+    case unary: Unary           => Evaluate.unary(unary)
+    case binary: Binary         => Evaluate.binary(binary)
+    case variable: Variable     => Evaluate.variable(variable)
+    case assignment: Assignment => Evaluate.assignment(assignment)
   }
 
   def unary: Evaluate[Unary] = { case Unary(operator @ Token(operatorType, _, _), operandTree) =>
@@ -112,6 +113,14 @@ private[eval] trait EvalExpr {
 
   def variable: Evaluate[Variable] = { case Variable(expr) =>
     toEvalResult(Env.get(expr))
+  }
+
+  def assignment: Evaluate[Assignment] = { case Assignment(name, value) =>
+    Evaluate
+      .expr(value)
+      .map(_.flatMap { case (value, env) =>
+        env.assign(name, value).map((value, _))
+      })
   }
 
 }

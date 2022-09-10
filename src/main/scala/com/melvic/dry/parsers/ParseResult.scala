@@ -33,7 +33,7 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 }
 
 object ParseResult {
-  def success[A](value: A, parser: Parser): ParseResult[A] =
+  def succeed[A](value: A, parser: Parser): ParseResult[A] =
     ParseResult(Result.succeed(value), parser)
 
   def fail[A](failure: Failure, parser: Parser): ParseResult[A] =

@@ -3,8 +3,13 @@ package com.melvic.dry.result
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.implicits.ListOps
-import com.melvic.dry.result.Failure.ParseError.Expected
-import com.melvic.dry.result.Failure.RuntimeError.{DivisionByZero, InvalidOperand, InvalidOperands, UndefinedVariable}
+import com.melvic.dry.result.Failure.ParseError.{Expected, InvalidAssignmentTarget}
+import com.melvic.dry.result.Failure.RuntimeError.{
+  DivisionByZero,
+  InvalidOperand,
+  InvalidOperands,
+  UndefinedVariable
+}
 
 sealed trait Failure
 
@@ -34,7 +39,9 @@ object Failure {
       case InvalidCharacter(line, c)        => showLineAndMessage(line, s"Invalid character: $c")
       case UnterminatedString(line)         => showLineAndMessage(line, "Unterminated string")
       case Expected(start, expected, where) => showFullLine(start.line, where, s"Expected '$expected'.")
-      case DivisionByZero(token)            => showRuntimeError(token, "Division by zero")
+      case InvalidAssignmentTarget(assignment) =>
+        showLineAndMessage(assignment.line, "Invalid assignment target")
+      case DivisionByZero(token) => showRuntimeError(token, "Division by zero")
       case InvalidOperand(token, expected) =>
         showRuntimeError(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
@@ -53,10 +60,14 @@ object Failure {
 
   object ParseError {
     final case class Expected(start: Token, expected: String, where: String) extends ParseError
+    final case class InvalidAssignmentTarget(assignment: Token)              extends ParseError
 
     def expected(start: Token, end: String): ParseError =
       if (start.tokenType == TokenType.Eof) Expected(start, end, "at end")
       else Expected(start, end, s"at '${start.lexeme}'")
+
+    def invalidAssignmentTarget(assignment: Token): ParseError =
+      InvalidAssignmentTarget(assignment)
   }
 
   object RuntimeError {

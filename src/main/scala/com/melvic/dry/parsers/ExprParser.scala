@@ -9,7 +9,20 @@ import scala.util.chaining.scalaUtilChainingOps
 
 private[parsers] trait ExprParser { _: Parser =>
   def expression: ParseResult[Expr] =
-    equality
+    assignment
+
+  def assignment: ParseResult[Expr] =
+    equality.flatMap { case State(lValue, parser) =>
+      parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
+        val equals = parser.previous
+        parser.assignment.flatMap { case State(rValue, parser) =>
+          lValue match {
+            case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
+            case _              => ParseResult.fail(ParseError.invalidAssignmentTarget(equals), parser)
+          }
+        }
+      }
+    }
 
   def equality: ParseResult[Expr] =
     leftAssocBinary(_.comparison, TokenType.NotEqual, TokenType.EqualEqual)

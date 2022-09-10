@@ -5,5 +5,5 @@ final case class State[+A](value: A, parser: Parser) {
     State(f(value), parser)
 
   def toParseResult: ParseResult[A] =
-    ParseResult.success(value, parser)
+    ParseResult.succeed(value, parser)
 }

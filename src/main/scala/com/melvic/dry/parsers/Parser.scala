@@ -11,7 +11,7 @@ import scala.util.chaining._
 final case class Parser(tokens: List[Token], current: Int) extends ExprParser with DeclParser {
   def parse: ParseResult[List[Decl]] = {
     def recurse(parser: Parser, statements: List[Decl]): ParseResult[List[Decl]] =
-      if (parser.isAtEnd) ParseResult.success(statements.reverse, parser)
+      if (parser.isAtEnd) ParseResult.succeed(statements.reverse, parser)
       else
         parser.declaration.flatMap { case State(stmt, newParser) =>
           recurse(newParser, stmt :: statements)

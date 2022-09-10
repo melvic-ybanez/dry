@@ -12,6 +12,10 @@ final case class Env(table: Map[String, Value]) {
   def register(name: String, value: Value): Env =
     Env(table = table + (name -> value))
 
+  def assign(name: Token, value: Value): Result[Env] =
+    if (table.contains(name.lexeme)) Result.succeed(register(name.lexeme, value))
+    else Result.fail(RuntimeError.undefinedVariable(name))
+
   def get(name: Token): Result[Value] =
     Result.fromOption(table.get(name.lexeme), RuntimeError.undefinedVariable(name))
 }
