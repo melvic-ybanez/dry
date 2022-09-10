@@ -1,8 +1,8 @@
 package com.melvic.dry
 
 import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
-import com.melvic.dry.result.{Failure, Result}
 
 final case class Env(table: Map[String, Value]) {
 
@@ -18,4 +18,7 @@ final case class Env(table: Map[String, Value]) {
 
 object Env {
   def empty: Env = Env(Map())
+
+  def get(name: Token): Env => Result[Value] =
+    _.get(name)
 }

@@ -3,22 +3,23 @@ package com.melvic.dry.eval
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
-import com.melvic.dry.ast.Expr.{Binary, Grouping, Literal, Unary}
-import com.melvic.dry.eval.Evaluate.implicits._
-import com.melvic.dry.eval.Evaluate.{Evaluate, isTruthy}
+import com.melvic.dry.ast.Expr._
+import com.melvic.dry.eval.Evaluate.isTruthy
+import com.melvic.dry.eval.implicits._
 import com.melvic.dry.implicits._
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
-import com.melvic.dry.{Token, Value}
+import com.melvic.dry.{Env, Token, Value}
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
-    case literal: Literal => Evaluate.literal(literal)
-    case Grouping(expr)   => Evaluate.expr(expr)
-    case unary: Unary     => Evaluate.unary(unary)
-    case binary: Binary   => Evaluate.binary(binary)
+    case literal: Literal   => Evaluate.literal(literal)
+    case Grouping(expr)     => Evaluate.expr(expr)
+    case unary: Unary       => Evaluate.unary(unary)
+    case binary: Binary     => Evaluate.binary(binary)
+    case variable: Variable => Evaluate.variable(variable)
   }
 
   def unary: Evaluate[Unary] = { case Unary(operator @ Token(operatorType, _, _), operandTree) =>
@@ -97,7 +98,7 @@ private[eval] trait EvalExpr {
       for {
         left   <- Evaluate.expr(leftTree)(env)
         right  <- Evaluate.expr(rightTree)(left.env)
-        result <- fromValueOperands(left.value, right.value).withEnv(env)
+        result <- fromValueOperands(left.value, right.value).withEnv(right.env)
       } yield result
   }
 
@@ -107,6 +108,10 @@ private[eval] trait EvalExpr {
     case Literal.None          => VNone.env
     case Literal.Number(value) => Num(value).env
     case Literal.Str(string)   => Str(string).env
+  }
+
+  def variable: Evaluate[Variable] = { case Variable(expr) =>
+    toEvalResult(Env.get(expr))
   }
 
 }

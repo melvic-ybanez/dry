@@ -3,7 +3,6 @@ package com.melvic.dry.eval
 import com.melvic.dry.Value
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.ast.Decl.{Let, LetDecl, LetInit, StmtDecl}
-import com.melvic.dry.eval.Evaluate.Evaluate
 import com.melvic.dry.implicits._
 import com.melvic.dry.result.Result.implicits.ToResult
 

@@ -4,8 +4,7 @@ import com.melvic.dry.Value
 import com.melvic.dry.Value.{Unit => VUnit}
 import com.melvic.dry.ast.Stmt
 import com.melvic.dry.ast.Stmt.{ExprStmt, PrintStmt}
-import com.melvic.dry.eval.Evaluate.Evaluate
-import com.melvic.dry.eval.Evaluate.implicits._
+import com.melvic.dry.eval.implicits._
 
 private[eval] trait EvalStmt {
   def stmt: Evaluate[Stmt] = {

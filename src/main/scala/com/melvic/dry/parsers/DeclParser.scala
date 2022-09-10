@@ -7,7 +7,7 @@ import com.melvic.dry.ast.Decl.{Let, LetDecl, LetInit, StmtDecl}
 
 import scala.util.chaining.scalaUtilChainingOps
 
-trait DeclParser extends StmtParser { _: Parser =>
+private[parsers] trait DeclParser extends StmtParser { _: Parser =>
   def declaration: ParseResult[Decl] =
     (matchAny(TokenType.Let) match {
       case None         => statement.mapValue(StmtDecl)
@@ -22,12 +22,12 @@ trait DeclParser extends StmtParser { _: Parser =>
       parser.consume(TokenType.Semicolon, ";")
 
     consume(TokenType.Identifier, "identifier").flatMap { case State(name, parser) =>
-      matchAny(TokenType.Equal)
-      .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
-        parser.expression.flatMap { case State(init, parser) =>
-          consumeSemicolon(parser).mapValue(_ => LetInit(name, init))
+      parser.matchAny(TokenType.Equal)
+        .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
+          parser.expression.flatMap { case State(init, parser) =>
+            consumeSemicolon(parser).mapValue(_ => LetInit(name, init))
+          }
         }
-      }
     }
   }
 }
