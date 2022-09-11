@@ -18,7 +18,7 @@ private[eval] trait EvalDecl extends EvalStmt {
 
   def let: Evaluate[Let] = {
     def letDecl: Evaluate[LetDecl] = { case LetDecl(name) =>
-      env => (Value.Unit, env.register(name.lexeme, Value.None)).ok
+      env => (Value.Unit, env.set(name.lexeme, Value.None)).ok
     }
 
     def letInit: Evaluate[LetInit] = { case LetInit(name, init) =>
@@ -26,7 +26,7 @@ private[eval] trait EvalDecl extends EvalStmt {
         .expr(init)
         .map(
           _.flatMap { case (value, env) =>
-            (Value.Unit, env.register(name.lexeme, value)).ok
+            (Value.Unit, env.set(name.lexeme, value)).ok
           }
         )
     }
