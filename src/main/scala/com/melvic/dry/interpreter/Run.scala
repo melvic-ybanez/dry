@@ -1,22 +1,34 @@
 package com.melvic.dry.interpreter
 
-import com.melvic.dry.Lexer
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.result.Failure.RuntimeError
-import com.melvic.dry.result.{Failure, Nel}
+import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.{Failure, Result}
+import com.melvic.dry.{Lexer, Value}
 
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.io.StdIn.readLine
+import scala.util.chaining.scalaUtilChainingOps
 
 object Run {
   @tailrec
-  def prompt(): Unit = {
+  def repl(): Unit = {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      Run.source(input).foreach(_.foreach(error => System.err.println(Failure.show(error))))
-      prompt()
+      Run
+        .source {
+          // this is a trick I'm using to make repl accept expressions that
+          // do not end with semicolons.
+          if (input.endsWith(";")) input else input + ";"
+        }
+        .map {
+          case Value.Unit => () // this is to avoid extra blank lines in the output
+          case value => println(Value.show(value))
+        }
+        .pipe(Result.foreachFailure(_)(error => System.err.println(Failure.show(error))))
+      repl()
     }
   }
 
@@ -30,19 +42,17 @@ object Run {
     }
 
     val result = Run.source(code)
-    result.foreach(_ foreach {
+    Result.foreachFailure(result) {
       case error: RuntimeError => reportAndExit(error, 70)
       case error               => reportAndExit(error, 65)
-    })
+    }
     source.close
   }
 
-  def source(source: String): Option[Nel[Failure]] = {
-    val result = for {
+  def source(source: String): Result[Value] =
+    for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
-      _      <- Interpreter.interpret(decls)
-    } yield ()
-    result.left.toOption
-  }
+      value  <- Interpreter.interpret(decls)
+    } yield value
 }

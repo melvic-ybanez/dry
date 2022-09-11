@@ -16,7 +16,7 @@ private[eval] trait EvalStmt {
   }
 
   def exprStmt: Evaluate[ExprStmt] = { case ExprStmt(expr) =>
-    Evaluate.expr(expr).mapValue(_ => VUnit)
+    Evaluate.expr(expr).mapValue(Value.ExprStmt)
   }
 
   def printStmt: Evaluate[PrintStmt] = { case PrintStmt(expr) =>

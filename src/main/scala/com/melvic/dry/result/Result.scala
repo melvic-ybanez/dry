@@ -24,6 +24,9 @@ object Result {
   def succeedFromEnv[A](value: A): Env => Result[A] =
     _ => Result.succeed(value)
 
+  def foreachFailure[A](result: Result[A])(f: Failure => Unit): Unit =
+    result.left.foreach(_.foreach(f))
+
   object implicits {
     implicit class ToResult[A](value: A) {
       def ok: Result[A] =
