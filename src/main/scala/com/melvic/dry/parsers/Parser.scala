@@ -29,9 +29,9 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
       case false => None
     }
 
-  def checkWith(f: PartialFunction[TokenType, Boolean]): Boolean =
+  def checkWith(predicate: PartialFunction[TokenType, Boolean]): Boolean =
     if (isAtEnd) false
-    else f.applyOrElse(peek.tokenType, (_: TokenType) => false)
+    else predicate.applyOrElse(peek.tokenType, (_: TokenType) => false)
 
   def check(tokenType: TokenType): Boolean =
     checkWith(_ == tokenType)

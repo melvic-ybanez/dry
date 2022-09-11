@@ -1,18 +1,34 @@
 package com.melvic.dry.parsers
 
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.ast.Stmt.{ExprStmt, PrintStmt}
-import com.melvic.dry.ast.{Expr, Stmt}
+import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, PrintStmt}
+import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
-private[parsers] trait StmtParser { _: Parser =>
+private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
-    matchAny(TokenType.Print).fold(expressionStatement)(_.printStatement)
+    matchAny(TokenType.Print)
+      .fold(matchAny(TokenType.LeftBrace).fold(expressionStatement)(_.block))(_.printStatement)
 
   def expressionStatement: ParseResult[Stmt] =
     expressionLikeStatement(ExprStmt)
 
   def printStatement: ParseResult[Stmt] =
     expressionLikeStatement(PrintStmt)
+
+  def block: ParseResult[BlockStmt] = {
+    def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
+      result.flatMap { case State(declarations, parser) =>
+        if (parser.check(TokenType.RightBrace) || parser.isAtEnd) result.mapValue(_.reverse)
+        else
+          parser.declaration.flatMap { case State(declaration, parser) =>
+            recurse(ParseResult.succeed(declaration :: declarations, parser))
+          }
+      }
+
+    recurse(ParseResult.succeed(Nil, this)).flatMap { case State(decls, parser) =>
+      parser.consume(TokenType.RightBrace, "}").mapValue(_ => BlockStmt(decls))
+    }
+  }
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {

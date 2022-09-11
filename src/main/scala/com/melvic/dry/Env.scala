@@ -22,8 +22,8 @@ sealed trait Env {
     if (table.contains(name.lexeme)) Result.succeed(set(name.lexeme, value))
     else
       this match {
-        case GlobalEnv(_)       => Result.fail(RuntimeError.undefinedVariable(name))
-        case localEnv: LocalEnv => localEnv.assign(name, value)
+        case GlobalEnv(_)               => Result.fail(RuntimeError.undefinedVariable(name))
+        case LocalEnv(table, enclosing) => enclosing.assign(name, value).map(LocalEnv(table, _))
       }
 }
 
@@ -67,4 +67,7 @@ object Env {
 
   def get(name: Token): Env => Result[Value] =
     _.get(name)
+
+  def localEnv(enclosing: Env): Env =
+    LocalEnv(Map(), enclosing)
 }
