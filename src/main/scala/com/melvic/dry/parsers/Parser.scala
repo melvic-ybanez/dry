@@ -36,6 +36,21 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
   def check(tokenType: TokenType): Boolean =
     checkWith(_ == tokenType)
 
+  /**
+   * A switch-case version of [[matchAny]]. You provide a list of choices and a default parse result. Each
+   * choice maps a token-type to a parse function. The first choice with the first component that satisfies
+   * [[matchAny]] will invoke its corresponding parse function.
+   */
+  def select[A](default: ParseResult[A], choice: (TokenType, Parser => ParseResult[A])*): ParseResult[A] = {
+    def recurse(choices: List[(TokenType, Parser => ParseResult[A])]): ParseResult[A] =
+      choices match {
+        case Nil                 => default
+        case (choice, f) :: rest => matchAny(choice).fold(recurse(rest))(f)
+      }
+
+    recurse(choice.toList)
+  }
+
   def advance: State[Token] =
     if (isAtEnd) State(previous, this)
     else {
@@ -43,9 +58,9 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
       State(parser.previous, parser)
     }
 
-  def consume(tokenType: TokenType, expected: String): ParseResult[Token] =
+  def consume(tokenType: TokenType, expected: String, after: String): ParseResult[Token] =
     if (check(tokenType)) advance.toParseResult
-    else ParseResult.fail(ParseError.expected(peek, expected), this)
+    else ParseResult.fail(ParseError.expected(peek, expected, after), this)
 
   def isAtEnd: Boolean =
     peek.tokenType == TokenType.Eof

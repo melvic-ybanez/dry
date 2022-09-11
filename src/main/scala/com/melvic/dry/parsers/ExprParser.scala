@@ -80,10 +80,10 @@ private[parsers] trait ExprParser { _: Parser =>
       .map(_.toParseResult)
       .getOrElse(
         matchAny(TokenType.LeftParen)
-          .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression"), this)) {
+          .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
             parser =>
               parser.expression.flatMap { case State(expr, newParser) =>
-                newParser.consume(TokenType.RightParen, ")").mapValue(_ => Grouping(expr))
+                newParser.consume(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
               }
           }
       )

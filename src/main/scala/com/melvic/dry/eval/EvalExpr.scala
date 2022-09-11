@@ -4,7 +4,6 @@ import com.melvic.dry.Token.TokenType
 import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
-import com.melvic.dry.eval.Evaluate.isTruthy
 import com.melvic.dry.eval.implicits._
 import com.melvic.dry.implicits._
 import com.melvic.dry.result.Failure.RuntimeError

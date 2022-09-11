@@ -1,5 +1,6 @@
 package com.melvic.dry
 
+import com.melvic.dry.Value.{Bool, Str, None => VNone }
 import com.melvic.dry.result.Result.Result
 
 package object eval {
@@ -11,4 +12,12 @@ package object eval {
 
   def toEvalResult(f: Env => Result[Value]): EvalResult =
     env => f(env).map((_, env))
+
+  def isTruthy(value: Value): Boolean =
+    value match {
+      case VNone       => false
+      case Str("")     => false
+      case Bool(value) => value
+      case _           => true
+    }
 }

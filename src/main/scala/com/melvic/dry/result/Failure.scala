@@ -38,7 +38,7 @@ object Failure {
       case Line(line, where, message)       => showFullLine(line, where, message)
       case InvalidCharacter(line, c)        => showLineAndMessage(line, s"Invalid character: $c")
       case UnterminatedString(line)         => showLineAndMessage(line, "Unterminated string")
-      case Expected(start, expected, where) => showFullLine(start.line, where, s"Expected '$expected'.")
+      case Expected(start, expected, where, after) => showFullLine(start.line, where, s"Expected '$expected' after $after.")
       case InvalidAssignmentTarget(assignment) =>
         showLineAndMessage(assignment.line, "Invalid assignment target")
       case DivisionByZero(token) => showRuntimeError(token, "Division by zero")
@@ -59,12 +59,12 @@ object Failure {
     s"$message\n[line ${token.line}]. ${token.lexeme}"
 
   object ParseError {
-    final case class Expected(start: Token, expected: String, where: String) extends ParseError
+    final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token)              extends ParseError
 
-    def expected(start: Token, end: String): ParseError =
-      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end")
-      else Expected(start, end, s"at '${start.lexeme}'")
+    def expected(start: Token, end: String, after: String): ParseError =
+      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end", after)
+      else Expected(start, end, s"at '${start.lexeme}'", after)
 
     def invalidAssignmentTarget(assignment: Token): ParseError =
       InvalidAssignmentTarget(assignment)
