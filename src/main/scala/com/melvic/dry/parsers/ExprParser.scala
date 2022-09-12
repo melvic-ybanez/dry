@@ -1,5 +1,6 @@
 package com.melvic.dry.parsers
 
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
@@ -12,7 +13,7 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   def assignment: ParseResult[Expr] =
-    equality.flatMap { case State(lValue, parser) =>
+    or.flatMap { case State(lValue, parser) =>
       parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
         val equals = parser.previous
         parser.assignment.flatMap { case State(rValue, parser) =>
@@ -23,6 +24,12 @@ private[parsers] trait ExprParser { _: Parser =>
         }
       }
     }
+
+  def or: ParseResult[Expr] =
+    leftAssocLogical(_.and, TokenType.Or)
+
+  def and: ParseResult[Expr] =
+    leftAssocLogical(_.equality, TokenType.And)
 
   def equality: ParseResult[Expr] =
     leftAssocBinary(_.comparison, TokenType.NotEqual, TokenType.EqualEqual)
@@ -89,11 +96,30 @@ private[parsers] trait ExprParser { _: Parser =>
       )
 
   /**
-   * Parses a left-associative binary expression given a set of valid operators. The matched operator and
-   * right-hand operand can appear at-least zero times.
+   * Like [[leftAssocBinaryWith]], but is specific to non-logical binary operators.
    */
   private def leftAssocBinary(
       operand: Parser => ParseResult[Expr],
+      operators: TokenType*
+  ): ParseResult[Expr] =
+    leftAssocBinaryWith(operand, Binary, operators: _*)
+
+  /**
+   * Like [[leftAssocBinaryWith]], but is specific to logical binary operators.
+   */
+  private def leftAssocLogical(
+      operand: Parser => ParseResult[Expr],
+      operators: TokenType*
+  ): ParseResult[Expr] =
+    leftAssocBinaryWith(operand, Logical, operators: _*)
+
+  /**
+   * Parses a left-associative binary expression given a set of valid operators. The matched operator and
+   * right-hand operand can appear at-least zero times.
+   */
+  private def leftAssocBinaryWith[E <: Expr](
+      operand: Parser => ParseResult[Expr],
+      toBinary: (Expr, Token, Expr) => E,
       operators: TokenType*
   ): ParseResult[Expr] =
     operand(this).flatMap { case State(expr, parser) =>
@@ -105,7 +131,7 @@ private[parsers] trait ExprParser { _: Parser =>
             operand(parser).flatMap { case State(right, newParser) =>
               // recursively check if another operator from the given set, followed by
               // the same operand, is found again
-              recurse(Binary(expr, operator, right), newParser)
+              recurse(toBinary(expr, operator, right), newParser)
             }
           }
           .getOrElse(State(expr, parser).toParseResult)

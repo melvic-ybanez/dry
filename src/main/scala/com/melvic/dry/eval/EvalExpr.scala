@@ -20,6 +20,19 @@ private[eval] trait EvalExpr {
     case binary: Binary         => Evaluate.binary(binary)
     case variable: Variable     => Evaluate.variable(variable)
     case assignment: Assignment => Evaluate.assignment(assignment)
+    case logical: Logical       => Evaluate.logical(logical)
+  }
+
+  def logical: Evaluate[Logical] = { case Logical(left, operator, right) =>
+    Evaluate.expr(left).flatMapValue { left =>
+      def logical(predicate: Value => Boolean): EvalResult =
+        if (predicate(left)) left.env else Evaluate.expr(right)
+
+      operator.tokenType match {
+        case TokenType.Or  => logical(isTruthy)
+        case TokenType.And => logical(!isTruthy(_))
+      }
+    }
   }
 
   def unary: Evaluate[Unary] = { case Unary(operator @ Token(operatorType, _, _), operandTree) =>

@@ -20,4 +20,6 @@ object Expr {
   final case class Binary(left: Expr, operator: Token, right: Expr) extends Expr
   final case class Variable(token: Token) extends Expr
   final case class Assignment(name: Token, value: Expr) extends Expr
+
+  final case class Logical(left: Expr, operator: Token, right: Expr) extends Expr
 }

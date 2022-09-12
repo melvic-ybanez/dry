@@ -30,5 +30,10 @@ object implicits {
   implicit class EvalResultOps(result: EvalResult) {
     def mapValue(f: Value => Value): EvalResult =
       result.map(_.mapValue(f))
+
+    def flatMapValue(f: Value => EvalResult): EvalResult =
+      result.map(_.flatMap { case (value, env) =>
+        f(value)(env)
+      })
   }
 }
