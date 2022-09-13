@@ -3,6 +3,7 @@ package com.melvic.dry.eval
 import com.melvic.dry.Env.LocalEnv
 import com.melvic.dry.Value.{Unit => VUnit}
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
+import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, IfStmt, PrintStmt}
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.eval.implicits._
@@ -16,6 +17,7 @@ private[eval] trait EvalStmt {
     case print: PrintStmt => Evaluate.printStmt(print)
     case block: BlockStmt => Evaluate.blockStmt(block)
     case ifStmt: IfStmt   => Evaluate.ifStmt(ifStmt)
+    case whileStmt: While => Evaluate.whileStmt(whileStmt)
   }
 
   def exprStmt: Evaluate[ExprStmt] = { case ExprStmt(expr) =>
@@ -61,5 +63,18 @@ private[eval] trait EvalStmt {
           }
       }
     }
+  }
+
+  def whileStmt: Evaluate[While] = { case While(condition, body) =>
+    def recurse(env: Env): EvalOut =
+      Evaluate.expr(condition)(env).flatMap { case (condition, env) =>
+        if (!isTruthy(condition)) Result.succeed(VUnit, env)
+        else
+          Evaluate.stmt(body)(env).flatMap { case (_, env) =>
+            recurse(env)
+          }
+      }
+
+    recurse
   }
 }

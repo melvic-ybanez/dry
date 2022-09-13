@@ -11,9 +11,6 @@ final case class State[+A](value: A, parser: Parser) {
 }
 
 object State {
-  implicit def stateToValue[A](state: State[A]): A =
-    state.value
-
   implicit def stateToParser[A](state: State[A]): Parser =
     state.parser
 }

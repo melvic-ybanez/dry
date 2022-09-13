@@ -2,6 +2,7 @@ package com.melvic.dry.parsers
 
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Stmt.IfStmt._
+import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, PrintStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
@@ -11,7 +12,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       expressionStatement,
       TokenType.Print     -> { _.printStatement },
       TokenType.LeftBrace -> { _.block },
-      TokenType.If        -> { _.ifStatement }
+      TokenType.If        -> { _.ifStatement },
+      TokenType.While     -> { _.whileStatement }
     )
 
   def expressionStatement: ParseResult[Stmt] =
@@ -43,12 +45,22 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       thenBranch <- body.statement
       ifStmt <- thenBranch
         .matchAny(TokenType.Else)
-        .fold[ParseResult[Stmt]](ParseResult.succeed(IfThen(cond, thenBranch), thenBranch)) {
+        .fold[ParseResult[Stmt]](
+          ParseResult.succeed(IfThen(cond.value, thenBranch.value), thenBranch.parser)
+        ) {
           _.statement.mapValue { elseBranch =>
-            IfThenElse(cond, thenBranch, elseBranch)
+            IfThenElse(cond.value, thenBranch.value, elseBranch)
           }
         }
     } yield ifStmt
+
+  def whileStatement: ParseResult[Stmt] =
+    for {
+      leftParen  <- consume(TokenType.LeftParen, "(", "while")
+      condition  <- leftParen.expression
+      rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
+      body       <- rightParen.parser.statement
+    } yield State(While(condition.value, body.value), body.parser)
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {
