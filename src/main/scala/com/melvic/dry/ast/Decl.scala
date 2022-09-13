@@ -1,6 +1,7 @@
 package com.melvic.dry.ast
 
 import com.melvic.dry.Token
+import com.melvic.dry.ast.Stmt.ExprStmt
 
 trait Decl
 
@@ -10,4 +11,9 @@ object Decl {
   final case class LetDecl(name: Token) extends Let
 
   final case class StmtDecl(stmt: Stmt) extends Decl
+
+  object StmtDecl {
+    def fromExpr(expr: Expr): StmtDecl =
+      StmtDecl(ExprStmt(expr))
+  }
 }

@@ -1,6 +1,8 @@
 package com.melvic.dry.parsers
 
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.ast.Decl.StmtDecl
+import com.melvic.dry.ast.Expr.Literal
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, PrintStmt}
@@ -13,7 +15,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       TokenType.Print     -> { _.printStatement },
       TokenType.LeftBrace -> { _.block },
       TokenType.If        -> { _.ifStatement },
-      TokenType.While     -> { _.whileStatement }
+      TokenType.While     -> { _.whileStatement },
+      TokenType.For       -> { _.forStatement }
     )
 
   def expressionStatement: ParseResult[Stmt] =
@@ -54,13 +57,57 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
         }
     } yield ifStmt
 
-  def whileStatement: ParseResult[Stmt] =
+  def whileStatement: ParseResult[While] =
     for {
       leftParen  <- consume(TokenType.LeftParen, "(", "while")
       condition  <- leftParen.expression
       rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
       body       <- rightParen.statement
     } yield State(While(condition.value, body.value), body.parser)
+
+  /**
+   * A for-loop is just a syntax sugar over the while-loop.
+   */
+  def forStatement: ParseResult[Stmt] = {
+    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case State(_, parser) =>
+      parser
+        .matchAny(TokenType.Semicolon)
+        .fold(
+          parser
+            .matchAny(TokenType.Let)
+            .fold[ParseResult[Decl]](parser.expressionStatement)(_.letDecl)
+        )(_ => ParseResult.succeed(StmtDecl.fromExpr(Literal.None), parser))
+    }
+
+    def clause(parser: Parser, delimiter: TokenType, consume: String, after: String) = {
+      val clauseExpr =
+        if (parser.check(delimiter)) ParseResult.succeed(Literal.None, parser)
+        else parser.expression
+
+      clauseExpr.flatMapParser(_.consume(delimiter, consume, after))
+    }
+
+    def condition(parser: Parser) = clause(parser, TokenType.Semicolon, ";", "for loop condition")
+
+    def increment(parser: Parser) = clause(parser, TokenType.RightParen, ")", "for clauses")
+
+    def whileLoop(init: Decl, cond: Expr, inc: Expr, body: Stmt) = {
+      val bodyFromInc = if (inc == Literal.None) body else BlockStmt.fromDecls(body, ExprStmt(inc))
+      val newCond     = if (cond == Literal.None) Literal.True else cond
+      val newBody     = While(newCond, bodyFromInc)
+      init match {
+        case StmtDecl(ExprStmt(Literal.None)) => newBody
+        case _                                => BlockStmt.fromDecls(init, newBody)
+      }
+    }
+
+    for {
+      init <- initializer
+      cond <- condition(init.parser)
+      inc  <- increment(cond.parser)
+      body <- inc.statement
+    } yield State(whileLoop(init.value, cond.value, inc.value, body.value), body.parser)
+  }
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {

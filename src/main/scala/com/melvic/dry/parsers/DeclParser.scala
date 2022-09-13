@@ -10,7 +10,7 @@ import scala.util.chaining.scalaUtilChainingOps
 private[parsers] trait DeclParser extends StmtParser { _: Parser =>
   def declaration: ParseResult[Decl] =
     (matchAny(TokenType.Let) match {
-      case None         => statement.mapValue(StmtDecl)
+      case None         => statement.mapValue(StmtDecl(_))
       case Some(parser) => parser.letDecl
     }).pipe {
       case result @ ParseResult(Left(_), _) => result.mapParser(_.synchronize)

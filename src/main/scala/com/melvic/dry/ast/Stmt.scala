@@ -5,7 +5,13 @@ sealed trait Stmt extends Decl
 object Stmt {
   final case class ExprStmt(expr: Expr)                extends Stmt
   final case class PrintStmt(expr: Expr)               extends Stmt
+
   final case class BlockStmt(declarations: List[Decl]) extends Stmt
+
+  object BlockStmt {
+    def fromDecls(declarations: Decl*): BlockStmt =
+      BlockStmt(declarations.toList)
+  }
 
   sealed trait IfStmt extends Stmt {
     def condition: Expr

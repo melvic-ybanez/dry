@@ -35,6 +35,9 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 
   def mapParser(f: Parser => Parser): ParseResult[A] =
     copy(parser = f(parser))
+
+  def flatMapParser(f: Parser => ParseResult[_]): ParseResult[A] =
+    f(parser).copy(result = result)
 }
 
 object ParseResult {
