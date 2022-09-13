@@ -1,10 +1,15 @@
 package com.melvic.dry.parsers
 
-import com.melvic.dry.result.{Failure, Nel, Result}
 import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.{Failure, Nel, Result}
 
 import scala.util.chaining.scalaUtilChainingOps
 
+/**
+ * Represents the result of a parsing function. It always includes a parser. If the operation is a failure, we
+ * can use the parser field to proceed with the parsing, ideally after synchronization (by invoking
+ * [[Parser.synchronize]]). This way we can accumulate as many errors as possible.
+ */
 final case class ParseResult[+A](result: Result[A], parser: Parser) {
   def map[B](f: State[A] => State[B]): ParseResult[B] =
     result match {

@@ -11,6 +11,10 @@ final case class State[+A](value: A, parser: Parser) {
 }
 
 object State {
+
+  /**
+   * Converts a state to a parser. This is usually used for for-comprehensions.
+   */
   implicit def stateToParser[A](state: State[A]): Parser =
     state.parser
 }

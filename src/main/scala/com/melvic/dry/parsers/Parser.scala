@@ -71,6 +71,9 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
   def previous: Token =
     tokens(current - 1)
 
+  /**
+   * Synchronizes the parser by skipping all the lexemes that are assumed to be affected by an error.
+   */
   def synchronize: Parser =
     advance.pipe { case State(_, parser) =>
       @tailrec

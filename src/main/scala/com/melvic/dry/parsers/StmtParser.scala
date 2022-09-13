@@ -59,12 +59,12 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       leftParen  <- consume(TokenType.LeftParen, "(", "while")
       condition  <- leftParen.expression
       rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
-      body       <- rightParen.parser.statement
+      body       <- rightParen.statement
     } yield State(While(condition.value, body.value), body.parser)
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {
-      state1 <- expression
-      state2 <- state1.parser.consume(TokenType.Semicolon, ";", "statement")
-    } yield State(f(state1.value), state2.parser)
+      expr      <- expression
+      semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
+    } yield State(f(expr.value), semicolon.parser)
 }
