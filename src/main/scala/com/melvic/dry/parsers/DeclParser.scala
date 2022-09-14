@@ -21,10 +21,10 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
     def consumeSemicolon(parser: Parser): ParseResult[Token] =
       parser.consume(TokenType.Semicolon, ";", "let")
 
-    consume(TokenType.Identifier, "identifier", "let").flatMap { case State(name, parser) =>
+    consume(TokenType.Identifier, "identifier", "let").flatMap { case Step(name, parser) =>
       parser.matchAny(TokenType.Equal)
         .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
-          parser.expression.flatMap { case State(init, parser) =>
+          parser.expression.flatMap { case Step(init, parser) =>
             consumeSemicolon(parser).mapValue(_ => LetInit(name, init))
           }
         }

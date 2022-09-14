@@ -22,4 +22,6 @@ object Expr {
   final case class Assignment(name: Token, value: Expr) extends Expr
 
   final case class Logical(left: Expr, operator: Token, right: Expr) extends Expr
+
+  final case class Call(callee: Expr, paren: Token, arguments: List[Expr]) extends Expr
 }

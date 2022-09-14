@@ -13,10 +13,10 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   def assignment: ParseResult[Expr] =
-    or.flatMap { case State(lValue, parser) =>
+    or.flatMap { case Step(lValue, parser) =>
       parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
         val equals = parser.previous
-        parser.assignment.flatMap { case State(rValue, parser) =>
+        parser.assignment.flatMap { case Step(rValue, parser) =>
           lValue match {
             case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
             case _              => ParseResult.fail(ParseError.invalidAssignmentTarget(equals), parser)
@@ -65,13 +65,44 @@ private[parsers] trait ExprParser { _: Parser =>
         val operator = parser.previous
         parser.unary.mapValue(Unary(operator, _))
       }
-      .getOrElse(primary)
+      .getOrElse(call)
+
+  def call: ParseResult[Expr] = {
+    def arguments(callee: Expr, parser: Parser): ParseResult[Expr] = {
+      def recurse(args: List[Expr], parser: Parser): ParseResult[List[Expr]] =
+        parser
+          .matchAny(TokenType.Comma)
+          .fold(ParseResult.succeed(args.reverse, parser)) { parser =>
+            parser.expression.flatMap { case Step(arg, parser) =>
+              recurse(arg :: args, parser)
+            }
+          }
+
+      val result =
+        if (!parser.check(TokenType.RightParen))
+          parser.expression.flatMap(step => recurse(step.value :: Nil, step.next))
+        else ParseResult.succeed(Nil, parser)
+
+      result.parser
+        .consume(TokenType.RightParen, ")", "function call arguments")
+        .flatMap(step => result.mapValue(Call(callee, step.value, _)))
+    }
+
+    primary.flatMap {
+      def recurse(step: Step[Expr]): ParseResult[Expr] =
+        step.next
+          .matchAny(TokenType.LeftParen)
+          .fold(ParseResult.fromStep(step))(arguments(step.value, _).flatMap(recurse))
+
+      recurse
+    }
+  }
 
   def primary: ParseResult[Expr] =
     matchAny(TokenType.False)
-      .map(State(Literal.False, _))
-      .orElse(matchAny(TokenType.True).map(State(Literal.True, _)))
-      .orElse(matchAny(TokenType.None).map(State(Literal.None, _)))
+      .map(Step(Literal.False, _))
+      .orElse(matchAny(TokenType.True).map(Step(Literal.True, _)))
+      .orElse(matchAny(TokenType.None).map(Step(Literal.None, _)))
       .orElse {
         matchAnyWith {
           case TokenType.Number(_) => true
@@ -80,16 +111,16 @@ private[parsers] trait ExprParser { _: Parser =>
           (parser.previous.tokenType match {
             case TokenType.Number(number) => Literal.Number(number)
             case TokenType.Str(string)    => Literal.Str(string)
-          }).pipe(State(_, parser))
+          }).pipe(Step(_, parser))
         }
       }
-      .orElse(matchAny(TokenType.Identifier).map(p => State(Variable(p.previous), p)))
+      .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previous), p)))
       .map(_.toParseResult)
       .getOrElse(
         matchAny(TokenType.LeftParen)
           .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
             parser =>
-              parser.expression.flatMap { case State(expr, newParser) =>
+              parser.expression.flatMap { case Step(expr, newParser) =>
                 newParser.consume(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
               }
           }
@@ -122,19 +153,19 @@ private[parsers] trait ExprParser { _: Parser =>
       toBinary: (Expr, Token, Expr) => E,
       operators: TokenType*
   ): ParseResult[Expr] =
-    operand(this).flatMap { case State(expr, parser) =>
+    operand(this).flatMap { case Step(expr, parser) =>
       def recurse(expr: Expr, parser: Parser): ParseResult[Expr] =
         parser
           .matchAny(operators: _*)
           .map { parser =>
             val operator = parser.previous
-            operand(parser).flatMap { case State(right, newParser) =>
+            operand(parser).flatMap { case Step(right, newParser) =>
               // recursively check if another operator from the given set, followed by
               // the same operand, is found again
               recurse(toBinary(expr, operator, right), newParser)
             }
           }
-          .getOrElse(State(expr, parser).toParseResult)
+          .getOrElse(Step(expr, parser).toParseResult)
 
       recurse(expr, parser)
     }

@@ -11,18 +11,18 @@ import scala.util.chaining.scalaUtilChainingOps
  * [[Parser.synchronize]]). This way we can accumulate as many errors as possible.
  */
 final case class ParseResult[+A](result: Result[A], parser: Parser) {
-  def map[B](f: State[A] => State[B]): ParseResult[B] =
+  def map[B](f: Step[A] => Step[B]): ParseResult[B] =
     result match {
-      case Right(value) => f(State(value, parser)).toParseResult
+      case Right(value) => f(Step(value, parser)).toParseResult
       case Left(errors) => ParseResult.failAll(errors, parser)
     }
 
   def mapValue[B](f: A => B): ParseResult[B] =
-    map(state => State(f(state.value), parser))
+    map(state => Step(f(state.value), parser))
 
-  def flatMap[B](f: State[A] => ParseResult[B]): ParseResult[B] =
+  def flatMap[B](f: Step[A] => ParseResult[B]): ParseResult[B] =
     result match {
-      case Right(value) => f(State(value, parser))
+      case Right(value) => f(Step(value, parser))
       case Left(errors) => ParseResult.failAll(errors, parser)
     }
 
@@ -41,6 +41,9 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 }
 
 object ParseResult {
+  def fromStep[A](step: Step[A]): ParseResult[A] =
+    succeed(step.value, step.next)
+
   def succeed[A](value: A, parser: Parser): ParseResult[A] =
     ParseResult(Result.succeed(value), parser)
 

@@ -27,15 +27,15 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   def block: ParseResult[BlockStmt] = {
     def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
-      result.flatMap { case State(declarations, parser) =>
+      result.flatMap { case Step(declarations, parser) =>
         if (parser.check(TokenType.RightBrace) || parser.isAtEnd) result.mapValue(_.reverse)
         else
-          parser.declaration.flatMap { case State(declaration, parser) =>
+          parser.declaration.flatMap { case Step(declaration, parser) =>
             recurse(ParseResult.succeed(declaration :: declarations, parser))
           }
       }
 
-    recurse(ParseResult.succeed(Nil, this)).flatMap { case State(decls, parser) =>
+    recurse(ParseResult.succeed(Nil, this)).flatMap { case Step(decls, parser) =>
       parser.consume(TokenType.RightBrace, "}", "block").mapValue(_ => BlockStmt(decls))
     }
   }
@@ -49,7 +49,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       ifStmt <- thenBranch
         .matchAny(TokenType.Else)
         .fold[ParseResult[Stmt]](
-          ParseResult.succeed(IfThen(cond.value, thenBranch.value), thenBranch.parser)
+          ParseResult.succeed(IfThen(cond.value, thenBranch.value), thenBranch.next)
         ) {
           _.statement.mapValue { elseBranch =>
             IfThenElse(cond.value, thenBranch.value, elseBranch)
@@ -63,13 +63,13 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       condition  <- leftParen.expression
       rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
       body       <- rightParen.statement
-    } yield State(While(condition.value, body.value), body.parser)
+    } yield Step(While(condition.value, body.value), body.next)
 
   /**
-   * A for-loop is just a syntax sugar over the while-loop.
+   * A for-loop is just a syntactic sugar over the while-loop.
    */
   def forStatement: ParseResult[Stmt] = {
-    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case State(_, parser) =>
+    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case Step(_, parser) =>
       parser
         .matchAny(TokenType.Semicolon)
         .fold(
@@ -103,15 +103,15 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
     for {
       init <- initializer
-      cond <- condition(init.parser)
-      inc  <- increment(cond.parser)
+      cond <- condition(init.next)
+      inc  <- increment(cond.next)
       body <- inc.statement
-    } yield State(whileLoop(init.value, cond.value, inc.value, body.value), body.parser)
+    } yield Step(whileLoop(init.value, cond.value, inc.value, body.value), body.next)
   }
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {
       expr      <- expression
       semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
-    } yield State(f(expr.value), semicolon.parser)
+    } yield Step(f(expr.value), semicolon.next)
 }

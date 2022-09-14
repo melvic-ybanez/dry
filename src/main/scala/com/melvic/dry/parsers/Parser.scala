@@ -13,7 +13,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
     def recurse(parser: Parser, statements: List[Decl]): ParseResult[List[Decl]] =
       if (parser.isAtEnd) ParseResult.succeed(statements.reverse, parser)
       else
-        parser.declaration.flatMap { case State(stmt, newParser) =>
+        parser.declaration.flatMap { case Step(stmt, newParser) =>
           recurse(newParser, stmt :: statements)
         }
 
@@ -25,7 +25,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
 
   def matchAnyWith(predicate: PartialFunction[TokenType, Boolean]): Option[Parser] =
     checkWith(predicate).pipe {
-      case true  => Some(advance.parser)
+      case true  => Some(advance.next)
       case false => None
     }
 
@@ -51,11 +51,11 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
     recurse(choice.toList)
   }
 
-  def advance: State[Token] =
-    if (isAtEnd) State(previous, this)
+  def advance: Step[Token] =
+    if (isAtEnd) Step(previous, this)
     else {
       val parser = copy(current = current + 1)
-      State(parser.previous, parser)
+      Step(parser.previous, parser)
     }
 
   def consume(tokenType: TokenType, expected: String, after: String): ParseResult[Token] =
@@ -75,7 +75,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
    * Synchronizes the parser by skipping all the lexemes that are assumed to be affected by an error.
    */
   def synchronize: Parser =
-    advance.pipe { case State(_, parser) =>
+    advance.pipe { case Step(_, parser) =>
       @tailrec
       def recurse(parser: Parser): Parser =
         if (parser.isAtEnd) parser
@@ -85,7 +85,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
             case TokenType.Class | TokenType.Def | TokenType.If | TokenType.For | TokenType.While |
                 TokenType.Let | TokenType.Return | TokenType.Print =>
               parser
-            case _ => recurse(parser.advance.parser)
+            case _ => recurse(parser.advance.next)
           }
 
       recurse(parser)
