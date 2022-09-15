@@ -80,7 +80,7 @@ private[eval] trait EvalExpr {
         def binary[O, V](fold: (Double, Double) => O, toValue: O => V): Result[V] =
           Result.fromOption(
             for {
-              leftNum <- left.toNum
+              leftNum  <- left.toNum
               rightNum <- right.toNum
             } yield toValue(fold(leftNum.value, rightNum.value)),
             RuntimeError.invalidOperands(operator, "number" :: Nil)
@@ -132,8 +132,8 @@ private[eval] trait EvalExpr {
       }
 
       for {
-        left <- Evaluate.expr(leftTree)(env)
-        right <- Evaluate.expr(rightTree)(left.env)
+        left   <- Evaluate.expr(leftTree)(env)
+        right  <- Evaluate.expr(rightTree)(left.env)
         result <- fromValueOperands(left.value, right.value).withEnv(right.env)
       } yield result
   }

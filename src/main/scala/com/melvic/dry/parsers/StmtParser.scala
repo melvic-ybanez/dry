@@ -42,9 +42,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   def ifStatement: ParseResult[Stmt] =
     for {
-      step <- consume(TokenType.LeftParen, "(", "if")
-      cond <- step.expression
-      body <- cond.consume(TokenType.RightParen, ")", "if condition")
+      step       <- consume(TokenType.LeftParen, "(", "if")
+      cond       <- step.expression
+      body       <- cond.consume(TokenType.RightParen, ")", "if condition")
       thenBranch <- body.statement
       ifStmt <- thenBranch
         .matchAny(TokenType.Else)
@@ -59,10 +59,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   def whileStatement: ParseResult[While] =
     for {
-      leftParen <- consume(TokenType.LeftParen, "(", "while")
-      condition <- leftParen.expression
+      leftParen  <- consume(TokenType.LeftParen, "(", "while")
+      condition  <- leftParen.expression
       rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
-      body <- rightParen.statement
+      body       <- rightParen.statement
     } yield Step(While(condition.value, body.value), body.next)
 
   /**
@@ -104,14 +104,14 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     for {
       init <- initializer
       cond <- condition(init.next)
-      inc <- increment(cond.next)
+      inc  <- increment(cond.next)
       body <- inc.statement
     } yield Step(whileLoop(init.value, cond.value, inc.value, body.value), body.next)
   }
 
   private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
     for {
-      expr <- expression
+      expr      <- expression
       semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
     } yield Step(f(expr.value), semicolon.next)
 }

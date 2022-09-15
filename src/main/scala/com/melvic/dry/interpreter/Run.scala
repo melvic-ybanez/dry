@@ -52,7 +52,7 @@ object Run {
   def source(source: String, env: Env): EvalOut =
     for {
       tokens <- Lexer.scanTokens(source)
-      decls <- Parser.fromTokens(tokens).parse.result
-      value <- Interpreter.interpret(decls, env)
+      decls  <- Parser.fromTokens(tokens).parse.result
+      value  <- Interpreter.interpret(decls, env)
     } yield value
 }
