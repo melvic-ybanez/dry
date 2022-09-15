@@ -42,8 +42,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   def ifStatement: ParseResult[Stmt] =
     for {
-      state      <- consume(TokenType.LeftParen, "(", "if")
-      cond       <- state.expression
+      step       <- consume(TokenType.LeftParen, "(", "if")
+      cond       <- step.expression
       body       <- cond.consume(TokenType.RightParen, ")", "if condition")
       thenBranch <- body.statement
       ifStmt <- thenBranch

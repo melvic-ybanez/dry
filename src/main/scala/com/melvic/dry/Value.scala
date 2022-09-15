@@ -24,6 +24,12 @@ object Value {
   final case class ExprStmt(value: Value) extends Unit
   case object Unit                        extends Unit
 
+  sealed trait Callable extends Value {
+    def arity: Int
+
+    def call(arguments: List[Value]): Value
+  }
+
   @tailrec
   def show(value: Value): String =
     value match {

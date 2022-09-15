@@ -7,9 +7,6 @@ object implicits {
   }
 
   implicit class FunctionOps[A, B](f: A => B) {
-    def map[C](g: B => C): A => C =
-      g compose f
-
     def flatMap[C](g: B => A => C): A => C =
       a => g(f(a))(a)
   }

@@ -3,7 +3,6 @@ package com.melvic.dry.eval
 import com.melvic.dry.Value
 import com.melvic.dry.ast.Decl.{Let, LetDecl, LetInit, StmtDecl}
 import com.melvic.dry.ast.{Decl, Stmt}
-import com.melvic.dry.implicits._
 import com.melvic.dry.result.Result.implicits.ToResult
 
 private[eval] trait EvalDecl extends EvalStmt {
@@ -31,7 +30,7 @@ private[eval] trait EvalDecl extends EvalStmt {
     def letInit: Evaluate[LetInit] = { case LetInit(name, init) =>
       Evaluate
         .expr(init)
-        .map(
+        .andThen(
           _.flatMap { case (value, env) =>
             (Value.Unit, env.set(name.lexeme, value)).ok
           }

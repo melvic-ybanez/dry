@@ -1,6 +1,5 @@
 package com.melvic.dry.eval
 
-import com.melvic.dry.implicits._
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.{Env, Value}
 
@@ -29,10 +28,10 @@ object implicits {
 
   implicit class EvalResultOps(result: EvalResult) {
     def mapValue(f: Value => Value): EvalResult =
-      result.map(_.mapValue(f))
+      result.andThen(_.mapValue(f))
 
     def flatMapValue(f: Value => EvalResult): EvalResult =
-      result.map(_.flatMap { case (value, env) =>
+      result.andThen(_.flatMap { case (value, env) =>
         f(value)(env)
       })
   }

@@ -18,7 +18,7 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
     }
 
   def mapValue[B](f: A => B): ParseResult[B] =
-    map(state => Step(f(state.value), parser))
+    map(step => Step(f(step.value), parser))
 
   def flatMap[B](f: Step[A] => ParseResult[B]): ParseResult[B] =
     result match {

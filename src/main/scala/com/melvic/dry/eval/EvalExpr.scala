@@ -1,11 +1,10 @@
 package com.melvic.dry.eval
 
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.Value.{Bool, Num, Str, None => VNone}
+import com.melvic.dry.Value.{Bool, Callable, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.eval.implicits._
-import com.melvic.dry.implicits._
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
@@ -21,6 +20,30 @@ private[eval] trait EvalExpr {
     case variable: Variable     => Evaluate.variable(variable)
     case assignment: Assignment => Evaluate.assignment(assignment)
     case logical: Logical       => Evaluate.logical(logical)
+    case call: Call             => Evaluate.call(call)
+  }
+
+  def call: Evaluate[Call] = { case Call(callee, arguments, paren) =>
+    Evaluate.expr(callee).flatMapValue { calleeValue =>
+      def recurse(args: List[Expr], argValues: List[Value], env: Env): Result[(List[Value], Env)] =
+        args match {
+          case Nil => Result.succeed(argValues.reverse, env)
+          case arg :: rest =>
+            Evaluate.expr(arg)(env).flatMap { case (arg, env) =>
+              recurse(rest, arg :: argValues, env)
+            }
+        }
+
+      env =>
+        recurse(arguments, Nil, env).flatMap { case (args, env) =>
+          calleeValue match {
+            case callable: Callable =>
+              if (callable.arity == args.size) Result.succeed(callable.call(args), env)
+              else Result.fail(RuntimeError.incorrectArity(paren, callable.arity, args.size))
+            case _ => Result.fail(RuntimeError.notCallable(paren))
+          }
+        }
+    }
   }
 
   def logical: Evaluate[Logical] = { case Logical(left, operator, right) =>
@@ -35,17 +58,17 @@ private[eval] trait EvalExpr {
     }
   }
 
-  def unary: Evaluate[Unary] = { case Unary(operator @ Token(operatorType, _, _), operandTree) =>
-    Evaluate.expr(operandTree).map {
+  def unary: Evaluate[Unary] = { case Unary(operator, operandTree) =>
+    Evaluate.expr(operandTree).andThen {
       _.flatMapValue { operand =>
-        operatorType match {
-          case TokenType.Minus =>
+        operator match {
+          case TokenType.Minus(_, _) =>
             Result.fromOption(
               operand.toNum.map(num => Num(-num.value)),
               RuntimeError.invalidOperand(operator, "number" :: Nil)
             )
-          case TokenType.Not => Bool(!isTruthy(operand)).ok
-          case _             => VNone.ok
+          case TokenType.Not(_, _) => Bool(!isTruthy(operand)).ok
+          case _                   => VNone.ok
         }
       }
     }
@@ -130,7 +153,7 @@ private[eval] trait EvalExpr {
   def assignment: Evaluate[Assignment] = { case Assignment(name, value) =>
     Evaluate
       .expr(value)
-      .map(_.flatMap { case (value, env) =>
+      .andThen(_.flatMap { case (value, env) =>
         env.assign(name, value).map((value, _))
       })
   }

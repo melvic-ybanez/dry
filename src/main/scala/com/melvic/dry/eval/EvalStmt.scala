@@ -7,7 +7,6 @@ import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, IfStmt, PrintStmt}
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.eval.implicits._
-import com.melvic.dry.implicits._
 import com.melvic.dry.result.Result
 import com.melvic.dry.{Env, Value}
 
@@ -49,7 +48,7 @@ private[eval] trait EvalStmt {
   }
 
   def ifStmt: Evaluate[IfStmt] = { ifStmt =>
-    Evaluate.expr(ifStmt.condition).map { condResult =>
+    Evaluate.expr(ifStmt.condition).andThen { condResult =>
       ifStmt match {
         case IfThen(_, thenBranch) =>
           condResult.flatMap { case (value, env) =>

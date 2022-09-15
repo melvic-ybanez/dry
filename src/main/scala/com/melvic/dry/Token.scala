@@ -5,7 +5,14 @@ import com.melvic.dry.Token.TokenType
 final case class Token(tokenType: TokenType, lexeme: String, line: Int)
 
 object Token {
-  sealed trait TokenType
+  sealed trait TokenType { self =>
+    def apply(lexeme: String, line: Int): Token =
+      Token(this, lexeme, line)
+
+    def unapply(token: Token): Option[(String, Int)] =
+      if (token.tokenType == this) Some(token.lexeme, token.line)
+      else None
+  }
 
   object TokenType extends Arithmetic with Bitwise with Comparison with Literals with Keywords with Others {
     case object Eof extends TokenType

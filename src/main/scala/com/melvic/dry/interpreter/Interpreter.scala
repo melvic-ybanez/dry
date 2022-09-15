@@ -14,7 +14,7 @@ object Interpreter {
         case statement :: rest =>
           Evaluate
             .decl(statement)
-            .map(_.flatMap { case (value, env) =>
+            .andThen(_.flatMap { case (value, env) =>
               recurse(rest, env, value)
             })(env)
       }
