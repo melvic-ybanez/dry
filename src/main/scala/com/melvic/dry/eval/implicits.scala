@@ -17,7 +17,7 @@ object implicits {
   }
 
   implicit class EvalOutContentOps(content: (Value, Env)) {
-    def env: Env     = content._2
+    def env: Env = content._2
     def value: Value = content._1
   }
 

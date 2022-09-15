@@ -16,13 +16,13 @@ object Value {
   case object None extends Value
 
   final case class Bool(value: Boolean) extends Value
-  final case class Num(value: Double)   extends Value
-  final case class Str(value: String)   extends Value
+  final case class Num(value: Double) extends Value
+  final case class Str(value: String) extends Value
 
   sealed trait Unit extends Value
 
   final case class ExprStmt(value: Value) extends Unit
-  case object Unit                        extends Unit
+  case object Unit extends Unit
 
   sealed trait Callable extends Value {
     def arity: Int

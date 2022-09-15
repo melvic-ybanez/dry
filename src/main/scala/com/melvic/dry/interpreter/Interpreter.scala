@@ -2,7 +2,6 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.eval.{EvalOut, Evaluate}
-import com.melvic.dry.implicits._
 import com.melvic.dry.result.Result
 import com.melvic.dry.{Env, Value}
 

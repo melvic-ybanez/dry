@@ -22,7 +22,8 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
       parser.consume(TokenType.Semicolon, ";", "let")
 
     consume(TokenType.Identifier, "identifier", "let").flatMap { case Step(name, parser) =>
-      parser.matchAny(TokenType.Equal)
+      parser
+        .matchAny(TokenType.Equal)
         .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
           parser.expression.flatMap { case Step(init, parser) =>
             consumeSemicolon(parser).mapValue(_ => LetInit(name, init))

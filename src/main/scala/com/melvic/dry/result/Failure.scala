@@ -10,8 +10,8 @@ sealed trait Failure
 
 object Failure {
   final case class Line(line: Int, where: String, message: String) extends Failure
-  final case class InvalidCharacter(line: Int, char: Char)         extends Failure
-  final case class UnterminatedString(line: Int)                   extends Failure
+  final case class InvalidCharacter(line: Int, char: Char) extends Failure
+  final case class UnterminatedString(line: Int) extends Failure
 
   sealed trait ParseError extends Failure
 
@@ -59,7 +59,7 @@ object Failure {
 
   object ParseError {
     final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
-    final case class InvalidAssignmentTarget(assignment: Token)                             extends ParseError
+    final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
 
     def expected(start: Token, end: String, after: String): ParseError =
       if (start.tokenType == TokenType.Eof) Expected(start, end, "at end", after)
@@ -70,11 +70,11 @@ object Failure {
   }
 
   object RuntimeError {
-    final case class DivisionByZero(token: Token)                          extends RuntimeError
-    final case class InvalidOperand(token: Token, expected: List[String])  extends RuntimeError
+    final case class DivisionByZero(token: Token) extends RuntimeError
+    final case class InvalidOperand(token: Token, expected: List[String]) extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
-    final case class UndefinedVariable(token: Token)                       extends RuntimeError
-    final case class NotCallable(token: Token)                             extends RuntimeError
+    final case class UndefinedVariable(token: Token) extends RuntimeError
+    final case class NotCallable(token: Token) extends RuntimeError
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =

@@ -34,7 +34,7 @@ object Run {
 
   def path(path: String): Unit = {
     val source = Source.fromFile(path)
-    val code   = source.getLines.mkString("\n")
+    val code = source.getLines.mkString("\n")
 
     def reportAndExit(error: Failure, code: Int): Unit = {
       System.err.println(Failure.show(error))
@@ -52,7 +52,7 @@ object Run {
   def source(source: String, env: Env): EvalOut =
     for {
       tokens <- Lexer.scanTokens(source)
-      decls  <- Parser.fromTokens(tokens).parse.result
-      value  <- Interpreter.interpret(decls, env)
+      decls <- Parser.fromTokens(tokens).parse.result
+      value <- Interpreter.interpret(decls, env)
     } yield value
 }
