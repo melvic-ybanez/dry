@@ -156,7 +156,6 @@ object Lexer {
     "for" -> TokenType.For,
     "def" -> TokenType.Def,
     "none" -> TokenType.None,
-    "print" -> TokenType.Print,
     "return" -> TokenType.Return,
     "super" -> TokenType.Super,
     "self" -> TokenType.Self,

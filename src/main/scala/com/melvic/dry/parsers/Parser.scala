@@ -83,7 +83,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
         else
           parser.peek.tokenType match {
             case TokenType.Class | TokenType.Def | TokenType.If | TokenType.For | TokenType.While |
-                TokenType.Let | TokenType.Return | TokenType.Print =>
+                TokenType.Let | TokenType.Return =>
               parser
             case _ => recurse(parser.advance.next)
           }

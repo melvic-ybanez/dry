@@ -37,9 +37,9 @@ private[eval] trait EvalExpr {
       env =>
         recurse(arguments, Nil, env).flatMap { case (args, env) =>
           calleeValue match {
-            case callable: Callable =>
-              if (callable.arity == args.size) Result.succeed(callable.call(args), env)
-              else Result.fail(RuntimeError.incorrectArity(paren, callable.arity, args.size))
+            case Callable(arity, call) =>
+              if (arity == args.size) Result.succeed(call(args), env)
+              else Result.fail(RuntimeError.incorrectArity(paren, arity, args.size))
             case _ => Result.fail(RuntimeError.notCallable(paren))
           }
         }

@@ -72,7 +72,6 @@ object Token {
     case object For extends TokenType
     case object If extends TokenType
     case object None extends TokenType
-    case object Print extends TokenType
     case object Return extends TokenType
     case object Super extends TokenType
     case object Self extends TokenType

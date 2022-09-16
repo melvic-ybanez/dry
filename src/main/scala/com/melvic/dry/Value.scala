@@ -24,11 +24,7 @@ object Value {
   final case class ExprStmt(value: Value) extends Unit
   case object Unit extends Unit
 
-  sealed trait Callable extends Value {
-    def arity: Int
-
-    def call(arguments: List[Value]): Value
-  }
+  final case class Callable(arity: Int, call: List[Value] => Value) extends Value
 
   @tailrec
   def show(value: Value): String =
@@ -43,4 +39,11 @@ object Value {
       case Value.Unit                   => ""
       case Value.ExprStmt(value: Value) => Value.show(value)
     }
+
+  implicit class ToValue[A](value: A) {
+    def unit: Value.Unit = {
+      value
+      Value.Unit
+    }
+  }
 }

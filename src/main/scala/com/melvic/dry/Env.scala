@@ -14,12 +14,12 @@ sealed trait Env {
   /**
    * Adds a new variable to the environment.
    */
-  def set(name: String, value: Value): Env
+  def define(name: String, value: Value): Env
 
   def get(name: Token): Result[Value]
 
   def assign(name: Token, value: Value): Result[Env] =
-    if (table.contains(name.lexeme)) Result.succeed(set(name.lexeme, value))
+    if (table.contains(name.lexeme)) Result.succeed(define(name.lexeme, value))
     else
       this match {
         case GlobalEnv(_)               => Result.fail(RuntimeError.undefinedVariable(name))
@@ -38,7 +38,7 @@ object Env {
     /**
      * Adds a new variable to the environment.
      */
-    def set(name: String, value: Value): LocalEnv =
+    def define(name: String, value: Value): LocalEnv =
       LocalEnv(table = table + (name -> value), enclosing)
 
     def get(name: Token): Result[Value] =
@@ -56,7 +56,7 @@ object Env {
     /**
      * Adds a new variable to the environment. Note that this allows variable redefinitions.
      */
-    override def set(name: String, value: Value): Env =
+    override def define(name: String, value: Value): Env =
       GlobalEnv(table = table + (name -> value))
 
     override def get(name: Token): Result[Value] =

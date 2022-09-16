@@ -5,14 +5,13 @@ import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Expr.Literal
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, PrintStmt}
+import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
     select(
       expressionStatement,
-      TokenType.Print -> { _.printStatement },
       TokenType.LeftBrace -> { _.block },
       TokenType.If -> { _.ifStatement },
       TokenType.While -> { _.whileStatement },
@@ -20,10 +19,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     )
 
   def expressionStatement: ParseResult[Stmt] =
-    expressionLikeStatement(ExprStmt)
-
-  def printStatement: ParseResult[Stmt] =
-    expressionLikeStatement(PrintStmt)
+    for {
+      expr      <- expression
+      semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
+    } yield Step(ExprStmt(expr.value), semicolon.next)
 
   def block: ParseResult[BlockStmt] = {
     def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
@@ -108,10 +107,4 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       body <- inc.statement
     } yield Step(whileLoop(init.value, cond.value, inc.value, body.value), body.next)
   }
-
-  private def expressionLikeStatement(f: Expr => Stmt): ParseResult[Stmt] =
-    for {
-      expr      <- expression
-      semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
-    } yield Step(f(expr.value), semicolon.next)
 }

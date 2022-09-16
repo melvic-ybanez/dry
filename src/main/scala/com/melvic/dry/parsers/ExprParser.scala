@@ -85,7 +85,7 @@ private[parsers] trait ExprParser { _: Parser =>
 
       result.parser
         .consume(TokenType.RightParen, ")", "function call arguments")
-        .flatMap(step => result.mapValue(Call(callee, _, step.value)))
+        .flatMap(step => result.mapValue(Call(callee, _, step.value)).mapParser(_ => step.next))
     }
 
     primary.flatMap {
