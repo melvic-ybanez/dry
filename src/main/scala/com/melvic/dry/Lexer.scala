@@ -1,5 +1,6 @@
 package com.melvic.dry
 
+import com.melvic.dry.Lexer.enableEscapeSequences
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -122,7 +123,7 @@ final case class Lexer(
     else {
       val newLexer = lexer.advance // remove the closing quotation mark
       val stringContent = newLexer.source.substring(newLexer.start + 1, newLexer.current - 1)
-      newLexer.addToken(TokenType.Str(stringContent)).ok
+      newLexer.addToken(TokenType.Str(enableEscapeSequences(stringContent))).ok
     }
   }
 
@@ -187,4 +188,15 @@ object Lexer {
 
   def isAlphanumeric(char: Char): Boolean =
     isAlpha(char) || isDigit(char)
+
+  private def enableEscapeSequences(value: String): String =
+    value
+      .replace("\\n", "\n")
+      .replace("\\t", "\t")
+      .replace("\\b", "\b")
+      .replace("\\r", "\r")
+      .replace("\\f", "\f")
+      .replace("\\'", "\'")
+      .replace("\\\"", "\"")
+      .replace("\\\\", "\\")
 }

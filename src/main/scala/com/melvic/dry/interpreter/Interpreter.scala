@@ -24,5 +24,9 @@ object Interpreter {
   }
 
   def globals: Env = Env.empty
-    .define("print", Callable(1, { case arg :: _ => println(Value.show(arg)).unit }))
+    .define("print", Callable(1, { case arg :: _ => print(Value.show(arg)).unit }))
+    // we don't support user-defined functions yet, so we are building a dedicated function for println for now.
+    // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
+    // to a string that ends in a newline character
+    .define("println", Callable(1, { case arg :: _ => println(Value.show(arg)).unit }))
 }
