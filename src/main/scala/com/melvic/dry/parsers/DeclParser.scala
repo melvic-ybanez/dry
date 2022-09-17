@@ -50,7 +50,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
           leftParen.consume(TokenType.Identifier, "parameter name", "(").flatMap { case Step(param, parser) =>
             recurse(param :: Nil, parser).flatMapParser(_.consume(TokenType.RightParen, ")", "parameters"))
           }
-        } else leftParen.consume(TokenType.RightParen, ")", "(").mapValue(_ :: Nil)
+        } else leftParen.consume(TokenType.RightParen, ")", "(").mapValue(_ => Nil)
       leftBrace <- params.consume(TokenType.LeftBrace, "{", "function signature")
       body      <- leftBrace.block
     } yield Step(Def(name.value, params.value, body.value.declarations), body.next)
