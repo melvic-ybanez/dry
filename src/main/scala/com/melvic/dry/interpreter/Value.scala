@@ -28,7 +28,7 @@ object Value {
   @tailrec
   def show(value: Value): String =
     value match {
-      case None        => "None"
+      case None        => "none"
       case Bool(value) => value.toString
       case Num(value) =>
         val str = value.toString

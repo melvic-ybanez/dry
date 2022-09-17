@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.Value.ToValue
+import com.melvic.dry.interpreter.Value.{Str, ToValue}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -29,4 +29,5 @@ object Interpreter {
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
     // to a string that ends in a newline character
     .define("println", Callable(1, { case arg :: _ => println(Value.show(arg)).unit.env }))
+    .define("str", Callable(1, { case arg :: _ => Str(Value.show(arg)).env }))
 }
