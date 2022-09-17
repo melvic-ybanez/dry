@@ -1,5 +1,7 @@
 package com.melvic.dry.ast
 
+import com.melvic.dry.Token
+
 sealed trait Stmt extends Decl
 
 object Stmt {
@@ -24,4 +26,6 @@ object Stmt {
   object Loop {
     final case class While(condition: Expr, body: Stmt) extends Stmt
   }
+
+  final case class ReturnStmt(keyword: Token, value: Expr) extends Stmt
 }

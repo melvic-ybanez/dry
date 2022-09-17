@@ -58,3 +58,23 @@ for (let b = 1; a < 10000; b = temp + b) {
     temp = a;
     a = b;
 }
+
+def say_hi(first, last) {
+    println("Hi, " + first + " " + last + "!");
+}
+
+say_hi("Dear", "Reader");
+
+println("hello " + str(3));
+
+typeof("hello");
+
+def fib(n) {
+    if (n <= 1)
+        return n;
+    return fib(n - 2) + fib(n - 1);
+}
+
+for (let i = 0; i < 20; i = i + 1) {
+    print(fib(i));
+}

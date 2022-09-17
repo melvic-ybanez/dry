@@ -20,12 +20,11 @@ object Value {
   final case class Num(value: Double) extends Value
   final case class Str(value: String) extends Value
 
-  sealed trait Unit extends Value
+  case object Unit extends Value
 
-  final case class ExprStmt(value: Value) extends Unit
-  case object Unit extends Unit
+  final case class Returned(value: Value) extends Value
 
-  @tailrec
+  //@tailrec
   def show(value: Value): String =
     value match {
       case None        => "none"
@@ -36,13 +35,13 @@ object Value {
         else str
       case Str(str)                           => str
       case Value.Unit                         => ""
-      case ExprStmt(value: Value)             => Value.show(value)
       case Callable.Function(Def(name, _, _)) => s"<function $name>"
       case _: Callable                        => "<callable>"
+      //case Returned(value)                    => Value.show(value)
     }
 
   implicit class ToValue[A](value: A) {
-    def unit: Value.Unit = {
+    def unit: Value.Unit.type = {
       value
       Value.Unit
     }

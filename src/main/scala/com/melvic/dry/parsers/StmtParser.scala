@@ -5,7 +5,7 @@ import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Expr.Literal
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt}
+import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
@@ -15,7 +15,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       TokenType.LeftBrace -> { _.block },
       TokenType.If        -> { _.ifStatement },
       TokenType.While     -> { _.whileStatement },
-      TokenType.For       -> { _.forStatement }
+      TokenType.For       -> { _.forStatement },
+      TokenType.Return    -> { _.returnStatement }
     )
 
   def expressionStatement: ParseResult[Stmt] =
@@ -106,5 +107,14 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       inc  <- increment(cond.next)
       body <- inc.statement
     } yield Step(whileLoop(init.value, cond.value, inc.value, body.value), body.next)
+  }
+
+  def returnStatement: ParseResult[Stmt] = {
+    val keyword = previous
+    val expr =
+      if (check(TokenType.Semicolon))
+        consume(TokenType.Semicolon, ";", "return value").mapValue(_ => Literal.None)
+      else expression.flatMapParser(_.consume(TokenType.Semicolon, ";", "return value"))
+    expr.mapValue(ReturnStmt(keyword, _))
   }
 }
