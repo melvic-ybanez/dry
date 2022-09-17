@@ -1,15 +1,16 @@
-package com.melvic.dry.eval
+package com.melvic.dry.interpreter.eval
 
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.Value.{Bool, Callable, Num, Str, None => VNone}
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
-import com.melvic.dry.eval.implicits._
+import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
+import com.melvic.dry.interpreter.eval.implicits._
+import com.melvic.dry.interpreter.{Callable, Env, Value}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
-import com.melvic.dry.{Env, Token, Value}
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
@@ -38,7 +39,7 @@ private[eval] trait EvalExpr {
         recurse(arguments, Nil, env).flatMap { case (args, env) =>
           calleeValue match {
             case Callable(arity, call) =>
-              if (arity == args.size) Result.succeed(call(args), env)
+              if (arity == args.size) call(args)(env)
               else Result.fail(RuntimeError.incorrectArity(paren, arity, args.size))
             case _ => Result.fail(RuntimeError.notCallable(paren))
           }

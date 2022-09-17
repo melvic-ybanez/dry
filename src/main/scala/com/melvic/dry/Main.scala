@@ -1,6 +1,6 @@
 package com.melvic.dry
 
-import com.melvic.dry.interpreter.Run
+import com.melvic.dry.interpreter.{Env, Run}
 
 object Main {
   def main(args: Array[String]): Unit =

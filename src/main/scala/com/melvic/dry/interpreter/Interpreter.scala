@@ -1,11 +1,11 @@
 package com.melvic.dry.interpreter
 
-import com.melvic.dry.Env.LocalEnv
-import com.melvic.dry.Value.{Callable, ToValue}
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.eval.{EvalOut, Evaluate}
+import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.Value.ToValue
+import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.result.Result
-import com.melvic.dry.{Env, Value}
+import com.melvic.dry.result.Result.implicits.ToResult
 
 object Interpreter {
   def interpret(declarations: List[Decl], env: Env): EvalOut = {
@@ -24,9 +24,9 @@ object Interpreter {
   }
 
   def natives: Env = Env.empty
-    .define("print", Callable(1, { case arg :: _ => print(Value.show(arg)).unit }))
-    // we don't support user-defined functions yet, so we are building a dedicated function for println for now.
+    .define("print", Callable(1, { case arg :: _ => print(Value.show(arg)).unit.env }))
+    // we don't have standard library functions yet, so we are building a dedicated function for println for now.
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
     // to a string that ends in a newline character
-    .define("println", Callable(1, { case arg :: _ => println(Value.show(arg)).unit }))
+    .define("println", Callable(1, { case arg :: _ => println(Value.show(arg)).unit.env }))
 }

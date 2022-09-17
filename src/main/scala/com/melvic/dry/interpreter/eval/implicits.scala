@@ -1,7 +1,7 @@
-package com.melvic.dry.eval
+package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.result.Result.Result
-import com.melvic.dry.{Env, Value}
+import com.melvic.dry.interpreter.{Env, Value}
 
 object implicits {
   implicit class EvalOutOps(result: EvalOut) {

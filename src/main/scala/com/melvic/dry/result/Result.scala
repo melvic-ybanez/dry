@@ -1,6 +1,6 @@
 package com.melvic.dry.result
 
-import com.melvic.dry.Env
+import com.melvic.dry.interpreter.Env
 import com.melvic.dry.result.Nel.One
 
 object Result {

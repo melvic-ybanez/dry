@@ -1,10 +1,11 @@
-package com.melvic.dry
+package com.melvic.dry.interpreter
 
-import com.melvic.dry.Value.Num
+import com.melvic.dry.ast.Decl.Def
+import com.melvic.dry.interpreter.Value.Num
 
 import scala.annotation.tailrec
 
-sealed trait Value {
+private[interpreter] trait Value {
   def toNum: Option[Num] =
     this match {
       case num: Num => Some(num)
@@ -24,8 +25,6 @@ object Value {
   final case class ExprStmt(value: Value) extends Unit
   case object Unit extends Unit
 
-  final case class Callable(arity: Int, call: List[Value] => Value) extends Value
-
   @tailrec
   def show(value: Value): String =
     value match {
@@ -35,9 +34,11 @@ object Value {
         val str = value.toString
         if (str.endsWith(".0")) str.init.init
         else str
-      case Str(str)                     => str
-      case Value.Unit                   => ""
-      case Value.ExprStmt(value: Value) => Value.show(value)
+      case Str(str)                           => str
+      case Value.Unit                         => ""
+      case ExprStmt(value: Value)             => Value.show(value)
+      case Callable.Function(Def(name, _, _)) => s"<function $name>"
+      case _: Callable                        => "<callable>"
     }
 
   implicit class ToValue[A](value: A) {

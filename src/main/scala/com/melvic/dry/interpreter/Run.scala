@@ -1,10 +1,10 @@
 package com.melvic.dry.interpreter
 
-import com.melvic.dry.eval.EvalOut
+import com.melvic.dry.interpreter.eval.EvalOut
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.{Failure, Result}
-import com.melvic.dry.{Env, Lexer, Value}
+import com.melvic.dry.Lexer
 
 import scala.io.Source
 import scala.io.StdIn.readLine

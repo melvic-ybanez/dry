@@ -1,14 +1,14 @@
-package com.melvic.dry.eval
+package com.melvic.dry.interpreter.eval
 
-import com.melvic.dry.Env.LocalEnv
-import com.melvic.dry.Value.{Unit => VUnit}
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, IfStmt}
 import com.melvic.dry.ast.{Decl, Stmt}
-import com.melvic.dry.eval.implicits._
+import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.Value.{Unit => VUnit}
+import com.melvic.dry.interpreter.eval.implicits._
+import com.melvic.dry.interpreter.{Env, Value}
 import com.melvic.dry.result.Result
-import com.melvic.dry.{Env, Value}
 
 private[eval] trait EvalStmt {
   def stmt: Evaluate[Stmt] = {

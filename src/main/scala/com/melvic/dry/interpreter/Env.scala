@@ -1,9 +1,10 @@
-package com.melvic.dry
+package com.melvic.dry.interpreter
 
-import com.melvic.dry.Env.{GlobalEnv, LocalEnv}
+import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
+import com.melvic.dry.Token
 
 /**
  * Represents the environment that houses the mapping between variable names and their corresponding values.
