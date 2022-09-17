@@ -30,4 +30,18 @@ object Interpreter {
     // to a string that ends in a newline character
     .define("println", Callable.unary(arg => println(Value.show(arg)).unit.env))
     .define("str", Callable.unary(arg => Str(Value.show(arg)).env))
+    .define(
+      "typeof", {
+        def str(str: String) = Str(str).env
+
+        Callable.unary {
+          case Value.None  => str("none")
+          case Bool(_)     => str("boolean")
+          case Num(_)      => str("number")
+          case Str(_)      => str("string")
+          case Value.Unit  => str("unit")
+          case _: Callable => str("function")
+        }
+      }
+    )
 }
