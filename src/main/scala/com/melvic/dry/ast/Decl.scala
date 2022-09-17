@@ -12,6 +12,8 @@ object Decl {
 
   final case class StmtDecl(stmt: Stmt) extends Decl
 
+  final case class Def(name: Token, params: List[Token], body: List[Decl]) extends Decl
+
   object StmtDecl {
     def fromExpr(expr: Expr): StmtDecl =
       StmtDecl(ExprStmt(expr))

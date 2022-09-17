@@ -13,9 +13,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     select(
       expressionStatement,
       TokenType.LeftBrace -> { _.block },
-      TokenType.If -> { _.ifStatement },
-      TokenType.While -> { _.whileStatement },
-      TokenType.For -> { _.forStatement }
+      TokenType.If        -> { _.ifStatement },
+      TokenType.While     -> { _.whileStatement },
+      TokenType.For       -> { _.forStatement }
     )
 
   def expressionStatement: ParseResult[Stmt] =
@@ -41,10 +41,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   def ifStatement: ParseResult[Stmt] =
     for {
-      step       <- consume(TokenType.LeftParen, "(", "if")
-      cond       <- step.expression
-      body       <- cond.consume(TokenType.RightParen, ")", "if condition")
-      thenBranch <- body.statement
+      leftParen  <- consume(TokenType.LeftParen, "(", "if")
+      cond       <- leftParen.expression
+      rightParen <- cond.consume(TokenType.RightParen, ")", "if condition")
+      thenBranch <- rightParen.statement
       ifStmt <- thenBranch
         .matchAny(TokenType.Else)
         .fold[ParseResult[Stmt]](

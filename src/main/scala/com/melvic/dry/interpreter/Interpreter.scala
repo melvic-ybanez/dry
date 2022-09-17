@@ -20,10 +20,10 @@ object Interpreter {
             })(env)
       }
 
-    recurse(declarations, LocalEnv(env.table, globals), Value.Unit)
+    recurse(declarations, LocalEnv(env.table, natives), Value.Unit)
   }
 
-  def globals: Env = Env.empty
+  def natives: Env = Env.empty
     .define("print", Callable(1, { case arg :: _ => print(Value.show(arg)).unit }))
     // we don't support user-defined functions yet, so we are building a dedicated function for println for now.
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
