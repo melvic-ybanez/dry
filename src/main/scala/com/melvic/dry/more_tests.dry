@@ -76,5 +76,18 @@ def fib(n) {
 }
 
 for (let i = 0; i < 20; i = i + 1) {
-    print(fib(i));
+    print(str(fib(i)) + " ");
 }
+
+def makeCounter() {
+    let i = 0;
+    def count() {
+        i = i + 1;
+        println(i);
+    }
+    return count;
+}
+
+let counter = makeCounter();
+counter();
+counter();

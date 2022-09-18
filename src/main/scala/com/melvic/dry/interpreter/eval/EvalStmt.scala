@@ -35,7 +35,7 @@ private[eval] trait EvalStmt {
             }
         }
 
-      recurse(Result.succeed(VUnit, Env.localEnv(env)), decls).map {
+      recurse(Result.succeed(VUnit, Env.fromEnclosing(env)), decls).map {
         case (value, LocalEnv(_, enclosing)) => (value, enclosing)
         case result                          => result
       }

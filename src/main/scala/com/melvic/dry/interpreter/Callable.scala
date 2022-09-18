@@ -2,42 +2,62 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
-import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.Callable.Call
 import com.melvic.dry.interpreter.Value.Returned
-import com.melvic.dry.interpreter.eval.Evaluate
+import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
+import com.melvic.dry.result.Result
+import com.melvic.dry.result.Result.Result
 
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
-  def call: Evaluate[List[Value]]
+  def call: Call
+
+  def enclosing: Env
 }
 
 object Callable {
-  final case class Function(function: Def) extends Callable {
+  type Call = List[Value] => Result[Value]
+
+  abstract class Function(val function: Def) extends Callable {
     override def arity = function.params.size
 
-    override def call: Evaluate[List[Value]] = { args => enclosingEnv =>
-      val env = function.params.zip(args).foldLeft(Env.localEnv(enclosingEnv)) { case (env, (param, arg)) =>
+    override def call: Call = { args =>
+      val env = function.params.zip(args).foldLeft(Env.fromEnclosing(enclosing)) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
       Evaluate.blockStmt(BlockStmt(function.body))(env).map {
-        case (Returned(value), LocalEnv(_, enclosing)) => (value, enclosing)
-        case (value, LocalEnv(_, enclosing))           => (value, enclosing)
-        case result                                    => result
+        case (Returned(value), _) => value
+        case (value, _)           => value
       }
     }
   }
 
-  def apply(initArity: Int, initCall: Evaluate[List[Value]]): Callable =
+  object Function {
+    def apply(function: Def, initEnclosing: => Env): Function =
+      new Function(function) {
+        override def enclosing = initEnclosing
+      }
+
+    def unapply(function: Function): Option[(Def, Env)] =
+      Some(function.function, function.enclosing)
+  }
+
+  def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
     new Callable {
+      override def enclosing = initEnclosing
+
       override def arity = initArity
 
       override def call = initCall
     }
 
-  def unapply(callable: Callable): Option[(Int, Evaluate[List[Value]])] =
-    Some(callable.arity, callable.call)
+  def unapply(callable: Callable): Option[(Int, Env, Call)] =
+    Some(callable.arity, callable.enclosing, callable.call)
 
-  def unary(call: Evaluate[Value]): Callable =
-    Callable(1, { case arg :: _ => call(arg) })
+  def unary(enclosing: Env)(call: Value => Result[Value]): Callable =
+    Callable(1, enclosing) { case arg :: _ => call(arg) }
+
+  def unarySuccess(enclosing: Env)(call: Value => Value): Callable =
+    unary(enclosing)(call.andThen(value => Result.succeed(value)))
 }

@@ -3,8 +3,6 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.interpreter.Value.Num
 
-import scala.annotation.tailrec
-
 private[interpreter] trait Value {
   def toNum: Option[Num] =
     this match {
@@ -24,7 +22,6 @@ object Value {
 
   final case class Returned(value: Value) extends Value
 
-  //@tailrec
   def show(value: Value): String =
     value match {
       case None        => "none"
@@ -33,11 +30,10 @@ object Value {
         val str = value.toString
         if (str.endsWith(".0")) str.init.init
         else str
-      case Str(str)                           => str
-      case Value.Unit                         => ""
-      case Callable.Function(Def(name, _, _)) => s"<function $name>"
-      case _: Callable                        => "<callable>"
-      //case Returned(value)                    => Value.show(value)
+      case Str(str)                              => str
+      case Value.Unit                            => ""
+      case Callable.Function(Def(name, _, _), _) => s"<function $name>"
+      case _: Callable                           => "<callable>"
     }
 
   implicit class ToValue[A](value: A) {

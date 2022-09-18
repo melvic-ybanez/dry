@@ -5,7 +5,6 @@ import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, ToValue}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.result.Result
-import com.melvic.dry.result.Result.implicits.ToResult
 
 object Interpreter {
   def interpret(declarations: List[Decl], env: Env): EvalOut = {
@@ -24,24 +23,21 @@ object Interpreter {
   }
 
   def natives: Env = Env.empty
-    .define("print", Callable.unary(arg => print(Value.show(arg)).unit.env))
+    .defineWith("print", Callable.unarySuccess(_)(arg => print(Value.show(arg)).unit))
     // we don't have standard library functions yet, so we are building a dedicated function for println for now.
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
     // to a string that ends in a newline character
-    .define("println", Callable.unary(arg => println(Value.show(arg)).unit.env))
-    .define("str", Callable.unary(arg => Str(Value.show(arg)).env))
-    .define(
-      "typeof", {
-        def str(str: String) = Str(str).env
-
-        Callable.unary {
-          case Value.None  => str("none")
-          case Bool(_)     => str("boolean")
-          case Num(_)      => str("number")
-          case Str(_)      => str("string")
-          case Value.Unit  => str("unit")
-          case _: Callable => str("function")
-        }
+    .defineWith("println", Callable.unarySuccess(_)(arg => println(Value.show(arg)).unit))
+    .defineWith("str", Callable.unarySuccess(_)(arg => Str(Value.show(arg))))
+    .defineWith(
+      "typeof",
+      Callable.unarySuccess(_) {
+        case Value.None  => Str("none")
+        case Bool(_)     => Str("boolean")
+        case Num(_)      => Str("number")
+        case Str(_)      => Str("string")
+        case Value.Unit  => Str("unit")
+        case _: Callable => Str("function")
       }
     )
 }

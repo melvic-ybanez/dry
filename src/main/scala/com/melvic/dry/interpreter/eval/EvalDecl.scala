@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.{Decl, Stmt}
-import com.melvic.dry.interpreter.{Callable, Value}
+import com.melvic.dry.interpreter.{Callable, Env, Value}
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
@@ -46,6 +46,9 @@ private[eval] trait EvalDecl extends EvalStmt {
   }
 
   def defDecl: Evaluate[Def] = { case function @ Def(name, _, _) =>
-    env => Result.succeed(Value.Unit, env.define(name.lexeme, Callable.Function(function)))
+    env =>
+      lazy val callable: Callable = Callable.Function(function, newEnv)
+      lazy val newEnv: Env = env.define(name.lexeme, callable)
+      Result.succeed(Value.Unit, newEnv)
   }
 }
