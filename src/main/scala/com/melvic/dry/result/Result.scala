@@ -1,6 +1,7 @@
 package com.melvic.dry.result
 
 import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.eval.EvalResult
 import com.melvic.dry.result.Nel.One
 
 object Result {
@@ -32,8 +33,13 @@ object Result {
       def ok: Result[A] =
         Result.succeed(value)
 
-      def env: Env => Result[(A, Env)] =
-        env => Result.succeed(value, env)
+      def env: Env => Result[A] =
+        _ => Result.succeed(value)
+    }
+
+    implicit class ResultOps[A](result: Result[A]) {
+      def withEnv: Env => Result[A] =
+        _ => result
     }
   }
 }

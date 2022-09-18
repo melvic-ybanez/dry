@@ -6,6 +6,8 @@ import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 
+import scala.collection.mutable
+
 /**
  * Represents the environment that houses the mapping between variable names and their corresponding values.
  */
@@ -15,7 +17,7 @@ sealed trait Env {
   /**
    * Adds a new variable to the environment.
    */
-  def define(name: String, value: => Value): Env
+  def define(name: String, value: Value): Env
 
   /**
    * Like [[define]], but allows the caller to access this environment. This will be useful for chaining
@@ -36,19 +38,19 @@ sealed trait Env {
 }
 
 object Env {
-  type Table = Map[String, Value]
+  type Table = mutable.Map[String, Value]
 
   /**
    * An [[Env]] that has a pointer to its immediate enclosing environment, forming a Cactus Stack, to enable
    * lexical scoping.
    */
-  abstract class LocalEnv(val enclosing: Env) extends Env {
+  final case class LocalEnv(table: Table, enclosing: Env) extends Env {
 
     /**
      * Adds a new variable to the environment.
      */
-    def define(name: String, value: => Value): LocalEnv =
-      LocalEnv(table + (name -> value), enclosing)
+    def define(name: String, value: Value): LocalEnv =
+      LocalEnv(table += (name -> value), enclosing)
 
     def get(name: Token): Result[Value] =
       table
@@ -58,45 +60,24 @@ object Env {
 
   /**
    * A global [[Env]] that doesn't have an enclosing scope.
-   * @param table
    */
-  abstract class GlobalEnv extends Env {
+  final case class GlobalEnv(table: Table) extends Env {
 
     /**
      * Adds a new variable to the environment. Note that this allows variable redefinitions.
      */
-    override def define(name: String, value: => Value): Env =
-      GlobalEnv(table + (name -> value))
+    override def define(name: String, value: Value): Env =
+      GlobalEnv(table += (name -> value))
 
     override def get(name: Token): Result[Value] =
       Result.fromOption(table.get(name.lexeme), RuntimeError.undefinedVariable(name))
   }
 
-  def empty: Env = GlobalEnv(Map())
+  def empty: Env = GlobalEnv(mutable.Map())
 
   def get(name: Token): Env => Result[Value] =
     _.get(name)
 
   def fromEnclosing(enclosing: Env): Env =
-    LocalEnv(Map(), enclosing)
-
-  object LocalEnv {
-    def apply(initTable: => Map[String, Value], enclosing: Env): LocalEnv =
-      new LocalEnv(enclosing) {
-        override def table = initTable
-      }
-
-    def unapply(localEnv: LocalEnv): Option[(Table, Env)] =
-      Some(localEnv.table, localEnv.enclosing)
-  }
-
-  object GlobalEnv {
-    def apply(initTable: Map[String, Value]): GlobalEnv =
-      new GlobalEnv {
-        override def table = initTable
-      }
-
-    def unapply(globalEnv: GlobalEnv): Option[Table] =
-      Some(globalEnv.table)
-  }
+    LocalEnv(mutable.Map(), enclosing)
 }

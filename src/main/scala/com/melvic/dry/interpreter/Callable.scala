@@ -4,7 +4,7 @@ import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.interpreter.Callable.Call
 import com.melvic.dry.interpreter.Value.Returned
-import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
+import com.melvic.dry.interpreter.eval.Evaluate
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 
@@ -27,8 +27,8 @@ object Callable {
         env.define(param.lexeme, arg)
       }
       Evaluate.blockStmt(BlockStmt(function.body))(env).map {
-        case (Returned(value), _) => value
-        case (value, _)           => value
+        case Returned(value) => value
+        case value           => value
       }
     }
   }

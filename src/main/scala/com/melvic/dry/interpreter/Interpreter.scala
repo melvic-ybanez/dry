@@ -7,19 +7,18 @@ import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.result.Result
 
 object Interpreter {
-  def interpret(declarations: List[Decl], env: Env): EvalOut = {
-    def recurse(declarations: List[Decl], env: Env, value: Value): EvalOut =
+  def interpret(declarations: List[Decl], enclosing: Env): EvalOut = {
+    val env = LocalEnv(enclosing.table, natives)
+    def recurse(declarations: List[Decl], value: Value): EvalOut =
       declarations match {
-        case Nil => Result.succeed(value, env)
+        case Nil => Result.succeed(value)
         case statement :: rest =>
           Evaluate
             .decl(statement)
-            .andThen(_.flatMap { case (value, env) =>
-              recurse(rest, env, value)
-            })(env)
+            .andThen(_.flatMap(recurse(rest, _)))(env)
       }
 
-    recurse(declarations, LocalEnv(env.table, natives), Value.Unit)
+    recurse(declarations, Value.Unit)
   }
 
   def natives: Env = Env.empty

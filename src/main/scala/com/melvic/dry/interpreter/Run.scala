@@ -1,10 +1,10 @@
 package com.melvic.dry.interpreter
 
+import com.melvic.dry.Lexer
 import com.melvic.dry.interpreter.eval.EvalOut
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.{Failure, Result}
-import com.melvic.dry.Lexer
 
 import scala.io.Source
 import scala.io.StdIn.readLine
@@ -23,8 +23,8 @@ object Run {
           env
         )
         .map {
-          case (Value.Unit, env) => repl(env) // this is to avoid extra blank lines in the output
-          case (value, env) =>
+          case Value.Unit => repl(env) // this is to avoid extra blank lines in the output
+          case value =>
             println(Value.show(value))
             repl(env)
         }

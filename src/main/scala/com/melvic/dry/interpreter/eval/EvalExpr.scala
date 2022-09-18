@@ -10,7 +10,7 @@ import com.melvic.dry.interpreter.{Callable, Env, Value}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
-import com.melvic.dry.result.Result.implicits.ToResult
+import com.melvic.dry.result.Result.implicits._
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
@@ -25,30 +25,29 @@ private[eval] trait EvalExpr {
   }
 
   def call: Evaluate[Call] = { case Call(callee, arguments, paren) =>
-    Evaluate.expr(callee).flatMapValue { calleeValue =>
-      def recurse(args: List[Expr], argValues: List[Value], env: Env): Result[(List[Value], Env)] =
+    Evaluate.expr(callee).flatMap { calleeValue => env =>
+      def recurse(args: List[Expr], argValues: List[Value]): Result[List[Value]] =
         args match {
-          case Nil => Result.succeed(argValues.reverse, env)
+          case Nil => Result.succeed(argValues.reverse)
           case arg :: rest =>
-            Evaluate.expr(arg)(env).flatMap { case (arg, env) =>
-              recurse(rest, arg :: argValues, env)
+            Evaluate.expr(arg)(env).flatMap { arg =>
+              recurse(rest, arg :: argValues)
             }
         }
 
-      env =>
-        recurse(arguments, Nil, env).flatMap { case (args, env) =>
-          calleeValue match {
-            case Callable(arity, _, call) =>
-              if (arity == args.size) call(args).map((_, env))
-              else Result.fail(RuntimeError.incorrectArity(paren, arity, args.size))
-            case _ => Result.fail(RuntimeError.notCallable(paren))
-          }
+      recurse(arguments, Nil).flatMap { args =>
+        calleeValue match {
+          case Callable(arity, _, call) =>
+            if (arity == args.size) call(args)
+            else Result.fail(RuntimeError.incorrectArity(paren, arity, args.size))
+          case _ => Result.fail(RuntimeError.notCallable(paren))
         }
+      }
     }
   }
 
   def logical: Evaluate[Logical] = { case Logical(left, operator, right) =>
-    Evaluate.expr(left).flatMapValue { left =>
+    Evaluate.expr(left).flatMap { left =>
       def logical(predicate: Value => Boolean): EvalResult =
         if (predicate(left)) left.env else Evaluate.expr(right)
 
@@ -61,7 +60,7 @@ private[eval] trait EvalExpr {
 
   def unary: Evaluate[Unary] = { case Unary(operator, operandTree) =>
     Evaluate.expr(operandTree).andThen {
-      _.flatMapValue { operand =>
+      _.flatMap { operand =>
         operator match {
           case TokenType.Minus(_, _) =>
             Result.fromOption(
@@ -76,67 +75,66 @@ private[eval] trait EvalExpr {
   }
 
   def binary: Evaluate[Binary] = { case Binary(leftTree, operator @ Token(operatorType, _, _), rightTree) =>
-    env =>
-      def fromValueOperands(left: Value, right: Value): Result[Value] = {
-        def binary[O, V](fold: (Double, Double) => O, toValue: O => V): Result[V] =
-          Result.fromOption(
-            for {
-              leftNum  <- left.toNum
-              rightNum <- right.toNum
-            } yield toValue(fold(leftNum.value, rightNum.value)),
-            RuntimeError.invalidOperands(operator, "number" :: Nil)
-          )
+    def fromValueOperands(left: Value, right: Value): Result[Value] = {
+      def binary[O, V](fold: (Double, Double) => O, toValue: O => V): Result[V] =
+        Result.fromOption(
+          for {
+            leftNum  <- left.toNum
+            rightNum <- right.toNum
+          } yield toValue(fold(leftNum.value, rightNum.value)),
+          RuntimeError.invalidOperands(operator, "number" :: Nil)
+        )
 
-        def combine(f: (Double, Double) => Result[Double]): Result[Num] =
-          binary(f, (result: Result[Double]) => result.map(Num)).flatten
+      def combine(f: (Double, Double) => Result[Double]): Result[Num] =
+        binary(f, (result: Result[Double]) => result.map(Num)).flatten
 
-        def combineUnsafe(f: (Double, Double) => Double): Result[Num] =
-          combine((x, y) => f(x, y).ok)
+      def combineUnsafe(f: (Double, Double) => Double): Result[Num] =
+        combine((x, y) => f(x, y).ok)
 
-        def compare(f: (Double, Double) => Boolean): Result[Bool] =
-          binary(f, Bool)
+      def compare(f: (Double, Double) => Boolean): Result[Bool] =
+        binary(f, Bool)
 
-        def bitwise(f: (Long, Long) => Long): Result[Num] =
-          combineUnsafe { case (x, y) => f(x.toLong, y.toLong) }
+      def bitwise(f: (Long, Long) => Long): Result[Num] =
+        combineUnsafe { case (x, y) => f(x.toLong, y.toLong) }
 
-        operatorType match {
-          case TokenType.Plus =>
-            (left, right) match {
-              case (Num(l), Num(r)) => Num(l + r).ok
-              case (Str(l), Str(r)) => Str(l + r).ok
-              case _ =>
-                val error = RuntimeError.invalidOperands(operator, List("number", "string"))
-                Result.fail(error)
-            }
-          case TokenType.Minus => combineUnsafe(_ - _)
-          case TokenType.Star  => combineUnsafe(_ * _)
-          case TokenType.Slash =>
-            combine {
-              case (_, 0) => Result.fail(RuntimeError.divisionByZero(operator))
-              case (x, y) => (x / y).ok
-            }
-          case TokenType.Modulo       => combineUnsafe(_ % _)
-          case TokenType.BAnd         => bitwise(_ & _)
-          case TokenType.BOr          => bitwise(_ | _)
-          case TokenType.BXor         => bitwise(_ ^ _)
-          case TokenType.LeftShift    => bitwise(_ << _)
-          case TokenType.RightShift   => bitwise(_ >> _)
-          case TokenType.URightShift  => bitwise(_ >>> _)
-          case TokenType.Greater      => compare(_ > _)
-          case TokenType.GreaterEqual => compare(_ >= _)
-          case TokenType.Less         => compare(_ < _)
-          case TokenType.LessEqual    => compare(_ <= _)
-          case TokenType.NotEqual     => compare(_ != _)
-          case TokenType.EqualEqual   => compare(_ == _)
-          case _                      => VNone.ok
-        }
+      operatorType match {
+        case TokenType.Plus =>
+          (left, right) match {
+            case (Num(l), Num(r)) => Num(l + r).ok
+            case (Str(l), Str(r)) => Str(l + r).ok
+            case _ =>
+              val error = RuntimeError.invalidOperands(operator, List("number", "string"))
+              Result.fail(error)
+          }
+        case TokenType.Minus => combineUnsafe(_ - _)
+        case TokenType.Star  => combineUnsafe(_ * _)
+        case TokenType.Slash =>
+          combine {
+            case (_, 0) => Result.fail(RuntimeError.divisionByZero(operator))
+            case (x, y) => (x / y).ok
+          }
+        case TokenType.Modulo       => combineUnsafe(_ % _)
+        case TokenType.BAnd         => bitwise(_ & _)
+        case TokenType.BOr          => bitwise(_ | _)
+        case TokenType.BXor         => bitwise(_ ^ _)
+        case TokenType.LeftShift    => bitwise(_ << _)
+        case TokenType.RightShift   => bitwise(_ >> _)
+        case TokenType.URightShift  => bitwise(_ >>> _)
+        case TokenType.Greater      => compare(_ > _)
+        case TokenType.GreaterEqual => compare(_ >= _)
+        case TokenType.Less         => compare(_ < _)
+        case TokenType.LessEqual    => compare(_ <= _)
+        case TokenType.NotEqual     => compare(_ != _)
+        case TokenType.EqualEqual   => compare(_ == _)
+        case _                      => VNone.ok
       }
+    }
 
-      for {
-        left   <- Evaluate.expr(leftTree)(env)
-        right  <- Evaluate.expr(rightTree)(left.env)
-        result <- fromValueOperands(left.value, right.value).withEnv(right.env)
-      } yield result
+    for {
+      left   <- Evaluate.expr(leftTree)
+      right  <- Evaluate.expr(rightTree)
+      result <- fromValueOperands(left, right).withEnv
+    } yield result
   }
 
   def literal: Evaluate[Literal] = {
@@ -148,15 +146,16 @@ private[eval] trait EvalExpr {
   }
 
   def variable: Evaluate[Variable] = { case Variable(expr) =>
-    toEvalResult(Env.get(expr))
+    Env.get(expr)
   }
 
   def assignment: Evaluate[Assignment] = { case Assignment(name, value) =>
-    Evaluate
-      .expr(value)
-      .andThen(_.flatMap { case (value, env) =>
-        env.assign(name, value).map((value, _))
-      })
+    env =>
+      Evaluate
+        .expr(value)(env)
+        .flatMap { value =>
+          env.assign(name, value).map(_ => value)
+        }
   }
 
 }

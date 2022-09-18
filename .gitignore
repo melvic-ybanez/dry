@@ -32,4 +32,4 @@ org.scala-ide.sdt.update-site/site.xml
 
 *.sc
 
-test.dry
+*.dry
