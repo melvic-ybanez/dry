@@ -19,7 +19,7 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = List[Value] => Result[Value]
 
-  abstract class Function(val function: Def) extends Callable {
+  final case class Function(function: Def, enclosing: Env) extends Callable {
     override def arity = function.params.size
 
     override def call: Call = { args =>
@@ -31,16 +31,6 @@ object Callable {
         case value           => value
       }
     }
-  }
-
-  object Function {
-    def apply(function: Def, initEnclosing: => Env): Function =
-      new Function(function) {
-        override def enclosing = initEnclosing
-      }
-
-    def unapply(function: Function): Option[(Def, Env)] =
-      Some(function.function, function.enclosing)
   }
 
   def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
