@@ -33,6 +33,7 @@ object Value {
       case Str(str)                              => str
       case Value.Unit                            => ""
       case Callable.Function(Def(name, _, _), _) => s"<function $name>"
+      case Callable.Lambda(_, _)                 => s"<lambda function>"
       case _: Callable                           => "<callable>"
     }
 

@@ -1,7 +1,9 @@
 package com.melvic.dry.interpreter
 
+import com.melvic.dry.Token
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
+import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Callable.Call
 import com.melvic.dry.interpreter.Value.Returned
 import com.melvic.dry.interpreter.eval.Evaluate
@@ -19,18 +21,34 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = List[Value] => Result[Value]
 
-  final case class Function(function: Def, enclosing: Env) extends Callable {
-    override def arity = function.params.size
+  trait FunctionLike extends Callable {
+    def params: List[Token]
+
+    def body: List[Decl]
+
+    override def arity = params.size
 
     override def call: Call = { args =>
-      val env = function.params.zip(args).foldLeft(Env.fromEnclosing(enclosing)) { case (env, (param, arg)) =>
+      val env = params.zip(args).foldLeft(Env.fromEnclosing(enclosing)) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
-      Evaluate.blockStmt(BlockStmt(function.body))(env).map {
+      Evaluate.blockStmt(BlockStmt(body))(env).map {
         case Returned(value) => value
         case value           => value
       }
     }
+  }
+
+  final case class Function(function: Def, enclosing: Env) extends FunctionLike {
+    override def params = function.params
+
+    override def body = function.body
+  }
+
+  final case class Lambda(lambda: Expr.Lambda, enclosing: Env) extends FunctionLike {
+    override def params = lambda.params
+
+    override def body = lambda.body
   }
 
   def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =

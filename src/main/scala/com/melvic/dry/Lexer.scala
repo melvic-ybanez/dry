@@ -145,22 +145,23 @@ final case class Lexer(
 
 object Lexer {
   val Keywords: Map[String, TokenType] = Map(
-    "and" -> TokenType.And,
-    "or" -> TokenType.Or,
-    "class" -> TokenType.Class,
-    "if" -> TokenType.If,
-    "else" -> TokenType.Else,
-    "true" -> TokenType.True,
-    "false" -> TokenType.False,
-    "let" -> TokenType.Let,
-    "while" -> TokenType.While,
-    "for" -> TokenType.For,
-    "def" -> TokenType.Def,
-    "none" -> TokenType.None,
+    "and"    -> TokenType.And,
+    "or"     -> TokenType.Or,
+    "class"  -> TokenType.Class,
+    "if"     -> TokenType.If,
+    "else"   -> TokenType.Else,
+    "true"   -> TokenType.True,
+    "false"  -> TokenType.False,
+    "let"    -> TokenType.Let,
+    "while"  -> TokenType.While,
+    "for"    -> TokenType.For,
+    "def"    -> TokenType.Def,
+    "none"   -> TokenType.None,
     "return" -> TokenType.Return,
-    "super" -> TokenType.Super,
-    "self" -> TokenType.Self,
-    "not" -> TokenType.Not
+    "super"  -> TokenType.Super,
+    "self"   -> TokenType.Self,
+    "not"    -> TokenType.Not,
+    "lambda" -> TokenType.Lambda
   )
 
   def scanTokens(source: String): Result[List[Token]] =

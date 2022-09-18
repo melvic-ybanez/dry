@@ -13,7 +13,7 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   def assignment: ParseResult[Expr] =
-    or.flatMap { case Step(lValue, parser) =>
+    lambda.flatMap { case Step(lValue, parser) =>
       parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
         val equals = parser.previous
         parser.assignment.flatMap { case Step(rValue, parser) =>
@@ -24,6 +24,15 @@ private[parsers] trait ExprParser { _: Parser =>
         }
       }
     }
+
+  def lambda: ParseResult[Expr] =
+    matchAny(TokenType.Lambda)
+      .fold(or) { parser =>
+        for {
+          params <- parser.params
+          body   <- params.functionBody
+        } yield Step(Lambda(params.value, body.value.declarations), body.next)
+      }
 
   def or: ParseResult[Expr] =
     leftAssocLogical(_.and, TokenType.Or)

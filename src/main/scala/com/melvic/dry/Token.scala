@@ -78,5 +78,6 @@ object Token {
     case object True extends TokenType
     case object Let extends TokenType
     case object While extends TokenType
+    case object Lambda extends TokenType
   }
 }

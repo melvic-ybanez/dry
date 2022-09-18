@@ -45,6 +45,11 @@ private[eval] trait EvalDecl extends EvalStmt {
     }
   }
 
+  /**
+   * Defines a named function. Note: We may no longer need this if we decide to treat `def` functions as
+   * syntactic sugars for lambda-expressions stored to variables.
+   * @return
+   */
   def defDecl: Evaluate[Def] = { case function @ Def(name, _, _) =>
     _.defineWith(name.lexeme, Callable.Function(function, _)).unit.ok
   }

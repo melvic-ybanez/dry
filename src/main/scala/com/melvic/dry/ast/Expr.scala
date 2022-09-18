@@ -24,4 +24,5 @@ object Expr {
   final case class Logical(left: Expr, operator: Token, right: Expr) extends Expr
 
   final case class Call(callee: Expr, arguments: List[Expr], paren: Token) extends Expr
+  final case class Lambda(params: List[Token], body: List[Decl]) extends Expr
 }

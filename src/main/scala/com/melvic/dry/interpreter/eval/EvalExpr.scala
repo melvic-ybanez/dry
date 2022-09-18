@@ -14,6 +14,7 @@ import com.melvic.dry.result.Result.implicits._
 
 private[eval] trait EvalExpr {
   def expr: Evaluate[Expr] = {
+    case lambda: Lambda         => Evaluate.lambda(lambda)
     case literal: Literal       => Evaluate.literal(literal)
     case Grouping(expr)         => Evaluate.expr(expr)
     case unary: Unary           => Evaluate.unary(unary)
@@ -22,6 +23,10 @@ private[eval] trait EvalExpr {
     case assignment: Assignment => Evaluate.assignment(assignment)
     case logical: Logical       => Evaluate.logical(logical)
     case call: Call             => Evaluate.call(call)
+  }
+
+  def lambda: Evaluate[Lambda] = { lambda => env =>
+    Callable.Lambda(lambda, env).ok
   }
 
   def call: Evaluate[Call] = { case Call(callee, arguments, paren) =>

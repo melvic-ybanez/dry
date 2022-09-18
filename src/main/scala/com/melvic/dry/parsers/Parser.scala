@@ -3,6 +3,7 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
+import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.tailrec
@@ -90,6 +91,24 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
 
       recurse(parser)
     }
+
+  def params: ParseResult[List[Token]] =
+    for {
+      leftParen <- consume(TokenType.LeftParen, "(", "function name")
+      params <-
+        if (!leftParen.check(TokenType.RightParen)) {
+          def recurse(params: List[Token], parser: Parser): ParseResult[List[Token]] =
+            parser
+              .matchAny(TokenType.Comma)
+              .fold(ParseResult.succeed(params.reverse, parser))(
+                _.consume(TokenType.Identifier, "parameter name", ",").mapValue(_ :: params)
+              )
+
+          leftParen.consume(TokenType.Identifier, "parameter name", "(").flatMap { case Step(param, parser) =>
+            recurse(param :: Nil, parser).flatMapParser(_.consume(TokenType.RightParen, ")", "parameters"))
+          }
+        } else leftParen.consume(TokenType.RightParen, ")", "(").mapValue(_ => Nil)
+    } yield params
 }
 
 object Parser {
