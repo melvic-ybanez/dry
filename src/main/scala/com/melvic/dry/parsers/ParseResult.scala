@@ -12,21 +12,15 @@ import scala.util.chaining.scalaUtilChainingOps
  */
 final case class ParseResult[+A](result: Result[A], parser: Parser) {
   def map[B](f: Step[A] => Step[B]): ParseResult[B] =
-    result match {
-      case Right(value) => f(Step(value, parser)).toParseResult
-      case Left(errors) => ParseResult.failAll(errors, parser)
-    }
+    fold[ParseResult[B]](ParseResult.failAll)(step => ParseResult.fromStep(f(step)))
 
   def mapValue[B](f: A => B): ParseResult[B] =
     map(step => Step(f(step.value), parser))
 
   def flatMap[B](f: Step[A] => ParseResult[B]): ParseResult[B] =
-    result match {
-      case Right(value) => f(Step(value, parser))
-      case Left(errors) => ParseResult.failAll(errors, parser)
-    }
+    fold[ParseResult[B]](ParseResult.failAll)(f)
 
-  def mapErrors(f: (Nel[Failure], Parser) => (Nel[Failure], Parser)): ParseResult[A] =
+  def leftMap(f: (Nel[Failure], Parser) => (Nel[Failure], Parser)): ParseResult[A] =
     result match {
       case Left(errors) =>
         f(errors, parser).pipe { case (newErrors, newParser) => ParseResult.failAll(newErrors, newParser) }
@@ -38,6 +32,18 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 
   def flatMapParser(f: Parser => ParseResult[_]): ParseResult[A] =
     f(parser).copy(result = result)
+
+  def combineErrors(moreErrors: Nel[Failure], newParser: Parser): ParseResult[A] =
+    leftMap((errors, _) => (errors ++ moreErrors, newParser))
+      // make sure to convert a successful result to a failing one
+      .flatMap(_ => ParseResult.failAll(moreErrors, newParser))
+
+
+  def fold[B](ifError: (Nel[Failure], Parser) => B)(ifSuccess: Step[A] => B): B =
+    result match {
+      case Left(errors) => ifError(errors, parser)
+      case Right(value) => ifSuccess(Step(value, parser))
+    }
 }
 
 object ParseResult {

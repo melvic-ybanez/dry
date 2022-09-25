@@ -10,4 +10,9 @@ object implicits {
     def flatMap[C](g: B => A => C): A => C =
       a => g(f(a))(a)
   }
+
+  implicit class EffectfulFunctionOps[F[_]: HasFlatMap, A, B, C](f: A => F[B]) {
+    def >=>(g: B => F[C]): A => F[C] =
+      f.andThen(h => HasFlatMap[F].flatMap(h)(g))
+  }
 }

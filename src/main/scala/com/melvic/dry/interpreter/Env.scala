@@ -2,6 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
+import com.melvic.dry.interpreter.values.Value
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result

@@ -2,8 +2,8 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.{Decl, Stmt}
-import com.melvic.dry.interpreter.Value.ToValue
-import com.melvic.dry.interpreter.{Callable, Value}
+import com.melvic.dry.interpreter.values.Value.ToValue
+import com.melvic.dry.interpreter.values.{Callable, Value}
 import com.melvic.dry.result.Result.implicits.ToResult
 
 private[eval] trait EvalDecl extends EvalStmt {

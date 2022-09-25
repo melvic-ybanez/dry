@@ -1,7 +1,7 @@
-package com.melvic.dry.interpreter
+package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.ast.Decl.Def
-import com.melvic.dry.interpreter.Value.Num
+import com.melvic.dry.interpreter.values.Value.Num
 
 private[interpreter] trait Value {
   def toNum: Option[Num] =

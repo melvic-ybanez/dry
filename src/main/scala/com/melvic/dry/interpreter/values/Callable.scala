@@ -1,12 +1,13 @@
-package com.melvic.dry.interpreter
+package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
-import com.melvic.dry.interpreter.Callable.Call
-import com.melvic.dry.interpreter.Value.Returned
+import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.eval.Evaluate
+import com.melvic.dry.interpreter.values.Callable.Call
+import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 

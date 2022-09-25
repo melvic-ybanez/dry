@@ -6,7 +6,8 @@ import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, IfStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.implicits._
-import com.melvic.dry.interpreter.{Env, Value}
+import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.values.Value
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits._
 

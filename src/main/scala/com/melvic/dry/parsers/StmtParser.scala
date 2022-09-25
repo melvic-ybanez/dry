@@ -29,10 +29,13 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
       result.flatMap { case Step(declarations, parser) =>
         if (parser.check(TokenType.RightBrace) || parser.isAtEnd) result.mapValue(_.reverse)
-        else
-          parser.declaration.flatMap { case Step(declaration, parser) =>
+        else {
+          parser.declaration.fold((moreErrors, newParser) =>
+            recurse(result.combineErrors(moreErrors, newParser))
+          ) { case Step(declaration, parser) =>
             recurse(ParseResult.succeed(declaration :: declarations, parser))
           }
+        }
       }
 
     recurse(ParseResult.succeed(Nil, this)).flatMap { case Step(decls, parser) =>

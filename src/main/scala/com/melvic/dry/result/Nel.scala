@@ -13,6 +13,20 @@ sealed trait Nel[+A] {
         f(head)
         tail.foreach(f)
     }
+
+  def ::[B >: A](value: B): Nel[B] = Many(value, this)
+
+  def ++[B >: A](that: Nel[B]): Nel[B] =
+    this match {
+      case One(head)        => head :: that
+      case Many(head, tail) => head :: (tail ++ that)
+    }
+
+  def length: Int =
+    this match {
+      case One(_)        => 1
+      case Many(_, tail) => 1 + tail.length
+    }
 }
 
 object Nel {

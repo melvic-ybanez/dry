@@ -1,6 +1,6 @@
 package com.melvic.dry.interpreter.eval
 
-import com.melvic.dry.interpreter.Value
+import com.melvic.dry.interpreter.values.Value
 
 object implicits {
   implicit class EvalResultOps(result: EvalResult) {

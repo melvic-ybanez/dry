@@ -2,8 +2,9 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.Value.{Bool, Num, Str, ToValue}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
+import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
+import com.melvic.dry.interpreter.values.{Callable, Value}
 import com.melvic.dry.result.Result
 
 object Interpreter {

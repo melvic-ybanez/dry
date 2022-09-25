@@ -11,18 +11,19 @@ def display_fib(from) {
   return lambda(to) {
     for (let i = from; i <= to; i = i + 1) {
       // types need to be explicitly converted to string via the `str` function
+      // before we can use it as an operand of the string concatenation operator
       print(str(fib(i)) + " ");
     }
     println("");
   };
 }
 
-// Another way to create a function is to assign a name to a lambda.
+// Another way to create a named function is to assign a name to a lambda.
 let fib = lambda(n) {
   if (n <= 1) return n;
 
   // Dry supports recursion, both with lambdas and named functions.
-  // Note: At the time of this writing, tail-recursions are not supported
+  // Note: At the time of this writing, tail-call optimizations are not supported
   return fib(n - 2) + fib(n - 1);
 };
 

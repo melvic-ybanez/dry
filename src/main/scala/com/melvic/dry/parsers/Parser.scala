@@ -3,7 +3,6 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.tailrec
@@ -11,14 +10,16 @@ import scala.util.chaining._
 
 final case class Parser(tokens: List[Token], current: Int) extends ExprParser with DeclParser {
   def parse: ParseResult[List[Decl]] = {
-    def recurse(parser: Parser, statements: List[Decl]): ParseResult[List[Decl]] =
-      if (parser.isAtEnd) ParseResult.succeed(statements.reverse, parser)
+    def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
+      if (result.parser.isAtEnd) result.mapValue(_.reverse)
       else
-        parser.declaration.flatMap { case Step(stmt, newParser) =>
-          recurse(newParser, stmt :: statements)
+        result.parser.declaration.fold((moreErrors, newParser) =>
+          recurse(result.combineErrors(moreErrors, newParser))
+        ) { case Step(stmt, newParser) =>
+          recurse(result.mapValue(stmt :: _).mapParser(_ => newParser))
         }
 
-    recurse(this, Nil)
+    recurse(ParseResult.succeed(Nil, this))
   }
 
   def matchAny(tokenTypes: TokenType*): Option[Parser] =

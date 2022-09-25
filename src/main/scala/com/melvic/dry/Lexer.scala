@@ -2,9 +2,10 @@ package com.melvic.dry
 
 import com.melvic.dry.Lexer.enableEscapeSequences
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.result.Failure.LexerError
+import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
-import com.melvic.dry.result.{Failure, Result}
 
 import scala.annotation.tailrec
 
@@ -62,7 +63,7 @@ final case class Lexer(
       case '"'                   => lexer.scanString
       case c if Lexer.isDigit(c) => lexer.scanDigit.ok
       case c if Lexer.isAlpha(c) => lexer.scanIdentifier.ok
-      case c                     => Result.fail(Failure.invalidCharacter(line, c))
+      case c                     => Result.fail(LexerError.invalidCharacter(line, c))
     }
   }
 
@@ -119,7 +120,7 @@ final case class Lexer(
       else loop(lexer.advance)
 
     val lexer = loop(this)
-    if (lexer.isAtEnd) Result.fail(Failure.unterminatedString(line))
+    if (lexer.isAtEnd) Result.fail(LexerError.unterminatedString(line))
     else {
       val newLexer = lexer.advance // remove the closing quotation mark
       val stringContent = newLexer.source.substring(newLexer.start + 1, newLexer.current - 1)

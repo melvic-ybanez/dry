@@ -3,7 +3,6 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.Lexer
 import com.melvic.dry.interpreter.eval.EvalOut
 import com.melvic.dry.parsers.Parser
-import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.{Failure, Result}
 
 import scala.io.Source
@@ -36,17 +35,10 @@ object Run {
     val source = Source.fromFile(path)
     val code = source.getLines.mkString("\n")
 
-    def reportAndExit(error: Failure, code: Int): Unit = {
-      System.err.println(Failure.show(error))
-      System.exit(code)
-    }
-
     val result = Run.source(code, Env.empty)
-    Result.foreachFailure(result) {
-      case error: RuntimeError => reportAndExit(error, 70)
-      case error               => reportAndExit(error, 65)
-    }
+    Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
     source.close
+    System.exit(if (result.isLeft) -1 else 0)
   }
 
   def source(source: String, env: Env): EvalOut =

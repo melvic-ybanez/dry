@@ -4,9 +4,10 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
+import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
-import com.melvic.dry.interpreter.{Callable, Env, Value}
+import com.melvic.dry.interpreter.values.{Callable, Value}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
