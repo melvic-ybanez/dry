@@ -1,7 +1,8 @@
 package com.melvic.dry.parsers
 
+import com.melvic.dry.aux.Nel
 import com.melvic.dry.result.Result.Result
-import com.melvic.dry.result.{Failure, Nel, Result}
+import com.melvic.dry.result.{Failure, Result}
 
 import scala.util.chaining.scalaUtilChainingOps
 

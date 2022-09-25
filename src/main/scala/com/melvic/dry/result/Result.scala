@@ -1,7 +1,8 @@
 package com.melvic.dry.result
 
+import com.melvic.dry.aux.Nel
+import com.melvic.dry.aux.Nel.One
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.result.Nel.One
 
 object Result {
   type Result[+A] = Either[Nel[Failure], A]
@@ -39,16 +40,6 @@ object Result {
     implicit class ResultOps[A](result: Result[A]) {
       def withEnv: Env => Result[A] =
         _ => result
-
-      def asOrAddErrors[B](andThen: Result[B]): Result[B] =
-        (result, andThen) match {
-          case (Left(errors), Left(errors1)) => Left(errors ++ errors1)
-          case (_, left @ Left(_))           => left
-          case (Right(_), _)                 => andThen
-        }
-
-      def >>>[B](andThen: Result[B]): Result[B] =
-        asOrAddErrors(andThen)
     }
   }
 }

@@ -1,4 +1,4 @@
-package com.melvic.dry
+package com.melvic.dry.aux
 
 import com.melvic.dry.result.Result.Result
 

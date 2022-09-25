@@ -1,5 +1,7 @@
 package com.melvic.dry
 
+import com.melvic.dry.aux.HasFlatMap
+
 object implicits {
   implicit class ListOps[A](xs: List[A]) {
     def toCsv: String =
