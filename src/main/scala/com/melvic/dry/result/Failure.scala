@@ -22,6 +22,9 @@ object Failure {
   def line(line: Int, message: String): Failure =
     Line(line, "", message)
 
+  def resolution(line: Int, message: String): Failure =
+    ResolutionError(line, message)
+
   def showFullLine(line: Int, where: String, message: String): String =
     s"[line $line] Error $where: $message"
 

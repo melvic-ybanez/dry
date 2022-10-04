@@ -151,8 +151,8 @@ private[eval] trait EvalExpr {
     case Literal.Str(string)   => Str(string).env
   }
 
-  def variable: Evaluate[Variable] = { case Variable(expr) =>
-    Env.get(expr)
+  def variable: Evaluate[Variable] = { case Variable(name) =>
+    Env.get(name)
   }
 
   def assignment: Evaluate[Assignment] = { case Assignment(name, value) =>
