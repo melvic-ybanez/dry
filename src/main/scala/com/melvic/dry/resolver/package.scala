@@ -1,18 +1,10 @@
 package com.melvic.dry
 
-import com.melvic.dry.result.{Failure, Result}
-import com.melvic.dry.result.Result.Result
+import com.melvic.dry.ast.Expr
+import com.melvic.dry.result.Result.ResultCoAlg
 
 package object resolver {
   type Scope = Map[String, Boolean]
-  type Scopes = Scopes.Scopes
-  type ScopesUpdateF[F[_]] = F[Scope] => Result[F[Scope]]
-  type ScopesFunction = ScopesUpdateF[List]
-  type ScopeUpdate = ScopesUpdateF[Id]
-  type Resolve[A] = A => ScopesFunction
-
-  object ScopesFunction {
-    def fail(failure: Failure): ScopesFunction =
-      _ => Result.fail(failure)
-  }
+  type Env = (List[Scope], Map[Expr, Int])
+  type Resolve = ResultCoAlg[Env]
 }

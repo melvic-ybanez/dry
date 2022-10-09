@@ -7,27 +7,30 @@ import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
-import com.melvic.dry.implicits._
+import com.melvic.dry.aux.HasFlatMap._
+import com.melvic.dry.aux.implicits._
+import com.melvic.dry.resolver.ScopesFunction._
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}
 
 object Resolve {
-  def blockStmt: Resolve[BlockStmt] = block =>
-    Scopes.start >=> Resolve.decls(block.declarations) >=> Scopes.endScope
+  def blockStmt: BlockStmt => Resolve = block =>
+    Scopes.start.ok >=> Resolve.decls(block.declarations) >=> Scopes.end.ok
 
-  def decls: Resolve[List[Decl]] = decls =>
+  def decls: List[Decl] => Resolve = decls =>
     scopes =>
       decls.foldLeft(Result.succeed(scopes)) {
         case (result, decl) => result.flatMap(Resolve.decl(decl))
         case (scopes, _)    => scopes
       }
 
-  def decl: Resolve[Decl] = {
-    case LetDecl(name)       => Scopes.declare(name) >=> Scopes.define(name)
-    case LetInit(name, init) => Scopes.declare(name) >=> Resolve.expr(init) >=> Scopes.define(name)
+  def decl: Decl => Resolve = {
+    case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
+    case LetInit(name, init) =>
+      Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
   }
 
-  def stmt: Resolve[Stmt] = {
+  def stmt: Stmt => Resolve = {
     case ExprStmt(expr)            => Resolve.expr(expr)
     case IfThen(condition, branch) => Resolve.expr(condition) >=> Resolve.stmt(branch)
     case IfThenElse(condition, thenBranch, elseBranch) =>
@@ -37,14 +40,14 @@ object Resolve {
     case While(condition, body)      => Resolve.expr(condition) >=> Resolve.stmt(body)
   }
 
-  def expr: Resolve[Expr] = {
+  def expr: Expr => Resolve = {
     case _: Literal              => _.ok
     case Unary(_, operand)       => Resolve.expr(operand)
     case Binary(left, _, right)  => Resolve.expr(left) >=> Resolve.expr(right)
     case Logical(left, _, right) => Resolve.expr(left) >=> Resolve.expr(right)
     case Grouping(expr)          => Resolve.expr(expr)
     case expr @ Variable(name) =>
-      Scopes.flatMapHead { scope =>
+      Scopes.resolveFromHead { scope =>
         scope
           .get(name.lexeme)
           .map { found =>
@@ -63,18 +66,26 @@ object Resolve {
       }
   }
 
-  def function: Resolve[Def] = { case Def(name, params, body) =>
-    Scopes.declare(name) >=> Scopes.define(name) >=> Scopes.start >=> { scopes =>
-      params.foldLeft(scopes.ok)((acc, param) => acc.flatMap(Scopes.declare(param) >=> Scopes.define(param)))
+  def function: Def => Resolve = { case Def(name, params, body) =>
+    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> Scopes.start.ok >=> { scopes =>
+      params.foldLeft(scopes.ok)((acc, param) =>
+        acc.flatMap(Scopes.declare(param).ok >=> Scopes.define(param).ok)
+      )
     } >=> Resolve.decls(body)
   }
 
-  def exprWithSteps(steps: Int): Resolve[Expr] = ??? // TODO: Implement this
+  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, local) =>
+    (scopes, local + (expr -> depth)).ok
+  }
 
-  def local(name: Token): Resolve[Expr] = { expr => scopes =>
-    val maybeFound = scopes.zipWithIndex.find { case (scope, _) =>
-      scope.contains(name.lexeme)
+  def local(name: Token): Expr => Resolve = { expr =>
+    { case (scopes, locals) =>
+      val maybeFound = scopes.zipWithIndex.find { case (scope, _) =>
+        scope.contains(name.lexeme)
+      }
+      maybeFound
+        .map { case (_, i) => Resolve.exprWithDepth(i)(expr)(scopes, locals) }
+        .getOrElse((scopes, locals).ok)
     }
-    maybeFound.map { case (_, i) => Resolve.exprWithSteps(i)(expr)(scopes) }.getOrElse(scopes.ok)
   }
 }

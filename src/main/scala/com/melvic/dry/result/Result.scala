@@ -1,11 +1,12 @@
 package com.melvic.dry.result
 
-import com.melvic.dry.aux.Nel
 import com.melvic.dry.aux.Nel.One
+import com.melvic.dry.aux.{FCoAlgebra, Nel}
 import com.melvic.dry.interpreter.Env
 
 object Result {
   type Result[+A] = Either[Nel[Failure], A]
+  type ResultCoAlg[A] = FCoAlgebra[Result, A]
 
   def succeed[A](value: A): Result[A] =
     Right(value)

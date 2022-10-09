@@ -1,7 +1,7 @@
 package com.melvic.dry.result
 
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.implicits.ListOps
+import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
 
 sealed trait Failure
