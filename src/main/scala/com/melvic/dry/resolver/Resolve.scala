@@ -28,6 +28,7 @@ object Resolve {
     case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
+    case function: Def => Resolve.function(function)
   }
 
   def stmt: Stmt => Resolve = {
@@ -64,10 +65,15 @@ object Resolve {
       Resolve.expr(callee) >=> { scopes =>
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
+    case lambda: Lambda => Resolve.lambda(lambda)
   }
 
   def function: Def => Resolve = { case Def(name, params, body) =>
-    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> Scopes.start.ok >=> { scopes =>
+    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> Resolve.lambda(Lambda(params, body))
+  }
+
+  def lambda: Lambda => Resolve = { case Lambda(params, body) =>
+    Scopes.start.ok >=> { scopes =>
       params.foldLeft(scopes.ok)((acc, param) =>
         acc.flatMap(Scopes.declare(param).ok >=> Scopes.define(param).ok)
       )
