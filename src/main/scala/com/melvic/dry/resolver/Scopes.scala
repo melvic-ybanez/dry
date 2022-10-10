@@ -4,6 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.resolver.ScopesFunction.ScopesFunction
 import com.melvic.dry.result.Result.ResultCoAlg
 import com.melvic.dry.result.Result.implicits.ToResult
+import com.melvic.dry.result.{Failure, Result}
 
 object Scopes {
   def start: ScopesFunction =
@@ -12,7 +13,14 @@ object Scopes {
   def end: ScopesFunction = _.tail.ok
 
   def declare(name: Token): ScopesFunction =
-    mapHeadOk(_ + (name.lexeme -> false))
+    // mapHeadOk(_ + (name.lexeme -> false))
+    mapHead { scope =>
+      if (scope.contains(name.lexeme))
+        Result.fail(
+          Failure.resolution(name.line, s"Variable ${name.lexeme} is already defined in this scope")
+        )
+      else (scope + (name.lexeme -> false)).ok
+    }
 
   def define(name: Token): ScopesFunction =
     mapHeadOk(_ + (name.lexeme -> true))

@@ -4,7 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
-import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.Interpreter
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
 import com.melvic.dry.interpreter.values.{Callable, Value}
@@ -151,16 +151,24 @@ private[eval] trait EvalExpr {
     case Literal.Str(string)   => Str(string).env
   }
 
-  def variable: Evaluate[Variable] = { case Variable(name) =>
-    Env.get(name)
+  def variable: Evaluate[Variable] = { case expr @ Variable(name) =>
+    env =>
+      env.locals
+        .get(expr)
+        .map(distance => env.at(distance, name.lexeme))
+        .fold(Interpreter.natives.get(name))(_.ok)
   }
 
-  def assignment: Evaluate[Assignment] = { case Assignment(name, value) =>
+  def assignment: Evaluate[Assignment] = { case expr @ Assignment(name, value) =>
     env =>
       Evaluate
         .expr(value)(env)
         .flatMap { value =>
-          env.assign(name, value).map(_ => value)
+          env.locals
+            .get(expr)
+            .map(distance => env.assignAt(distance, name, value))
+            .fold(Interpreter.natives.assign(name, value))(_.ok)
+            .map(_ => value)
         }
   }
 

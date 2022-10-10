@@ -3,6 +3,7 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.Lexer
 import com.melvic.dry.interpreter.eval.EvalOut
 import com.melvic.dry.parsers.Parser
+import com.melvic.dry.resolver.Resolve
 import com.melvic.dry.result.{Failure, Result}
 
 import scala.io.Source

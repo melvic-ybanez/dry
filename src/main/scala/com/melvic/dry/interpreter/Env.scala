@@ -2,18 +2,29 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
-import com.melvic.dry.interpreter.values.Value
+import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Represents the environment that houses the mapping between variable names and their corresponding values.
  */
 sealed trait Env {
+
+  /**
+   * Represents the environment that houses the mapping between variable names and their corresponding values.
+   */
   def table: Table
+
+  /**
+   * For backwards-compatibility, I'm putting the locals here. This would make it easier to access them via
+   * any environment.
+   */
+  def locals: Locals
 
   /**
    * Adds a new variable to the environment.
@@ -33,9 +44,37 @@ sealed trait Env {
     if (table.contains(name.lexeme)) Result.succeed(define(name.lexeme, value))
     else
       this match {
-        case GlobalEnv(_)               => Result.fail(RuntimeError.undefinedVariable(name))
+        case GlobalEnv(_, _)            => Result.fail(RuntimeError.undefinedVariable(name))
         case LocalEnv(table, enclosing) => enclosing.assign(name, value).map(LocalEnv(table, _))
       }
+
+  /**
+   * Returns the variable given a distance from the current environment to the closest enclosing ancestor.
+   * Note that this operation is unsafe in that it doesn't return an [[Option]] value, and is typically used
+   * after running the resolver.
+   */
+  def at(distance: Int, name: String): Value =
+    ancestorAt(distance).table(name)
+
+  def assignAt(distance: Int, name: Token, value: Value): Env =
+    ancestorAt(distance).pipe { env =>
+      env.table += (name.lexeme -> value)
+      env
+    }
+
+  def ancestorAt(distance: Int): Env =
+    if (distance == 0) this
+    else
+      this match {
+        case GlobalEnv(_, _)        => this
+        case LocalEnv(_, enclosing) => enclosing.ancestorAt(distance - 1)
+      }
+
+  def withLocals(locals: Locals): Env =
+    this match {
+      case GlobalEnv(table, _)        => GlobalEnv(table, locals)
+      case LocalEnv(table, enclosing) => LocalEnv(table, enclosing.withLocals(locals))
+    }
 }
 
 object Env {
@@ -46,12 +85,13 @@ object Env {
    * lexical scoping.
    */
   final case class LocalEnv(table: Table, enclosing: Env) extends Env {
+    def locals: Locals = enclosing.locals
 
     /**
      * Adds a new variable to the environment.
      */
     def define(name: String, value: Value): LocalEnv =
-      LocalEnv(table += (name -> value), enclosing)
+      copy(table = table += (name -> value), enclosing)
 
     def get(name: Token): Result[Value] =
       table
@@ -62,19 +102,19 @@ object Env {
   /**
    * A global [[Env]] that doesn't have an enclosing scope.
    */
-  final case class GlobalEnv(table: Table) extends Env {
+  final case class GlobalEnv(table: Table, locals: Locals) extends Env {
 
     /**
      * Adds a new variable to the environment. Note that this allows variable redefinitions.
      */
     override def define(name: String, value: Value): Env =
-      GlobalEnv(table += (name -> value))
+      copy(table = table += (name -> value))
 
     override def get(name: Token): Result[Value] =
       Result.fromOption(table.get(name.lexeme), RuntimeError.undefinedVariable(name))
   }
 
-  def empty: Env = GlobalEnv(mutable.Map())
+  def empty: Env = GlobalEnv(mutable.Map(), Map())
 
   def get(name: Token): Env => Result[Value] =
     _.get(name)

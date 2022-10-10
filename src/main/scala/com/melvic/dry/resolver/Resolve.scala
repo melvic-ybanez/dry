@@ -29,6 +29,7 @@ object Resolve {
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
     case function: Def => Resolve.function(function)
+    case _             => _.ok
   }
 
   def stmt: Stmt => Resolve = {
