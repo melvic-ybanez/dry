@@ -1,7 +1,7 @@
 package com.melvic.dry.resolver
 
 import com.melvic.dry.Token
-import com.melvic.dry.ast.Decl.{Def, LetDecl, LetInit}
+import com.melvic.dry.ast.Decl.{Def, LetDecl, LetInit, StmtDecl}
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
@@ -18,18 +18,17 @@ object Resolve {
     Scopes.start.ok >=> Resolve.decls(block.declarations) >=> Scopes.end.ok
 
   def decls: List[Decl] => Resolve = decls =>
-    scopes =>
-      decls.foldLeft(Result.succeed(scopes)) {
-        case (result, decl) => result.flatMap(Resolve.decl(decl))
-        case (scopes, _)    => scopes
+    resolverEnv =>
+      decls.foldLeft(Result.succeed(resolverEnv)) { case (result, decl) =>
+        result.flatMap(Resolve.decl(decl))
       }
 
   def decl: Decl => Resolve = {
     case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
-    case function: Def => Resolve.function(function)
-    case _             => _.ok
+    case function: Def  => Resolve.function(function)
+    case StmtDecl(stmt) => Resolve.stmt(stmt)
   }
 
   def stmt: Stmt => Resolve = {
@@ -40,6 +39,7 @@ object Resolve {
     case ReturnStmt(_, Literal.None) => _.ok
     case ReturnStmt(_, value)        => Resolve.expr(value)
     case While(condition, body)      => Resolve.expr(condition) >=> Resolve.stmt(body)
+    case blockStmt: BlockStmt        => Resolve.blockStmt(blockStmt)
   }
 
   def expr: Expr => Resolve = {
@@ -78,11 +78,11 @@ object Resolve {
       params.foldLeft(scopes.ok)((acc, param) =>
         acc.flatMap(Scopes.declare(param).ok >=> Scopes.define(param).ok)
       )
-    } >=> Resolve.decls(body)
+    } >=> Resolve.decls(body) >=> Scopes.end.ok
   }
 
-  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, local) =>
-    (scopes, local + (expr -> depth)).ok
+  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals) =>
+    (scopes, locals + (expr -> depth)).ok
   }
 
   def local(name: Token): Expr => Resolve = { expr =>

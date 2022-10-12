@@ -16,6 +16,6 @@ object implicits {
 
   implicit class KleisliOps[F[_]: HasFlatMap, A, B, C](f: A => F[B]) {
     def >=>(g: B => F[C]): A => F[C] =
-      f.andThen(h => HasFlatMap[F].flatMap(h)(g))
+      f.andThen(fb => HasFlatMap[F].flatMap(fb)(g))
   }
 }

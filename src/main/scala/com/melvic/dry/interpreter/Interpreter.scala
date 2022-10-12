@@ -5,11 +5,12 @@ import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
+import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 
 object Interpreter {
-  def interpret(declarations: List[Decl], enclosing: Env): EvalOut = {
-    val env = LocalEnv(enclosing.table, natives)
+  def interpret(declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
+    val env = LocalEnv(enclosing.table, natives.withLocals(locals))
     def recurse(declarations: List[Decl], value: Value): EvalOut =
       declarations match {
         case Nil => Result.succeed(value)

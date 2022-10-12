@@ -46,6 +46,7 @@ object Run {
     for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
-      value  <- Interpreter.interpret(decls, env)
+      locals <- Resolve.decls(decls)(Nil, Map()).map(_._2)
+      value  <- Interpreter.interpret(decls, env, locals)
     } yield value
 }
