@@ -10,18 +10,23 @@ import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction._
+import com.melvic.dry.result.Failure
+import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
-import com.melvic.dry.result.{Failure, Result}
 
 object Resolve {
   def blockStmt: BlockStmt => Resolve = block =>
     Scopes.start.ok >=> Resolve.decls(block.declarations) >=> Scopes.end.ok
 
   def decls: List[Decl] => Resolve = decls =>
-    resolverEnv =>
-      decls.foldLeft(Result.succeed(resolverEnv)) { case (result, decl) =>
-        result.flatMap(Resolve.decl(decl))
-      }
+    resolverEnv => {
+      def recurse(decls: List[Decl], result: Result[Ctx]): Result[Ctx] =
+        decls match {
+          case Nil          => result
+          case decl :: rest => result.flatMap(result => recurse(rest, Resolve.decl(decl)(result)))
+        }
+      recurse(decls, resolverEnv.ok)
+    }
 
   def decl: Decl => Resolve = {
     case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
