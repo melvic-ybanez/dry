@@ -72,14 +72,14 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
    * A for-loop is just a syntactic sugar over the while-loop.
    */
   def forStatement: ParseResult[Stmt] = {
-    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case Step(_, parser) =>
-      parser
+    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case Step(_, next) =>
+      next
         .matchAny(TokenType.Semicolon)
         .fold(
-          parser
+          next
             .matchAny(TokenType.Let)
-            .fold[ParseResult[Decl]](parser.expressionStatement)(_.letDecl)
-        )(_ => ParseResult.succeed(StmtDecl.fromExpr(Literal.None), parser))
+            .fold[ParseResult[Decl]](next.expressionStatement)(_.letDecl)
+        )(ParseResult.succeed(StmtDecl.fromExpr(Literal.None), _))
     }
 
     def clause(parser: Parser, delimiter: TokenType, consume: String, after: String) = {
