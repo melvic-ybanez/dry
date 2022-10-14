@@ -1,7 +1,8 @@
 package com.melvic.dry.resolver
 
 import com.melvic.dry.Token
-import com.melvic.dry.ast.Decl.{Def, LetDecl, LetInit, StmtDecl}
+import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
+import com.melvic.dry.ast.Decl.{Def, StmtDecl}
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
@@ -34,6 +35,7 @@ object Resolve {
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
     case function: Def  => Resolve.function(function)
     case StmtDecl(stmt) => Resolve.stmt(stmt)
+    case stmt: Stmt     => Resolve.stmt(stmt)
   }
 
   def stmt: Stmt => Resolve = {
@@ -41,10 +43,10 @@ object Resolve {
     case IfThen(condition, branch) => Resolve.expr(condition) >=> Resolve.stmt(branch)
     case IfThenElse(condition, thenBranch, elseBranch) =>
       Resolve.expr(condition) >=> Resolve.stmt(thenBranch) >=> Resolve.stmt(elseBranch)
-    case ReturnStmt(_, Literal.None) => _.ok
-    case ReturnStmt(_, value)        => Resolve.expr(value)
-    case While(condition, body)      => Resolve.expr(condition) >=> Resolve.stmt(body)
-    case blockStmt: BlockStmt        => Resolve.blockStmt(blockStmt)
+    case ReturnStmt(Literal.None) => _.ok
+    case ReturnStmt(value)        => Resolve.expr(value)
+    case While(condition, body)   => Resolve.expr(condition) >=> Resolve.stmt(body)
+    case blockStmt: BlockStmt     => Resolve.blockStmt(blockStmt)
   }
 
   def expr: Expr => Resolve = {

@@ -1,7 +1,7 @@
 package com.melvic.dry.ast
 
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt}
-import com.melvic.dry.implicits.ListOps
+import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
 
 trait Decl
