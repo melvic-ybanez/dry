@@ -3,6 +3,7 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
+import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.parsers.Step._
