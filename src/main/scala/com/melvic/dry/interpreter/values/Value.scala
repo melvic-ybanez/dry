@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter.values
 
+import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.interpreter.values.Value.Num
 
@@ -22,20 +23,19 @@ object Value {
 
   final case class Returned(value: Value) extends Value
 
-  def show(value: Value): String =
-    value match {
-      case None        => "none"
-      case Bool(value) => value.toString
-      case Num(value) =>
-        val str = value.toString
-        if (str.endsWith(".0")) str.init.init
-        else str
-      case Str(str)                              => str
-      case Value.Unit                            => ""
-      case Callable.Function(Def(name, _, _), _) => s"<function $name>"
-      case Callable.Lambda(_, _)                 => s"<lambda function>"
-      case _: Callable                           => "<callable>"
-    }
+  def show: Show[Value] = {
+    case None        => "none"
+    case Bool(value) => value.toString
+    case Num(value) =>
+      val str = value.toString
+      if (str.endsWith(".0")) str.init.init
+      else str
+    case Str(str)                              => str
+    case Value.Unit                            => ""
+    case Callable.Function(Def(name, _, _), _) => s"<function $name>"
+    case Callable.Lambda(_, _)                 => s"<lambda function>"
+    case _: Callable                           => "<callable>"
+  }
 
   implicit class ToValue[A](value: A) {
     def unit: Value.Unit.type = {

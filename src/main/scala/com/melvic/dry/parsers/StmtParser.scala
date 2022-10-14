@@ -113,11 +113,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   }
 
   def returnStatement: ParseResult[Stmt] = {
-    val keyword = previous
     val expr =
       if (check(TokenType.Semicolon))
         consume(TokenType.Semicolon, ";", "return value").mapValue(_ => Literal.None)
       else expression.flatMapParser(_.consume(TokenType.Semicolon, ";", "return value"))
-    expr.mapValue(ReturnStmt(keyword, _))
+    expr.mapValue(ReturnStmt)
   }
 }

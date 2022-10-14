@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter.eval
 
+import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.interpreter.values.Value.ToValue

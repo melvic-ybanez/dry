@@ -74,7 +74,7 @@ private[eval] trait EvalStmt {
       recurse(VUnit)
   }
 
-  def returnStmt: Evaluate[ReturnStmt] = { case ReturnStmt(_, value) =>
+  def returnStmt: Evaluate[ReturnStmt] = { case ReturnStmt(value) =>
     Evaluate.expr(value).map(Returned)
   }
 }
