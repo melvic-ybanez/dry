@@ -21,7 +21,7 @@ object Resolve {
 
   def decls: List[Decl] => Resolve = decls =>
     resolverEnv => {
-      def recurse(decls: List[Decl], result: Result[Ctx]): Result[Ctx] =
+      def recurse(decls: List[Decl], result: Result[Contexts]): Result[Contexts] =
         decls match {
           case Nil          => result
           case decl :: rest => result.flatMap(result => recurse(rest, Resolve.decl(decl)(result)))
@@ -81,11 +81,11 @@ object Resolve {
   }
 
   def lambda: Lambda => Resolve = { case Lambda(params, body) =>
-    Scopes.start.ok >=> { scopes =>
-      params.foldLeft(scopes.ok)((acc, param) =>
-        acc.flatMap(Scopes.declare(param).ok >=> Scopes.define(param).ok)
-      )
-    } >=> Resolve.decls(body) >=> Scopes.end.ok
+    Scopes.start.ok >=> { contexts =>
+      params.foldFailFast(contexts.ok) { (contexts, param) =>
+        (Scopes.declare(param).ok >=> Scopes.define(param).ok)(contexts)
+      }
+    } >=> Resolve.blockStmt(BlockStmt(body)) >=> Scopes.end.ok
   }
 
   def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals) =>

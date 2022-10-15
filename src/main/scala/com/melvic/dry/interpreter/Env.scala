@@ -1,11 +1,11 @@
 package com.melvic.dry.interpreter
 
-import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
+import com.melvic.dry.{Show, Token}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
@@ -77,6 +77,15 @@ sealed trait Env {
       case GlobalEnv(table, _)        => GlobalEnv(table, locals)
       case LocalEnv(table, enclosing) => LocalEnv(table, enclosing.withLocals(locals))
     }
+
+  /**
+   * This is typcially used for debugging.
+   */
+  def height: Int =
+    this match {
+      case GlobalEnv(_, _)        => 1
+      case LocalEnv(_, enclosing) => 1 + enclosing.height
+    }
 }
 
 object Env {
@@ -93,7 +102,7 @@ object Env {
      * Adds a new variable to the environment.
      */
     def define(name: String, value: Value): LocalEnv =
-      copy(table = table += (name -> value), enclosing)
+      LocalEnv(table += (name -> value), enclosing)
 
     def get(name: Token): Result[Value] =
       table
@@ -123,4 +132,14 @@ object Env {
 
   def fromEnclosing(enclosing: Env): Env =
     LocalEnv(mutable.Map(), enclosing)
+
+  def show: Show[Env] = {
+    def mapValues: Table => Map[String, String] = _.view.mapValues(Value.show).toMap
+
+    {
+      case GlobalEnv(table, _) => s"Global { table: ${mapValues(table)} }"
+      case LocalEnv(table, enclosing) =>
+        s"Local { table: ${mapValues(table)}, enclosing: ${Env.show(enclosing)}}"
+    }
+  }
 }

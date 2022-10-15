@@ -1,8 +1,8 @@
 package com.melvic.dry.interpreter.values
 
-import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.interpreter.values.Value.Num
+import com.melvic.dry.{Show, Token}
 
 private[interpreter] trait Value {
   def toNum: Option[Num] =
@@ -32,7 +32,7 @@ object Value {
       else str
     case Str(str)                              => str
     case Value.Unit                            => ""
-    case Callable.Function(Def(name, _, _), _) => s"<function $name>"
+    case Callable.Function(Def(name, _, _), _) => s"<function ${Token.show(name)}>"
     case Callable.Lambda(_, _)                 => s"<lambda function>"
     case _: Callable                           => "<callable>"
   }
