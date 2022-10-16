@@ -8,6 +8,7 @@ import com.melvic.dry.interpreter.Interpreter
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
 import com.melvic.dry.interpreter.values.{Callable, Value}
+import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
@@ -154,7 +155,7 @@ private[eval] trait EvalExpr {
   def variable: Evaluate[Variable] = { case expr @ Variable(name) =>
     env =>
       env.locals
-        .get(expr)
+        .get(LocalExprKey(expr))
         .map(distance => env.at(distance, name.lexeme))
         .fold(Interpreter.natives.get(name))(_.ok)
   }
@@ -165,7 +166,7 @@ private[eval] trait EvalExpr {
         .expr(value)(env)
         .flatMap { value =>
           env.locals
-            .get(expr)
+            .get(LocalExprKey(expr))
             .map(distance => env.assignAt(distance, name, value))
             .fold(Interpreter.natives.assign(name, value))(_.ok)
             .map(_ => value)

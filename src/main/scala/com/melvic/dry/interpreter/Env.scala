@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter
 
+import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Failure.RuntimeError
@@ -139,7 +140,7 @@ object Env {
     {
       case GlobalEnv(table, _) => s"Global { table: ${mapValues(table)} }"
       case LocalEnv(table, enclosing) =>
-        s"Local { table: ${mapValues(table)}, enclosing: ${Env.show(enclosing)}}"
+        show"Local { table: ${mapValues(table)}, enclosing: $enclosing}"
     }
   }
 }

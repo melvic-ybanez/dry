@@ -1,6 +1,6 @@
 package com.melvic
 
 package object dry {
-  type Show[A] = A => String
+  type Show[A] = aux.Show.Show[A]
   type Id[A] = aux.Id[A]
 }

@@ -12,7 +12,6 @@ import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction._
 import com.melvic.dry.result.Failure
-import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
 object Resolve {
@@ -20,14 +19,7 @@ object Resolve {
     Scopes.start.ok >=> Resolve.decls(block.declarations) >=> Scopes.end.ok
 
   def decls: List[Decl] => Resolve = decls =>
-    resolverEnv => {
-      def recurse(decls: List[Decl], result: Result[Contexts]): Result[Contexts] =
-        decls match {
-          case Nil          => result
-          case decl :: rest => result.flatMap(result => recurse(rest, Resolve.decl(decl)(result)))
-        }
-      recurse(decls, resolverEnv.ok)
-    }
+    context => decls.foldFailFast(context.ok)((context, decl) => Resolve.decl(decl)(context))
 
   def decl: Decl => Resolve = {
     case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
@@ -89,7 +81,7 @@ object Resolve {
   }
 
   def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals) =>
-    (scopes, locals + (expr -> depth)).ok
+    (scopes, locals + (LocalExprKey(expr) -> depth)).ok
   }
 
   def local(name: Token): Expr => Resolve = { expr =>

@@ -1,15 +1,19 @@
 package com.melvic.dry.ast
 
+import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.{Show, Token}
+import com.melvic.dry.aux.Show.ShowInterpolator
 
 sealed trait Stmt extends Decl
 
 object Stmt {
   final case class ExprStmt(expr: Expr) extends Stmt
 
-  final case class BlockStmt(declarations: List[Decl]) extends Stmt
+  final case class BlockStmt(declarations: List[Decl]) extends Stmt {
+    def append(decl: Decl): BlockStmt =
+      BlockStmt(declarations :+ decl)
+  }
 
   object BlockStmt {
     def fromDecls(declarations: Decl*): BlockStmt =
@@ -18,7 +22,13 @@ object Stmt {
     def fromStmts(stmts: Stmt*): BlockStmt =
       fromDecls(stmts.map(StmtDecl(_)): _*)
 
-    def show: Show[BlockStmt] = block => s"{${block.declarations.map(Decl.show).mkString(" ")}}"
+    def append(block: Stmt, child: Decl): BlockStmt =
+      block match {
+        case blockStmt: BlockStmt => blockStmt.append(child)
+        case _                    => BlockStmt.fromDecls(StmtDecl(block), child)
+      }
+
+    def show: Show[BlockStmt] = block => s"{ ${block.declarations.map(Decl.show).mkString(" ")} }"
   }
 
   sealed trait IfStmt extends Stmt {
@@ -46,11 +56,11 @@ object Stmt {
   final case class ReturnStmt(value: Expr) extends Stmt
 
   def show: Show[Stmt] = {
-    case ExprStmt(expr)       => Expr.show(expr) + ";"
+    case ExprStmt(expr)       => show"$expr;"
     case blockStmt: BlockStmt => BlockStmt.show(blockStmt)
     case ifStmt: IfStmt       => IfStmt.show(ifStmt)
     // Note: For loops desugar to while loops, so printing a stringified for loop invokes this
-    case While(condition, body) => s"while (${Expr.show(condition)}) ${BlockStmt.show(BlockStmt.fromStmts(body))}"
-    case ReturnStmt(value) => s"return ${Expr.show(value)};"
+    case While(condition, body) => show"while ($condition) $body"
+    case ReturnStmt(value)      => show"return $value;"
   }
 }

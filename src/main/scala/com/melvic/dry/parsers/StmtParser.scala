@@ -7,6 +7,7 @@ import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
+import com.melvic.dry.aux.Show.ShowInterpolator
 
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
@@ -95,12 +96,14 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     def increment(parser: Parser) = clause(parser, TokenType.RightParen, ")", "for clauses")
 
     def whileLoop(init: Decl, cond: Expr, inc: Expr, body: Stmt) = {
-      val bodyFromInc = if (inc == Literal.None) body else BlockStmt.fromDecls(body, ExprStmt(inc))
+      val bodyFromInc =
+        if (inc == Literal.None) body
+        else BlockStmt.append(body, ExprStmt(inc))
       val newCond = if (cond == Literal.None) Literal.True else cond
-      val newBody = While(newCond, bodyFromInc)
+      val whileNode = While(newCond, bodyFromInc)
       init match {
-        case StmtDecl(ExprStmt(Literal.None)) => newBody
-        case _                                => BlockStmt.fromDecls(init, newBody)
+        case StmtDecl(ExprStmt(Literal.None)) => whileNode
+        case _                                => BlockStmt.fromDecls(init, whileNode)
       }
     }
 

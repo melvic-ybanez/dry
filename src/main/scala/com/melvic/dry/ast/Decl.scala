@@ -1,6 +1,7 @@
 package com.melvic.dry.ast
 
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt}
+import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
 
@@ -14,8 +15,8 @@ object Decl {
     final case class LetDecl(name: Token) extends Let
 
     def show: Show[Let] = {
-      case LetInit(name, init) => s"let ${Token.show(name)} = ${Expr.show(init)};"
-      case LetDecl(name)       => s"let ${Token.show(name)};"
+      case LetInit(name, init) => show"let $name = $init;"
+      case LetDecl(name)       => show"let $name;"
     }
   }
 
@@ -34,7 +35,7 @@ object Decl {
     case let: Let           => Let.show(let)
     case stmtDecl: StmtDecl => StmtDecl.show(stmtDecl)
     case Def(name, params, body) =>
-      s"def ${Token.show(name)}(${params.map(Token.show).toCsv}) ${BlockStmt.show(BlockStmt.fromDecls(body: _*))}"
+      s"def $name(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
     case stmt: Stmt => Stmt.show(stmt)
   }
 }

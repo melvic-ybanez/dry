@@ -4,9 +4,9 @@ import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, IfStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Stmt}
+import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.implicits._
-import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.Value
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits._
@@ -27,7 +27,7 @@ private[eval] trait EvalStmt {
   def blockStmt: Evaluate[BlockStmt] = { case BlockStmt(decls) =>
     env =>
       val localEnv = Env.fromEnclosing(env)
-      def recurse(outcome: EvalOut, decls: List[Decl]): EvalOut =
+      def recurse(outcome: EvalOut, decls: List[Decl]): EvalOut = {
         decls match {
           case Nil => outcome
           case decl :: rest =>
@@ -36,6 +36,7 @@ private[eval] trait EvalStmt {
               case _                  => recurse(Evaluate.decl(decl)(localEnv), rest)
             }
         }
+      }
 
       recurse(Result.succeed(VUnit), decls)
   }
