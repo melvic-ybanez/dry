@@ -15,14 +15,30 @@ import com.melvic.dry.result.Failure
 import com.melvic.dry.result.Result.implicits.ToResult
 
 object Resolve {
+  def resolveAll: List[Decl] => Resolve = decls =>
+    context =>
+      Resolve.scanFunctions(decls)(context).flatMap { case (scopes, locals) =>
+        Resolve.decls(decls)(scopes, locals)
+      }
+
   def blockStmt: BlockStmt => Resolve = block =>
-    Scopes.start.ok >=> Resolve.decls(block.declarations) >=> Scopes.end.ok
+    Scopes.start.ok >=> Resolve.resolveAll(block.declarations) >=> Scopes.end.ok
 
   def decls: List[Decl] => Resolve = decls =>
     context => decls.foldFailFast(context.ok)((context, decl) => Resolve.decl(decl)(context))
 
+  def scanFunctions: List[Decl] => Resolve = decls =>
+    context =>
+      decls.foldFailFast(context.ok) {
+        case (context, Def(name, _, _))             => Scopes.declare(name).ok(context)
+        case (context, LetInit(name, Lambda(_, _))) => Scopes.declare(name).ok(context)
+        case (context, _)                           => context.ok
+      }
+
   def decl: Decl => Resolve = {
     case LetDecl(name) => Scopes.declare(name).ok >=> Scopes.define(name).ok
+    // lambdas stored in variables are already declared via `scanFunctions`, so there's no need to declare it again.
+    case LetInit(name, init @ Lambda(_, _)) => Resolve.expr(init) >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
     case function: Def  => Resolve.function(function)
@@ -68,8 +84,12 @@ object Resolve {
     case lambda: Lambda => Resolve.lambda(lambda)
   }
 
+  /**
+   * Resolves a function. Note: We are not declaring the name of the function in the scope because it is
+   * assumed [[scanFunctions]] already did that.
+   */
   def function: Def => Resolve = { case Def(name, params, body) =>
-    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> Resolve.lambda(Lambda(params, body))
+    Scopes.define(name).ok >=> Resolve.lambda(Lambda(params, body))
   }
 
   def lambda: Lambda => Resolve = { case Lambda(params, body) =>
