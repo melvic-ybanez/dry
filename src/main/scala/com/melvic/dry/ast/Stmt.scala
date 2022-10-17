@@ -1,9 +1,9 @@
 package com.melvic.dry.ast
 
-import com.melvic.dry.{Show, Token}
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.aux.Show.ShowInterpolator
+import com.melvic.dry.{Show, Token}
 
 sealed trait Stmt extends Decl
 
@@ -61,6 +61,6 @@ object Stmt {
     case ifStmt: IfStmt       => IfStmt.show(ifStmt)
     // Note: For loops desugar to while loops, so printing a stringified for loop invokes this
     case While(condition, body) => show"while ($condition) $body"
-    case ReturnStmt(_, value)      => show"return $value;"
+    case ReturnStmt(_, value)   => show"return $value;"
   }
 }
