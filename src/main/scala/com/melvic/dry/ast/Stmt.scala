@@ -1,6 +1,6 @@
 package com.melvic.dry.ast
 
-import com.melvic.dry.Show
+import com.melvic.dry.{Show, Token}
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.aux.Show.ShowInterpolator
@@ -53,7 +53,7 @@ object Stmt {
     final case class While(condition: Expr, body: Stmt) extends Stmt
   }
 
-  final case class ReturnStmt(value: Expr) extends Stmt
+  final case class ReturnStmt(keyword: Token, value: Expr) extends Stmt
 
   def show: Show[Stmt] = {
     case ExprStmt(expr)       => show"$expr;"
@@ -61,6 +61,6 @@ object Stmt {
     case ifStmt: IfStmt       => IfStmt.show(ifStmt)
     // Note: For loops desugar to while loops, so printing a stringified for loop invokes this
     case While(condition, body) => show"while ($condition) $body"
-    case ReturnStmt(value)      => show"return $value;"
+    case ReturnStmt(_, value)      => show"return $value;"
   }
 }

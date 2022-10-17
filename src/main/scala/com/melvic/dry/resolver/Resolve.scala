@@ -11,15 +11,16 @@ import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction._
-import com.melvic.dry.result.Failure
+import com.melvic.dry.result.Failure.ResolutionError
+import com.melvic.dry.result.Result.ResultCoAlg
 import com.melvic.dry.result.Result.implicits.ToResult
+import com.melvic.dry.result.{Failure, Result}
 
 object Resolve {
+  type Resolve = ResultCoAlg[Context]
+
   def resolveAll: List[Decl] => Resolve = decls =>
-    context =>
-      Resolve.scanFunctions(decls)(context).flatMap { case (scopes, locals) =>
-        Resolve.decls(decls)(scopes, locals)
-      }
+    Resolve.scanFunctions(decls).andThen(_.flatMap(Resolve.decls(decls)))
 
   def blockStmt: BlockStmt => Resolve = block =>
     Scopes.start.ok >=> Resolve.resolveAll(block.declarations) >=> Scopes.end.ok
@@ -41,7 +42,7 @@ object Resolve {
     case LetInit(name, init @ Lambda(_, _)) => Resolve.expr(init) >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
-    case function: Def  => Resolve.function(function)
+    case function: Def  => enterFunction(Resolve.function(_)(function))
     case StmtDecl(stmt) => Resolve.stmt(stmt)
     case stmt: Stmt     => Resolve.stmt(stmt)
   }
@@ -51,10 +52,9 @@ object Resolve {
     case IfThen(condition, branch) => Resolve.expr(condition) >=> Resolve.stmt(branch)
     case IfThenElse(condition, thenBranch, elseBranch) =>
       Resolve.expr(condition) >=> Resolve.stmt(thenBranch) >=> Resolve.stmt(elseBranch)
-    case ReturnStmt(Literal.None) => _.ok
-    case ReturnStmt(value)        => Resolve.expr(value)
-    case While(condition, body)   => Resolve.expr(condition) >=> Resolve.stmt(body)
-    case blockStmt: BlockStmt     => Resolve.blockStmt(blockStmt)
+    case returnStmt: ReturnStmt => Resolve.returnStmt(returnStmt)
+    case While(condition, body) => Resolve.expr(condition) >=> Resolve.stmt(body)
+    case blockStmt: BlockStmt   => Resolve.blockStmt(blockStmt)
   }
 
   def expr: Expr => Resolve = {
@@ -69,10 +69,7 @@ object Resolve {
           .get(name.lexeme)
           .map { found =>
             if (found) Resolve.local(name)(expr)
-            else
-              ScopesFunction.fail(
-                Failure.resolution(name.line, s"${name.lexeme} is declared but not yet defined")
-              )
+            else fail(ResolutionError.declaredButNotDefined(name))
           }
           .getOrElse(Resolve.local(name)(expr))
       }
@@ -81,37 +78,58 @@ object Resolve {
       Resolve.expr(callee) >=> { scopes =>
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
-    case lambda: Lambda => Resolve.lambda(lambda)
+    case lambda: Lambda => enterFunction(Resolve.lambda(_)(lambda))
   }
 
   /**
    * Resolves a function. Note: We are not declaring the name of the function in the scope because it is
    * assumed [[scanFunctions]] already did that.
    */
-  def function: Def => Resolve = { case Def(name, params, body) =>
-    Scopes.define(name).ok >=> Resolve.lambda(Lambda(params, body))
+  def function(oldFunctionType: FunctionType): Def => Resolve = { case Def(name, params, body) =>
+    Scopes.define(name).ok >=> Resolve.lambda(oldFunctionType)(Lambda(params, body))
   }
 
-  def lambda: Lambda => Resolve = { case Lambda(params, body) =>
-    Scopes.start.ok >=> { contexts =>
+  def lambda(oldFunctionType: FunctionType): Lambda => Resolve = { case Lambda(params, body) =>
+    val resolution = Scopes.start.ok >=> { contexts =>
       params.foldFailFast(contexts.ok) { (contexts, param) =>
         (Scopes.declare(param).ok >=> Scopes.define(param).ok)(contexts)
       }
     } >=> Resolve.blockStmt(BlockStmt(body)) >=> Scopes.end.ok
+
+    resolution.andThen(_.map { case (scopes, locals, _) => (scopes, locals, oldFunctionType) })
   }
 
-  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals) =>
-    (scopes, locals + (LocalExprKey(expr) -> depth)).ok
+  def returnStmt: ReturnStmt => Resolve = {
+    def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
+      case (_, _, FunctionType.None)               => Result.fail(ResolutionError.notInsideAFunction(keyword))
+      case context @ (_, _, FunctionType.Function) => ifValid(context)
+    }
+
+    {
+      case ReturnStmt(keyword, Literal.None) => returnOrFail(keyword, _.ok)
+      case ReturnStmt(keyword, value)        => returnOrFail(keyword, Resolve.expr(value))
+    }
+  }
+
+  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals, functionType) =>
+    (scopes, locals + (LocalExprKey(expr) -> depth), functionType).ok
   }
 
   def local(name: Token): Expr => Resolve = { expr =>
-    { case (scopes, locals) =>
+    { case context @ (scopes, _, _) =>
       val maybeFound = scopes.zipWithIndex.find { case (scope, _) =>
         scope.contains(name.lexeme)
       }
       maybeFound
-        .map { case (_, i) => Resolve.exprWithDepth(i)(expr)(scopes, locals) }
-        .getOrElse((scopes, locals).ok)
+        .map { case (_, i) => Resolve.exprWithDepth(i)(expr)(context) }
+        .getOrElse(context.ok)
     }
+  }
+
+  def fail(failure: Failure): Resolve =
+    _ => Result.fail(failure)
+
+  def enterFunction(toResolve: FunctionType => Resolve): Resolve = { case (scopes, locals, functionType) =>
+    toResolve(functionType)(scopes, locals, FunctionType.Function)
   }
 }

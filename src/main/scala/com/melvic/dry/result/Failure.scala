@@ -1,6 +1,7 @@
 package com.melvic.dry.result
 
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
 
@@ -11,28 +12,14 @@ object Failure {
 
   sealed trait LexerError extends Failure
 
-  sealed trait ParseError extends Failure
-
-  sealed trait RuntimeError extends Failure {
-    def token: Token
-  }
-
-  final case class ResolutionError(line: Int, message: String) extends Failure
-
   def line(line: Int, message: String): Failure =
     Line(line, "", message)
-
-  def resolution(line: Int, message: String): Failure =
-    ResolutionError(line, message)
 
   def showFullLine(line: Int, where: String, message: String): String =
     s"[line $line] Error $where: $message"
 
   def showLineAndMessage(line: Int, message: String): String =
     showFullLine(line, "", message)
-
-  def showRuntimeError(token: Token, message: String): String =
-    s"$message\n[line ${token.line}]. ${token.lexeme}"
 
   object LexerError {
     final case class InvalidCharacter(line: Int, char: Char) extends LexerError
@@ -50,6 +37,8 @@ object Failure {
     }
   }
 
+  sealed trait ParseError extends Failure
+
   object ParseError {
     final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
@@ -63,10 +52,14 @@ object Failure {
 
     def show: Show[ParseError] = {
       case Expected(start, expected, where, after) =>
-        showFullLine(start.line, where, s"Expected '$expected' after $after.")
+        showFullLine(start.line, where, s"Parser Error: Expected '$expected' after $after.")
       case InvalidAssignmentTarget(assignment) =>
-        showLineAndMessage(assignment.line, "Invalid assignment target")
+        showLineAndMessage(assignment.line, "Parser Error: Invalid assignment target")
     }
+  }
+
+  sealed trait RuntimeError extends Failure {
+    def token: Token
   }
 
   object RuntimeError {
@@ -96,23 +89,53 @@ object Failure {
       IncorrectArity(token, expected, got)
 
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token) => showRuntimeError(token, "Division by zero")
+      case DivisionByZero(token) => errorMsg(token, "Division by zero")
       case InvalidOperand(token, expected) =>
-        showRuntimeError(token, s"The operand must be any of the following: ${expected.toCsv}")
+        errorMsg(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
-        showRuntimeError(token, s"All operands must be any of the following: ${expected.toCsv}")
-      case UndefinedVariable(token) => showRuntimeError(token, s"Undefined variable: ${token.lexeme}")
-      case NotCallable(token)       => showRuntimeError(token, "This expression is not callable.")
+        errorMsg(token, s"All operands must be any of the following: ${expected.toCsv}")
+      case UndefinedVariable(token) => errorMsg(token, show"Undefined variable: $token")
+      case NotCallable(token)       => errorMsg(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
-        showRuntimeError(token, s"Incorrect arity. Expected: $expected. Got: $got")
+        errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
     }
+
+    private def errorMsg(token: Token, message: String): String =
+      s"Runtime Error: $message\n[line ${token.line}]. ${token.lexeme}"
+  }
+
+  sealed trait ResolutionError extends Failure
+
+  object ResolutionError {
+    final case class VariableAlreadyDefined(name: Token) extends ResolutionError
+    final case class DeclaredButNotDefined(name: Token) extends ResolutionError
+    final case class NotInsideAFunction(keyword: Token) extends ResolutionError
+
+    def variableAlreadyDefined(name: Token): ResolutionError =
+      VariableAlreadyDefined(name)
+
+    def declaredButNotDefined(name: Token): ResolutionError =
+      DeclaredButNotDefined(name)
+
+    def notInsideAFunction(keyword: Token): ResolutionError =
+      NotInsideAFunction(keyword)
+
+    def show: Show[ResolutionError] = {
+      case VariableAlreadyDefined(name) =>
+        errorMsg(name, show"Variable $name is already defined in this scope")
+      case DeclaredButNotDefined(name) => errorMsg(name, show"$name is declared but not yet defined")
+      case NotInsideAFunction(keyword) => errorMsg(keyword, show"'$keyword' is not inside a function")
+    }
+
+    private def errorMsg(token: Token, message: String): String =
+      showLineAndMessage(token.line, s"Resolution Error: $message")
   }
 
   def show: Show[Failure] = {
-    case Line(line, where, message)     => showFullLine(line, where, message)
-    case lexerError: LexerError         => LexerError.show(lexerError)
-    case parseError: ParseError         => ParseError.show(parseError)
-    case runtimeError: RuntimeError     => RuntimeError.show(runtimeError)
-    case ResolutionError(line, message) => showLineAndMessage(line, s"Resolution Error: $message")
+    case Line(line, where, message)       => showFullLine(line, where, message)
+    case lexerError: LexerError           => LexerError.show(lexerError)
+    case parseError: ParseError           => ParseError.show(parseError)
+    case runtimeError: RuntimeError       => RuntimeError.show(runtimeError)
+    case resolutionError: ResolutionError => ResolutionError.show(resolutionError)
   }
 }
