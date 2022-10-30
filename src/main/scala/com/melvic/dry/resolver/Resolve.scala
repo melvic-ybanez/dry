@@ -2,7 +2,7 @@ package com.melvic.dry.resolver
 
 import com.melvic.dry.Token
 import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
-import com.melvic.dry.ast.Decl.{Def, StmtDecl}
+import com.melvic.dry.ast.Decl.{ClassDecl, Def, StmtDecl}
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
@@ -79,6 +79,7 @@ object Resolve {
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
     case lambda: Lambda => enterFunction(Resolve.lambda(_)(lambda))
+    case Get(obj, _)    => Resolve.expr(obj)
   }
 
   /**
@@ -100,6 +101,7 @@ object Resolve {
   }
 
   def returnStmt: ReturnStmt => Resolve = {
+    // Note: Resolving a return statement involves checking if it's inside a function.
     def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
       case (_, _, FunctionType.None)               => Result.fail(ResolutionError.notInsideAFunction(keyword))
       case context @ (_, _, FunctionType.Function) => ifValid(context)
@@ -109,6 +111,10 @@ object Resolve {
       case ReturnStmt(keyword, Literal.None) => returnOrFail(keyword, _.ok)
       case ReturnStmt(keyword, value)        => returnOrFail(keyword, Resolve.expr(value))
     }
+  }
+
+  def classDecl: ClassDecl => Resolve = { case ClassDecl(name, _) =>
+    Scopes.declare(name).ok >=> Scopes.define(name).ok
   }
 
   def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals, functionType) =>

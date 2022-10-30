@@ -7,7 +7,7 @@ import com.melvic.dry.ast.Expr._
 import com.melvic.dry.interpreter.Interpreter
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
-import com.melvic.dry.interpreter.values.{Callable, Value}
+import com.melvic.dry.interpreter.values.{Callable, DryInstance, Value}
 import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -109,9 +109,7 @@ private[eval] trait EvalExpr {
           (left, right) match {
             case (Num(l), Num(r)) => Num(l + r).ok
             case (Str(l), Str(r)) => Str(l + r).ok
-            case _ =>
-              val error = RuntimeError.invalidOperands(operator, List("number", "string"))
-              Result.fail(error)
+            case _                => RuntimeError.invalidOperands(operator, List("number", "string")).fail
           }
         case TokenType.Minus => combineUnsafe(_ - _)
         case TokenType.Star  => combineUnsafe(_ * _)
@@ -173,4 +171,12 @@ private[eval] trait EvalExpr {
         }
   }
 
+  def get: Evaluate[Get] = { case Get(obj, token) =>
+    Evaluate
+      .expr(obj)
+      .andThen(_.flatMap {
+        case DryInstance(klass, _) => ???
+        case _                  => RuntimeError.doesNotHaveProperties(obj, token).fail
+      })
+  }
 }

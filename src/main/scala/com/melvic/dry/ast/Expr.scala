@@ -37,6 +37,8 @@ object Expr {
   final case class Call(callee: Expr, arguments: List[Expr], paren: Token) extends Expr
   final case class Lambda(params: List[Token], body: List[Decl]) extends Expr
 
+  final case class Get(obj: Expr, name: Token) extends Expr
+
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)
     case Grouping(expr)                 => show"($expr)"

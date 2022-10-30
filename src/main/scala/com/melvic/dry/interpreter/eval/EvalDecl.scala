@@ -4,7 +4,7 @@ import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.interpreter.values.Value.ToValue
-import com.melvic.dry.interpreter.values.{Callable, Value}
+import com.melvic.dry.interpreter.values.{Callable, DryClass, Value}
 import com.melvic.dry.result.Result.implicits.ToResult
 
 private[eval] trait EvalDecl extends EvalStmt {
@@ -52,5 +52,9 @@ private[eval] trait EvalDecl extends EvalStmt {
    */
   def defDecl: Evaluate[Def] = { case function @ Def(name, _, _) =>
     _.defineWith(name.lexeme, Callable.Function(function, _)).unit.ok
+  }
+
+  def classDecl: Evaluate[ClassDecl] = { case ClassDecl(name, _) =>
+    env => env.define(name.lexeme, Value.None).assign(name, DryClass(name.lexeme, env)).unit.ok
   }
 }

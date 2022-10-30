@@ -36,6 +36,8 @@ object Value {
     case Callable.Function(Def(name, _, _), _) => show"<function $name>"
     case Callable.Lambda(_, _)                 => s"<lambda function>"
     case _: Callable                           => "<callable>"
+    case DryClass(name, _)                     => name
+    case DryInstance(klass, _)                 => show"$klass instance"
   }
 
   implicit class ToValue[A](value: A) {

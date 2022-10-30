@@ -35,8 +35,9 @@ sealed trait Env {
   /**
    * Like [[define]], but allows the caller to access this environment. This will be useful for chaining
    * applications of [[define]] where each value relies on the updated environment (i.e. a cyclic dependency
-   * between this environment and the value being defined). This is needed because the signature of [[define]]
-   * does not guarantee mutation.
+   * between this environment and the value being defined).
+   *
+   * This is needed because the signature of [[define]] does not guarantee mutation.
    */
   def defineWith(name: String, f: Env => Value): Env =
     define(name, f(this))

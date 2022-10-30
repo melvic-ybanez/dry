@@ -12,8 +12,9 @@ import scala.util.chaining.scalaUtilChainingOps
 
 private[parsers] trait DeclParser extends StmtParser { _: Parser =>
   def declaration: ParseResult[Decl] =
-    matchAny(TokenType.Def)
-      .map(_.defDecl)
+    matchAny(TokenType.Class)
+      .map(_.classDecl)
+      .orElse(matchAny(TokenType.Def).map(_.defDecl("function")))
       .orElse(matchAny(TokenType.Let).map(_.letDecl))
       .getOrElse(statement.mapValue(StmtDecl(_)))
       .pipe {
@@ -36,16 +37,35 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
     }
   }
 
-  def defDecl: ParseResult[Def] =
+  def defDecl(kind: String): ParseResult[Def] =
     for {
-      name   <- consume(TokenType.Identifier, "identifier", "def keyword")
+      name   <- consume(TokenType.Identifier, "identifier", "'def' keyword")
       params <- name.params
-      body   <- params.functionBody
+      body   <- params.functionBody(kind)
     } yield Step(Def(name.value, params.value, body.value.declarations), body.next)
 
-  def functionBody: ParseResult[BlockStmt] =
+  private[parsers] def functionBody(kind: String): ParseResult[BlockStmt] =
     for {
-      leftBrace <- consume(TokenType.LeftBrace, "{", "function signature")
+      leftBrace <- consume(TokenType.LeftBrace, "{", kind + " signature")
       body      <- leftBrace.block
     } yield body
+
+  def classDecl: ParseResult[ClassDecl] =
+    for {
+      name       <- consume(TokenType.Identifier, "identifier", "'class' keyword")
+      leftBrace  <- name.consume(TokenType.LeftBrace, "{", "class name")
+      methods    <- leftBrace.methods
+      rightBrace <- methods.consume(TokenType.RightBrace, "}", "class body")
+    } yield Step(ClassDecl(name.value, methods.value), rightBrace.next)
+
+  protected def methods: ParseResult[List[Def]] = {
+    def recurse(parser: Parser, acc: List[Def]): ParseResult[List[Def]] =
+      if (parser.check(TokenType.RightBrace) || parser.isAtEnd) ParseResult.succeed(acc.reverse, parser)
+      else
+        parser.defDecl("method").flatMap { case Step(function, next) =>
+          recurse(next, function :: acc)
+        }
+
+    recurse(this, Nil)
+  }
 }

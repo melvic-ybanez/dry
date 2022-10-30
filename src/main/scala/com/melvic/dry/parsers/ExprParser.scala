@@ -30,7 +30,7 @@ private[parsers] trait ExprParser { _: Parser =>
       .fold(or) { parser =>
         for {
           params <- parser.params
-          body   <- params.functionBody
+          body   <- params.functionBody("lambda")
         } yield Step(Lambda(params.value, body.value.declarations), body.next)
       }
 
@@ -77,7 +77,7 @@ private[parsers] trait ExprParser { _: Parser =>
       .getOrElse(call)
 
   def call: ParseResult[Expr] = {
-    def arguments(callee: Expr, parser: Parser): ParseResult[Expr] = {
+    def parenCall(callee: Expr, parser: Parser): ParseResult[Expr] = {
       def recurse(args: List[Expr], parser: Parser): ParseResult[List[Expr]] =
         parser
           .matchAny(TokenType.Comma)
@@ -98,12 +98,19 @@ private[parsers] trait ExprParser { _: Parser =>
     }
 
     primary.flatMap {
-      def recurse(step: Step[Expr]): ParseResult[Expr] =
+      // Recursively checks if the expression is being called, or a property access is being invoked
+      def checkForCalls(step: Step[Expr]): ParseResult[Expr] = {
+        def propAccess(expr: Expr, next: Parser) =
+          next.consume(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
+
         step.next
           .matchAny(TokenType.LeftParen)
-          .fold(ParseResult.fromStep(step))(arguments(step.value, _).flatMap(recurse))
+          .fold(
+            step.next.matchAny(TokenType.Dot).fold(ParseResult.fromStep(step))(propAccess(step.value, _))
+          )(parenCall(step.value, _).flatMap(checkForCalls))
+      }
 
-      recurse
+      checkForCalls
     }
   }
 

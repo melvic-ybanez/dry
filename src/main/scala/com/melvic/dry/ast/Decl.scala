@@ -31,6 +31,8 @@ object Decl {
 
   final case class Def(name: Token, params: List[Token], body: List[Decl]) extends Decl
 
+  final case class ClassDecl(name: Token, methods: List[Def]) extends Decl
+
   def show: Show[Decl] = {
     case let: Let           => Let.show(let)
     case stmtDecl: StmtDecl => StmtDecl.show(stmtDecl)
