@@ -25,6 +25,8 @@ private[eval] trait EvalExpr {
     case assignment: Assignment => Evaluate.assignment(assignment)
     case logical: Logical       => Evaluate.logical(logical)
     case call: Call             => Evaluate.call(call)
+    case get: Get               => Evaluate.get(get)
+    case set: Set               => Evaluate.set(set)
   }
 
   def lambda: Evaluate[Lambda] = { lambda => env =>
@@ -171,12 +173,21 @@ private[eval] trait EvalExpr {
         }
   }
 
-  def get: Evaluate[Get] = { case Get(obj, token) =>
+  def get: Evaluate[Get] = { case Get(obj, name) =>
     Evaluate
       .expr(obj)
       .andThen(_.flatMap {
-        case DryInstance(klass, _) => ???
-        case _                  => RuntimeError.doesNotHaveProperties(obj, token).fail
+        case instance: DryInstance => instance.get(name)
+        case _                     => RuntimeError.doesNotHaveProperties(obj, name).fail
       })
+  }
+
+  def set: Evaluate[Set] = { case Set(obj, name, value) =>
+    Evaluate
+      .expr(obj)
+      .flatMap {
+        case instance: DryInstance => Evaluate.expr(value).map(instance.set(name, _))
+        case _                     => RuntimeError.doesNotHaveProperties(obj, name).fail[Value].env
+      }
   }
 }

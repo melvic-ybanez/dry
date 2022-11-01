@@ -12,19 +12,29 @@ private[parsers] trait ExprParser { _: Parser =>
   def expression: ParseResult[Expr] =
     assignment
 
-  def assignment: ParseResult[Expr] =
+  /**
+   * {{{<assignment> ::= (<call> ".")? <identifier> "=" <assignment> | <lambda>}}}
+   */
+  def assignment: ParseResult[Expr] = {
+    // parse the left value as a lambda to cover all possible expression (including chained `get`s)
     lambda.flatMap { case Step(lValue, parser) =>
+      // if the resulting left value is not followed by an equal sign, return it
       parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
-        val equals = parser.previous
+        // otherwise, check if it's a valid assignment target
         parser.assignment.flatMap { case Step(rValue, parser) =>
           lValue match {
             case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
-            case _              => ParseResult.fail(ParseError.invalidAssignmentTarget(equals), parser)
+            case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, lValue), parser)
+            case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previous), parser)
           }
         }
       }
     }
+  }
 
+  /**
+   * {{{<lambda> ::= "Lambda" <params> <function-body> | <or>}}}
+   */
   def lambda: ParseResult[Expr] =
     matchAny(TokenType.Lambda)
       .fold(or) { parser =>
@@ -34,15 +44,27 @@ private[parsers] trait ExprParser { _: Parser =>
         } yield Step(Lambda(params.value, body.value.declarations), body.next)
       }
 
+  /**
+   * {{{<or> ::= <and> ("or" <and>)*}}}
+   */
   def or: ParseResult[Expr] =
     leftAssocLogical(_.and, TokenType.Or)
 
+  /**
+   * {{{<and> ::= <equality> ("and" <equality>)*}}}
+   */
   def and: ParseResult[Expr] =
     leftAssocLogical(_.equality, TokenType.And)
 
+  /**
+   * {{{<equality> ::= <comparison> ("!=" | "==" <comparison>)*}}}
+   */
   def equality: ParseResult[Expr] =
     leftAssocBinary(_.comparison, TokenType.NotEqual, TokenType.EqualEqual)
 
+  /**
+   * {{{<comparison> ::= <term> (">" | ">=" | "<" | "<=" <term>)*}}}
+   */
   def comparison: ParseResult[Expr] =
     leftAssocBinary(
       _.term,
@@ -162,7 +184,10 @@ private[parsers] trait ExprParser { _: Parser =>
 
   /**
    * Parses a left-associative binary expression given a set of valid operators. The matched operator and
-   * right-hand operand can appear at-least zero times.
+   * right-hand operand can appear at-least zero times. It is generally in form of
+   * {{{<operand> (<operators> <operand>)*}}}
+   * @param operand
+   *   the higher precedence expression
    */
   private def leftAssocBinaryWith[E <: Expr](
       operand: Parser => ParseResult[Expr],

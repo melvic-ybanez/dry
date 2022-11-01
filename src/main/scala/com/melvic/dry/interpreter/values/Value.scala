@@ -14,6 +14,7 @@ private[interpreter] trait Value {
 }
 
 object Value {
+  type None = None.type
   case object None extends Value
 
   final case class Bool(value: Boolean) extends Value

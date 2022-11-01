@@ -38,6 +38,7 @@ object Expr {
   final case class Lambda(params: List[Token], body: List[Decl]) extends Expr
 
   final case class Get(obj: Expr, name: Token) extends Expr
+  final case class Set(obj: Expr, name: Token, value: Expr) extends Expr
 
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)

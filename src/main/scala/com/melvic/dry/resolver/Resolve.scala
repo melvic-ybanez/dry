@@ -78,8 +78,9 @@ object Resolve {
       Resolve.expr(callee) >=> { scopes =>
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
-    case lambda: Lambda => enterFunction(Resolve.lambda(_)(lambda))
-    case Get(obj, _)    => Resolve.expr(obj)
+    case lambda: Lambda     => enterFunction(Resolve.lambda(_)(lambda))
+    case Get(obj, _)        => Resolve.expr(obj)
+    case Set(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
   }
 
   /**

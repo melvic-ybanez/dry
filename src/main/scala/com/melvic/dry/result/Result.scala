@@ -36,6 +36,9 @@ object Result {
 
       def env: Env => Result[A] =
         _ => Result.succeed(value)
+
+      def env[B](implicit ev: A =:= Result[B]): Env => A =
+        _ => value
     }
 
     implicit class ResultOps[A](result: Result[A]) {

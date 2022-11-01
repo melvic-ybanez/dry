@@ -108,7 +108,7 @@ object Failure {
       case NotCallable(token)       => errorMsg(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
-      case DoesNotHaveProperties(obj, token) => errorMsg(token, show"$obj does not have properties.")
+      case DoesNotHaveProperties(obj, token) => errorMsg(token, show"$obj does not have properties or fields.")
       case UndefinedProperty(token)          => errorMsg(token, show"Undefined property: $token")
     }
 
