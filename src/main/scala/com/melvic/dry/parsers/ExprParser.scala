@@ -24,7 +24,7 @@ private[parsers] trait ExprParser { _: Parser =>
         parser.assignment.flatMap { case Step(rValue, parser) =>
           lValue match {
             case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
-            case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, lValue), parser)
+            case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, rValue), parser)
             case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previous), parser)
           }
         }

@@ -108,7 +108,7 @@ object Resolve {
     // Note: Resolving a return statement involves checking if it's inside a function.
     def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
       case (_, _, FunctionType.None)               => Result.fail(ResolutionError.notInsideAFunction(keyword))
-      case context @ (_, _, FunctionType.Function) => ifValid(context)
+      case context @ (_, _, FunctionType.Function | FunctionType.Method) => ifValid(context)
     }
 
     {

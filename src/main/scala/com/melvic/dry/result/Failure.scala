@@ -54,7 +54,7 @@ object Failure {
 
     def show: Show[ParseError] = {
       case Expected(start, expected, where, after) =>
-        showFullLine(start.line, where, s"Parser Error: Expected '$expected' after $after.")
+        showFullLine(start.line, where, s"Expected '$expected' after $after.")
       case InvalidAssignmentTarget(assignment) =>
         showLineAndMessage(assignment.line, "Parser Error: Invalid assignment target")
     }
