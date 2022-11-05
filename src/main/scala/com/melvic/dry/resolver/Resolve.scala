@@ -42,9 +42,10 @@ object Resolve {
     case LetInit(name, init @ Lambda(_, _)) => Resolve.expr(init) >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
-    case function: Def  => enterFunction(Resolve.function(_)(function))
-    case StmtDecl(stmt) => Resolve.stmt(stmt)
-    case stmt: Stmt     => Resolve.stmt(stmt)
+    case function: Def    => enterFunction(Resolve.function(_)(function))
+    case StmtDecl(stmt)   => Resolve.stmt(stmt)
+    case stmt: Stmt       => Resolve.stmt(stmt)
+    case klass: ClassDecl => Resolve.classDecl(klass)
   }
 
   def stmt: Stmt => Resolve = {
@@ -98,7 +99,9 @@ object Resolve {
       }
     } >=> Resolve.blockStmt(BlockStmt(body)) >=> Scopes.end.ok
 
-    resolution.andThen(_.map { case (scopes, locals, _) => (scopes, locals, oldFunctionType) })
+    resolution.andThen(_.map { case (scopes, locals, _) =>
+      (scopes, locals, oldFunctionType) // exit function using the previous function type
+    })
   }
 
   def returnStmt: ReturnStmt => Resolve = {
@@ -114,8 +117,12 @@ object Resolve {
     }
   }
 
-  def classDecl: ClassDecl => Resolve = { case ClassDecl(name, _) =>
-    Scopes.declare(name).ok >=> Scopes.define(name).ok
+  def classDecl: ClassDecl => Resolve = { case ClassDecl(name, methods) =>
+    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> { case (scopes, locals, functionType) =>
+      methods.foldFailFast((scopes, locals, FunctionType.Method: FunctionType).ok) { (context, method) =>
+        Resolve.function(functionType)(method)(context)
+      }
+    }
   }
 
   def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals, functionType) =>
@@ -136,7 +143,8 @@ object Resolve {
   def fail(failure: Failure): Resolve =
     _ => Result.fail(failure)
 
-  def enterFunction(toResolve: FunctionType => Resolve): Resolve = { case (scopes, locals, functionType) =>
-    toResolve(functionType)(scopes, locals, FunctionType.Function)
+  private def enterFunction(toResolve: FunctionType => Resolve): Resolve = {
+    case (scopes, locals, functionType) =>
+      toResolve(functionType)(scopes, locals, FunctionType.Function)
   }
 }

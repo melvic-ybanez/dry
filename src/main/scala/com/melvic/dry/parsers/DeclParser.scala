@@ -62,9 +62,11 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
     def recurse(parser: Parser, acc: List[Def]): ParseResult[List[Def]] =
       if (parser.check(TokenType.RightBrace) || parser.isAtEnd) ParseResult.succeed(acc.reverse, parser)
       else
-        parser.defDecl("method").flatMap { case Step(function, next) =>
-          recurse(next, function :: acc)
-        }
+        for {
+          method   <- parser.consume(TokenType.Def, "def", "{ in class")
+          function <- method.defDecl("method")
+          result   <- recurse(function.next, function.value :: acc)
+        } yield result
 
     recurse(this, Nil)
   }

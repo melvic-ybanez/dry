@@ -128,7 +128,9 @@ private[parsers] trait ExprParser { _: Parser =>
         step.next
           .matchAny(TokenType.LeftParen)
           .fold(
-            step.next.matchAny(TokenType.Dot).fold(ParseResult.fromStep(step))(propAccess(step.value, _))
+            step.next
+              .matchAny(TokenType.Dot)
+              .fold(ParseResult.fromStep(step))(propAccess(step.value, _).flatMap(checkForCalls))
           )(parenCall(step.value, _).flatMap(checkForCalls))
       }
 

@@ -9,9 +9,10 @@ import com.melvic.dry.result.Result.implicits.ToResult
 
 private[eval] trait EvalDecl extends EvalStmt {
   def decl: Evaluate[Decl] = {
-    case stmt: StmtDecl => stmtDecl(stmt)
-    case let: Let       => Evaluate.let(let)
-    case function: Def  => Evaluate.defDecl(function)
+    case stmt: StmtDecl   => stmtDecl(stmt)
+    case let: Let         => Evaluate.let(let)
+    case function: Def    => Evaluate.defDecl(function)
+    case klass: ClassDecl => Evaluate.classDecl(klass)
 
     // Not a big fan of this. Declaration statements should be of type StmtDecl,
     // but sometimes I needed to create a statement directly in the statement parser (e.g. a syntactic-sugar),
@@ -54,7 +55,14 @@ private[eval] trait EvalDecl extends EvalStmt {
     _.defineWith(name.lexeme, Callable.Function(function, _)).unit.ok
   }
 
-  def classDecl: Evaluate[ClassDecl] = { case ClassDecl(name, _) =>
-    env => env.define(name.lexeme, Value.None).assign(name, DryClass(name.lexeme, env)).unit.ok
+  def classDecl: Evaluate[ClassDecl] = { case ClassDecl(name, methods) =>
+    env =>
+      env.define(name.lexeme, Value.None)
+      val klass = DryClass(
+        name.lexeme,
+        methods.map(method => method.name.lexeme -> Callable.Function(method, env)).toMap,
+        env
+      )
+      env.assign(name, klass).unit.ok
   }
 }

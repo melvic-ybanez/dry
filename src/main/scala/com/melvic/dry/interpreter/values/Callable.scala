@@ -22,11 +22,7 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = List[Value] => Result[Value]
 
-  trait FunctionLike extends Callable {
-    def params: List[Token]
-
-    def body: List[Decl]
-
+  abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
     override def arity = params.size
 
     override def call: Call = { args =>
@@ -40,17 +36,11 @@ object Callable {
     }
   }
 
-  final case class Function(function: Def, enclosing: Env) extends FunctionLike {
-    override def params = function.params
+  final case class Function(function: Def, enclosing: Env)
+      extends FunctionLike(function.params, function.body)
 
-    override def body = function.body
-  }
-
-  final case class Lambda(lambda: Expr.Lambda, enclosing: Env) extends FunctionLike {
-    override def params = lambda.params
-
-    override def body = lambda.body
-  }
+  final case class Lambda(lambda: Expr.Lambda, enclosing: Env)
+      extends FunctionLike(lambda.params, lambda.body)
 
   def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
     new Callable {
