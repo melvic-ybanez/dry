@@ -132,7 +132,7 @@ private[eval] trait EvalExpr {
         case TokenType.Less         => compare(_ < _)
         case TokenType.LessEqual    => compare(_ <= _)
         case TokenType.NotEqual     => compare(_ != _)
-        case TokenType.EqualEqual   => compare(_ == _)
+        case TokenType.EqualEqual   => (left == right).ok.map(Value.Bool)
         case _                      => VNone.ok
       }
     }
