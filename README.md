@@ -40,6 +40,21 @@ display_fib(1)(5);          // 1 1 2 3 5
 
 #### Classes:
 ```
+class Fib {
+  def compute() {
+    for (let i = self.start; i <= self.end; i = i + 1) {
+      print(str(fib(i)) + " ");   // convert a number to string like before concatenation, like in Python
+    }
+    println("");
+  }
+
+  def from(start) { self.start = start; return self; }
+
+  def to(end) { self.end = end; return self; }
+}
+
+Fib().from(1).to(5).compute();  // 1 1 2 3 5
+
 class Pet {
   // default implementation
   def make_sound() {
