@@ -40,6 +40,8 @@ object Expr {
   final case class Get(obj: Expr, name: Token) extends Expr
   final case class Set(obj: Expr, name: Token, value: Expr) extends Expr
 
+  final case class Self(keyword: Token) extends Expr
+
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)
     case Grouping(expr)                 => show"($expr)"

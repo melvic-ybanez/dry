@@ -9,7 +9,10 @@ import scala.collection.mutable
 
 final case class DryInstance private (klass: DryClass, fields: mutable.Map[String, Value]) extends Value {
   def get(name: Token): Result[Value] =
-    Result.fromOption(fields.get(name.lexeme).orElse(klass.findMethod(name.lexeme)), RuntimeError.undefinedProperty(name))
+    Result.fromOption(
+      fields.get(name.lexeme).orElse(klass.findMethod(name.lexeme).map(_.bind(this))),
+      RuntimeError.undefinedProperty(name)
+    )
 
   def set(name: Token, value: Value): Value.None = {
     fields += (name.lexeme -> value)

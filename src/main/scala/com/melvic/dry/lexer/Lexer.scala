@@ -1,7 +1,8 @@
-package com.melvic.dry
+package com.melvic.dry.lexer
 
-import com.melvic.dry.Lexer.enableEscapeSequences
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.lexer.Lexer.enableEscapeSequences
 import com.melvic.dry.result.Failure.LexerError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
@@ -145,24 +146,25 @@ final case class Lexer(
 }
 
 object Lexer {
+  // TODO: Move hardcoded values to `Lexemes`
   val Keywords: Map[String, TokenType] = Map(
-    "and"    -> TokenType.And,
-    "or"     -> TokenType.Or,
-    "class"  -> TokenType.Class,
-    "if"     -> TokenType.If,
-    "else"   -> TokenType.Else,
-    "true"   -> TokenType.True,
-    "false"  -> TokenType.False,
-    "let"    -> TokenType.Let,
-    "while"  -> TokenType.While,
-    "for"    -> TokenType.For,
-    "def"    -> TokenType.Def,
-    "none"   -> TokenType.None,
-    "return" -> TokenType.Return,
-    "super"  -> TokenType.Super,
-    "self"   -> TokenType.Self,
-    "not"    -> TokenType.Not,
-    "lambda" -> TokenType.Lambda
+    "and"         -> TokenType.And,
+    "or"          -> TokenType.Or,
+    Lexemes.Class -> TokenType.Class,
+    "if"          -> TokenType.If,
+    "else"        -> TokenType.Else,
+    "true"        -> TokenType.True,
+    "false"       -> TokenType.False,
+    "let"         -> TokenType.Let,
+    "while"       -> TokenType.While,
+    "for"         -> TokenType.For,
+    Lexemes.Def   -> TokenType.Def,
+    "none"        -> TokenType.None,
+    "return"      -> TokenType.Return,
+    "super"       -> TokenType.Super,
+    Lexemes.Self  -> TokenType.Self,
+    "not"         -> TokenType.Not,
+    "lambda"      -> TokenType.Lambda
   )
 
   def scanTokens(source: String): Result[List[Token]] =

@@ -21,7 +21,10 @@ object Scopes {
     }
 
   def define(name: Token): ScopesFunction =
-    mapHeadOk(_ + (name.lexeme -> true))
+    put(name.lexeme)
+
+  def put(name: String): ScopesFunction =
+    mapHeadOk(_ + (name -> true))
 
   def mapHead(update: ResultCoAlg[Scope]): ScopesFunction = {
     case Nil           => (Scopes.start >=> mapHead(update))(Nil)

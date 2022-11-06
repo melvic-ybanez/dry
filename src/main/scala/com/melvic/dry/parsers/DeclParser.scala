@@ -6,6 +6,7 @@ import com.melvic.dry.ast.Decl
 import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.Stmt.BlockStmt
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.parsers.Step._
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -39,7 +40,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
 
   def defDecl(kind: String): ParseResult[Def] =
     for {
-      name   <- consume(TokenType.Identifier, "identifier", "'def' keyword")
+      name   <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Def}' keyword")
       params <- name.params
       body   <- params.functionBody(kind)
     } yield Step(Def(name.value, params.value, body.value.declarations), body.next)
@@ -52,7 +53,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
 
   def classDecl: ParseResult[ClassDecl] =
     for {
-      name       <- consume(TokenType.Identifier, "identifier", "'class' keyword")
+      name       <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Class}' keyword")
       leftBrace  <- name.consume(TokenType.LeftBrace, "{", "class name")
       methods    <- leftBrace.methods
       rightBrace <- methods.consume(TokenType.RightBrace, "}", "class body")
@@ -63,7 +64,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
       if (parser.check(TokenType.RightBrace) || parser.isAtEnd) ParseResult.succeed(acc.reverse, parser)
       else
         for {
-          method   <- parser.consume(TokenType.Def, "def", "{ in class")
+          method   <- parser.consume(TokenType.Def, Lexemes.Def, "{ in class")
           function <- method.defDecl("method")
           result   <- recurse(function.next, function.value :: acc)
         } yield result

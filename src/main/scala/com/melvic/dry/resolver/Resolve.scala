@@ -10,6 +10,7 @@ import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.resolver.ScopesFunction._
 import com.melvic.dry.result.Failure.ResolutionError
 import com.melvic.dry.result.Result.ResultCoAlg
@@ -82,6 +83,7 @@ object Resolve {
     case lambda: Lambda     => enterFunction(Resolve.lambda(_)(lambda))
     case Get(obj, _)        => Resolve.expr(obj)
     case Set(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
+    case self: Self         => Resolve.self(self)
   }
 
   /**
@@ -107,7 +109,7 @@ object Resolve {
   def returnStmt: ReturnStmt => Resolve = {
     // Note: Resolving a return statement involves checking if it's inside a function.
     def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
-      case (_, _, FunctionType.None)               => Result.fail(ResolutionError.notInsideAFunction(keyword))
+      case (_, _, FunctionType.None) => Result.fail(ResolutionError.notInsideAFunction(keyword))
       case context @ (_, _, FunctionType.Function | FunctionType.Method) => ifValid(context)
     }
 
@@ -118,12 +120,18 @@ object Resolve {
   }
 
   def classDecl: ClassDecl => Resolve = { case ClassDecl(name, methods) =>
-    Scopes.declare(name).ok >=> Scopes.define(name).ok >=> { case (scopes, locals, functionType) =>
-      methods.foldFailFast((scopes, locals, FunctionType.Method: FunctionType).ok) { (context, method) =>
-        Resolve.function(functionType)(method)(context)
+    def resolveMethods: Resolve = { case (scopes, locals, functionType) =>
+      methods.foldFailFast((scopes, locals, FunctionType.Method: FunctionType).ok) {
+        case ((scopes, locals, _), method) =>
+          Resolve.function(functionType)(method)(scopes, locals, FunctionType.Method)
       }
     }
+
+    Scopes.declare(name).ok >=> Scopes.define(name).ok >=>
+      Scopes.start.ok >=> Scopes.put(Lexemes.Self).ok >=> resolveMethods >=> Scopes.end.ok
   }
+
+  def self: Self => Resolve = { case expr @ Self(keyword) => Resolve.local(keyword)(expr) }
 
   def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals, functionType) =>
     (scopes, locals + (LocalExprKey(expr) -> depth), functionType).ok

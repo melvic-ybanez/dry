@@ -154,6 +154,7 @@ private[parsers] trait ExprParser { _: Parser =>
           }).pipe(Step(_, parser))
         }
       }
+      .orElse(matchAny(TokenType.Self).map(p => Step(Self(p.previous), p)))
       .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previous), p)))
       .map(_.toParseResult)
       .getOrElse(

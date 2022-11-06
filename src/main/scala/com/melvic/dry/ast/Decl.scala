@@ -3,6 +3,7 @@ package com.melvic.dry.ast
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt}
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.{Show, Token}
 
 trait Decl
@@ -37,7 +38,7 @@ object Decl {
     case let: Let           => Let.show(let)
     case stmtDecl: StmtDecl => StmtDecl.show(stmtDecl)
     case Def(name, params, body) =>
-      s"def $name(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
+      s"${Lexemes.Def} $name(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
     case stmt: Stmt => Stmt.show(stmt)
   }
 }

@@ -8,6 +8,7 @@ import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.eval.Evaluate
 import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 
@@ -37,7 +38,10 @@ object Callable {
   }
 
   final case class Function(function: Def, enclosing: Env)
-      extends FunctionLike(function.params, function.body)
+      extends FunctionLike(function.params, function.body) {
+    def bind(instance: DryInstance): Function =
+      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance))
+  }
 
   final case class Lambda(lambda: Expr.Lambda, enclosing: Env)
       extends FunctionLike(lambda.params, lambda.body)

@@ -27,6 +27,7 @@ private[eval] trait EvalExpr {
     case call: Call             => Evaluate.call(call)
     case get: Get               => Evaluate.get(get)
     case set: Set               => Evaluate.set(set)
+    case self: Self             => Evaluate.self(self)
   }
 
   def lambda: Evaluate[Lambda] = { lambda => env =>
@@ -152,13 +153,7 @@ private[eval] trait EvalExpr {
     case Literal.Str(string)   => Str(string).env
   }
 
-  def variable: Evaluate[Variable] = { case expr @ Variable(name) =>
-    env =>
-      env.locals
-        .get(LocalExprKey(expr))
-        .map(distance => env.at(distance, name.lexeme))
-        .fold(Interpreter.natives.get(name))(_.ok)
-  }
+  def variable: Evaluate[Variable] = { case expr @ Variable(name) => varLookup(name, expr) }
 
   def assignment: Evaluate[Assignment] = { case expr @ Assignment(name, value) =>
     env =>
@@ -190,4 +185,13 @@ private[eval] trait EvalExpr {
         case _                     => RuntimeError.doesNotHaveProperties(obj, name).fail[Value].env
       }
   }
+
+  def self: Evaluate[Self] = { case self @ Self(keyword) => varLookup(keyword, self) }
+
+  private def varLookup(name: Token, expr: Expr): EvalResult =
+    env =>
+      env.locals
+        .get(LocalExprKey(expr))
+        .map(distance => env.at(distance, name.lexeme))
+        .fold(Interpreter.natives.get(name))(_.ok)
 }
