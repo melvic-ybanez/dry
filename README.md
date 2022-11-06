@@ -1,7 +1,12 @@
-
 # Dry
 
-Dry is a simple dynamically-typed programming language currently being written in Scala. 
+Dry is a simple dynamically-typed programming language currently being written in Scala.
+
+The grammar, in BNF, will be provided here soon, but the syntax should be familiar
+to Python and Scala developers:
+
+<img width="875" alt="Screen Shot 2022-11-06 at 11 16 42 PM" src="https://user-images.githubusercontent.com/4519785/200179103-f6b7b544-75ae-47ea-b429-3d25f3427ae6.png">
+
 
 ## Examples
 
@@ -43,7 +48,7 @@ display_fib(1)(5);          // 1 1 2 3 5
 class Fib {
   def compute() {
     for (let i = self.start; i <= self.end; i = i + 1) {
-      print(str(fib(i)) + " ");   // convert a number to string like before concatenation, like in Python
+      print(str(fib(i)) + " ");   // convert a number to string before concatenation, like in Python
     }
     println("");
   }
@@ -84,5 +89,3 @@ println(4 << 3);            // bitwise left-shift operator. prints 32
 ```
 
 **Note:** More details will be added here soon.
-
-
