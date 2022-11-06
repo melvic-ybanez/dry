@@ -192,6 +192,6 @@ private[eval] trait EvalExpr {
     env =>
       env.locals
         .get(LocalExprKey(expr))
-        .map(distance => env.at(distance, name.lexeme))
+        .flatMap(distance => env.at(distance, name.lexeme))
         .fold(Interpreter.natives.get(name))(_.ok)
 }

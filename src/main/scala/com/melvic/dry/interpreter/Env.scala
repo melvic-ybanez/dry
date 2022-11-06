@@ -54,11 +54,9 @@ sealed trait Env {
 
   /**
    * Returns the variable given a distance from the current environment to the closest enclosing ancestor.
-   * Note that this operation is unsafe in that it doesn't return an [[Option]] value, and is typically used
-   * after running the resolver.
    */
-  def at(distance: Int, name: String): Value =
-    ancestorAt(distance).table(name)
+  def at(distance: Int, name: String): Option[Value] =
+    ancestorAt(distance).table.get(name)
 
   def assignAt(distance: Int, name: Token, value: Value): Env =
     ancestorAt(distance).pipe { env =>
