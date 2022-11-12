@@ -35,7 +35,7 @@ object Scopes {
     mapHead(update.andThen(_.ok))
 
   def resolveFromHead(update: Scope => Resolve): Resolve = {
-    case context @ (Nil, _, _)        => context.ok
-    case context @ (scope :: _, _, _) => update(scope)(context)
+    case context @ Context(Nil, _, _, _)        => context.ok
+    case context @ Context(scope :: _, _, _, _) => update(scope)(context)
   }
 }

@@ -3,7 +3,7 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.interpreter.eval.EvalOut
 import com.melvic.dry.lexer.Lexer
 import com.melvic.dry.parsers.Parser
-import com.melvic.dry.resolver.{FunctionType, Resolve}
+import com.melvic.dry.resolver.{Context, Resolve}
 import com.melvic.dry.result.{Failure, Result}
 
 import scala.io.Source
@@ -46,7 +46,7 @@ object Run {
     for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
-      locals <- Resolve.resolveAll(decls)(Nil, Map(), FunctionType.None).map(_._2)
+      locals <- Resolve.resolveAll(decls)(Context.default).map(_.locals)
       value  <- Interpreter.interpret(decls, env, locals)
     } yield value
 }

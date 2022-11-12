@@ -43,10 +43,11 @@ object Resolve {
     case LetInit(name, init @ Lambda(_, _)) => Resolve.expr(init) >=> Scopes.define(name).ok
     case LetInit(name, init) =>
       Scopes.declare(name).ok >=> Resolve.expr(init) >=> Scopes.define(name).ok
-    case function: Def    => enterFunction(Resolve.function(_)(function))
-    case StmtDecl(stmt)   => Resolve.stmt(stmt)
-    case stmt: Stmt       => Resolve.stmt(stmt)
-    case klass: ClassDecl => Resolve.classDecl(klass)
+    case function: Def  => enterFunction(Resolve.function(_)(function))
+    case StmtDecl(stmt) => Resolve.stmt(stmt)
+    case stmt: Stmt     => Resolve.stmt(stmt)
+    case klass: ClassDecl =>
+      context => Resolve.classDecl(context.classType)(klass)(context.withClassType(ClassType.Class))
   }
 
   def stmt: Stmt => Resolve = {
@@ -95,22 +96,20 @@ object Resolve {
   }
 
   def lambda(oldFunctionType: FunctionType): Lambda => Resolve = { case Lambda(params, body) =>
-    val resolution = Scopes.start.ok >=> { contexts =>
+    val result = Scopes.start.ok >=> { contexts =>
       params.foldFailFast(contexts.ok) { (contexts, param) =>
         (Scopes.declare(param).ok >=> Scopes.define(param).ok)(contexts)
       }
     } >=> Resolve.blockStmt(BlockStmt(body)) >=> Scopes.end.ok
 
-    resolution.andThen(_.map { case (scopes, locals, _) =>
-      (scopes, locals, oldFunctionType) // exit function using the previous function type
-    })
+    result.andThen(_.map(_.withFunctionType(oldFunctionType)))
   }
 
   def returnStmt: ReturnStmt => Resolve = {
     // Note: Resolving a return statement involves checking if it's inside a function.
     def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
-      case (_, _, FunctionType.None) => Result.fail(ResolutionError.notInsideAFunction(keyword))
-      case context @ (_, _, FunctionType.Function | FunctionType.Method) => ifValid(context)
+      case Context(_, _, FunctionType.None, _) => ResolutionError.notInsideAFunction(keyword).fail
+      case context @ Context(_, _, FunctionType.Function | FunctionType.Method, _) => ifValid(context)
     }
 
     {
@@ -119,40 +118,39 @@ object Resolve {
     }
   }
 
-  def classDecl: ClassDecl => Resolve = { case ClassDecl(name, methods) =>
-    def resolveMethods: Resolve = { case (scopes, locals, functionType) =>
-      methods.foldFailFast((scopes, locals, FunctionType.Method: FunctionType).ok) {
-        case ((scopes, locals, _), method) =>
-          Resolve.function(functionType)(method)(scopes, locals, FunctionType.Method)
+  def classDecl(oldClassType: ClassType): ClassDecl => Resolve = { case ClassDecl(name, methods) =>
+    def resolveMethods: Resolve = context =>
+      methods.foldFailFast(context.withFunctionType(FunctionType.Method).ok) { case (context, method) =>
+        Resolve.function(context.functionType)(method)(context.withFunctionType(FunctionType.Method))
       }
-    }
 
-    Scopes.declare(name).ok >=> Scopes.define(name).ok >=>
+    val result = Scopes.declare(name).ok >=> Scopes.define(name).ok >=>
       Scopes.start.ok >=> Scopes.put(Lexemes.Self).ok >=> resolveMethods >=> Scopes.end.ok
+    result.andThen(_.map(_.copy(classType = oldClassType)))
   }
 
-  def self: Self => Resolve = { case expr @ Self(keyword) => Resolve.local(keyword)(expr) }
-
-  def exprWithDepth(depth: Int): Expr => Resolve = expr => { case (scopes, locals, functionType) =>
-    (scopes, locals + (LocalExprKey(expr) -> depth), functionType).ok
-  }
-
-  def local(name: Token): Expr => Resolve = { expr =>
-    { case context @ (scopes, _, _) =>
-      val maybeFound = scopes.zipWithIndex.find { case (scope, _) =>
-        scope.contains(name.lexeme)
-      }
-      maybeFound
-        .map { case (_, i) => Resolve.exprWithDepth(i)(expr)(context) }
-        .getOrElse(context.ok)
+  def self: Self => Resolve = {
+    case expr @ Self(keyword) => {
+      case Context(_, _, _, ClassType.None) => ResolutionError.notInsideAClass(keyword).fail
+      case context                          => Resolve.local(keyword)(expr)(context)
     }
+  }
+
+  def exprWithDepth(depth: Int): Expr => Resolve = expr =>
+    context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok
+
+  def local(name: Token): Expr => Resolve = { expr => context =>
+    val maybeFound = context.scopes.zipWithIndex.find { case (scope, _) =>
+      scope.contains(name.lexeme)
+    }
+    maybeFound
+      .map { case (_, i) => Resolve.exprWithDepth(i)(expr)(context) }
+      .getOrElse(context.ok)
   }
 
   def fail(failure: Failure): Resolve =
     _ => Result.fail(failure)
 
-  private def enterFunction(toResolve: FunctionType => Resolve): Resolve = {
-    case (scopes, locals, functionType) =>
-      toResolve(functionType)(scopes, locals, FunctionType.Function)
-  }
+  private def enterFunction(toResolve: FunctionType => Resolve): Resolve = context =>
+    toResolve(context.functionType)(context.withFunctionType(FunctionType.Function))
 }

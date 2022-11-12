@@ -108,8 +108,9 @@ object Failure {
       case NotCallable(token)       => errorMsg(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
-      case DoesNotHaveProperties(obj, token) => errorMsg(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token)          => errorMsg(token, show"Undefined property: $token")
+      case DoesNotHaveProperties(obj, token) =>
+        errorMsg(token, show"$obj does not have properties or fields.")
+      case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
     }
 
     private def errorMsg(token: Token, message: String): String =
@@ -122,6 +123,7 @@ object Failure {
     final case class VariableAlreadyDefined(name: Token) extends ResolutionError
     final case class DeclaredButNotDefined(name: Token) extends ResolutionError
     final case class NotInsideAFunction(keyword: Token) extends ResolutionError
+    final case class NotInsideAClass(keyword: Token) extends ResolutionError
 
     def variableAlreadyDefined(name: Token): ResolutionError =
       VariableAlreadyDefined(name)
@@ -132,11 +134,15 @@ object Failure {
     def notInsideAFunction(keyword: Token): ResolutionError =
       NotInsideAFunction(keyword)
 
+    def notInsideAClass(keyword: Token): ResolutionError =
+      NotInsideAClass(keyword)
+
     def show: Show[ResolutionError] = {
       case VariableAlreadyDefined(name) =>
         errorMsg(name, show"Variable $name is already defined in this scope")
       case DeclaredButNotDefined(name) => errorMsg(name, show"$name is declared but not yet defined")
       case NotInsideAFunction(keyword) => errorMsg(keyword, show"'$keyword' is not inside a function")
+      case NotInsideAClass(keyword)    => errorMsg(keyword, show"'$keyword' is not inside a class")
     }
 
     private def errorMsg(token: Token, message: String): String =
