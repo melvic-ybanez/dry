@@ -5,7 +5,7 @@ import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
-import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance}
+import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DObject}
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult

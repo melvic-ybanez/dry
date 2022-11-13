@@ -46,7 +46,7 @@ object Callable {
 
   final case class Function(function: Def, enclosing: Env, isInit: Boolean)
       extends FunctionLike(function.params, function.body) {
-    def bind(instance: DInstance): Function =
+    def bind(instance: DObject): Function =
       Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), isInit)
   }
 

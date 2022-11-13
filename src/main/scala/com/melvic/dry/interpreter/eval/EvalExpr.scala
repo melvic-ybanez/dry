@@ -7,7 +7,7 @@ import com.melvic.dry.ast.Expr._
 import com.melvic.dry.interpreter.Interpreter
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
-import com.melvic.dry.interpreter.values.{Callable, DInstance, Value}
+import com.melvic.dry.interpreter.values.{Callable, DObject, Value}
 import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -172,8 +172,8 @@ private[eval] trait EvalExpr {
     Evaluate
       .expr(obj)
       .andThen(_.flatMap {
-        case instance: DInstance => instance.get(name)
-        case _                     => RuntimeError.doesNotHaveProperties(obj, name).fail
+        case instance: DObject => instance.get(name)
+        case _                 => RuntimeError.doesNotHaveProperties(obj, name).fail
       })
   }
 
@@ -181,8 +181,8 @@ private[eval] trait EvalExpr {
     Evaluate
       .expr(obj)
       .flatMap {
-        case instance: DInstance => Evaluate.expr(value).map(instance.set(name, _))
-        case _                     => RuntimeError.doesNotHaveProperties(obj, name).fail[Value].env
+        case instance: DObject => Evaluate.expr(value).map(instance.set(name, _))
+        case _                 => RuntimeError.doesNotHaveProperties(obj, name).fail[Value].env
       }
   }
 
