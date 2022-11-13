@@ -1,0 +1,12 @@
+def test_init() {
+    class Foo {
+       def init() {
+         self.message = "hello";
+       }
+    }
+
+    let foo = Foo();
+    assert("Init should save the set variables", foo.message, "hello");
+}
+
+test_init();

@@ -1,0 +1,35 @@
+def test_object_types() {
+    class Foo {}
+
+    let foo = Foo();
+
+    assert("Type of class", typeof(Foo), "class");
+    assert("Type of instance", typeof(foo), "instance");
+}
+
+def test_instance_properties() {
+    class Pet {
+        def sound() {
+            return "quack!";
+        }
+    }
+
+    let duck = Pet();
+    assert("Ducks should quack!", duck.sound(), "quack!");
+
+    let denji = Pet();
+    denji.sound = lambda() {
+        return "Woof!";
+    };
+    assert("Denji should say 'Woof!'", denji.sound(), "Woof!");
+}
+
+def test_class_properties() {
+    class Foo {}
+    Foo.bar = "bar value";
+    assert("Class properties should be updated", Foo.bar, "bar value");
+}
+
+test_object_types();
+test_instance_properties();
+test_class_properties();

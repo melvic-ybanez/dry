@@ -1,0 +1,28 @@
+// Based on the examples from "Crafting Interpreters"
+def test_scopes() {
+    let a = "global a";
+    let b = "global b";
+    let c = "global c";
+    {
+        let a = "outer a";
+        let b = "outer b";
+        {
+            let a = "inner a";
+            assert("inner 'a' should overshadow outer 'a'", a, "inner a");
+            assert("access outer 'b'", b, "outer b");
+            assert("access outer 'c'", c, "global c");
+        }
+        assert("outer 'a' should overshadow global 'a'", a, "outer a");
+        assert("outer 'b' should overshadow global 'b'", b, "outer b");
+        assert("access global 'c'", c, "global c");
+    }
+    assert("access global 'a'", a, "global a");
+    assert("access global 'b'", b, "global b");
+    assert("access global 'c'", c, "global c");
+    {
+        a = "modified global a";
+    }
+    assert("global 'a' should be modifiable from inner scope", a, "modified global a");
+}
+
+test_scopes();

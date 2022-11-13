@@ -4,9 +4,9 @@ import scala.tools.nsc.io.Path
 
 object DryTests {
   val Root = "tests"
-  val TestFilename = "test.dry"
+  val TestFilename = "tests.dry"
 
-  def createMainTestFile: Unit = {
+  def createMainTestFile(): Unit = {
     val contents = listTestFiles
       .map { file =>
         val header = s"// ========== ${file.getName} ========== "
@@ -15,7 +15,8 @@ object DryTests {
         finally source.close()
       }
       .mkString("\n\n")
-    Path(Root + "/" + TestFilename).createFile().writeAll(contents)
+    val note = "// Note: This is an auto-generated script\n\n\n"
+    Path(Root + "/" + TestFilename).createFile().writeAll(note + contents)
   }
 
   def listTestFiles: List[File] = {

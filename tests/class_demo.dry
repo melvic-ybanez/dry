@@ -1,0 +1,45 @@
+// Note: This script is currently not picked up by the testDry command because the name of the file does not
+// start with the correct prefix.
+
+class Pet {
+  // default implementation
+  def make_sound() {
+    println("quack!");
+  }
+}
+
+let duck = Pet();
+duck.make_sound();       // prints "quack!"
+
+let denji = Pet();
+// a custom sound for Denji
+denji.make_sound = lambda() {
+    println("Woof");
+};
+denji.make_sound();     // prints "Woof"
+
+duck.make_sound();
+
+class Fib {
+  def compute() {
+    for (let i = self.start; i <= self.end; i = i + 1) {
+      print(str(fib(i)) + " ");     // convert a number to string before concatenation, like in Python
+    }
+    println("");
+  }
+
+  def from(start) { self.start = start; return self; }
+
+  def to(end) { self.end = end; return self; }
+}
+
+// Another way to create a named function is to assign a name to a lambda.
+let fib = lambda(n) {
+  if (n <= 1) return n;
+
+  // Dry supports recursion, both with lambdas and named functions.
+  return fib(n - 2) + fib(n - 1);
+};
+
+Fib().from(1).to(5).compute();
+
