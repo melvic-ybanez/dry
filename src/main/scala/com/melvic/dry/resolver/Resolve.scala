@@ -12,7 +12,7 @@ import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.resolver.ScopesFunction._
-import com.melvic.dry.result.Failure.ResolutionError
+import com.melvic.dry.result.Failure.ResolverError
 import com.melvic.dry.result.Result.ResultCoAlg
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}
@@ -72,7 +72,7 @@ object Resolve {
           .get(name.lexeme)
           .map { found =>
             if (found) Resolve.local(name)(expr)
-            else fail(ResolutionError.declaredButNotDefined(name))
+            else fail(ResolverError.declaredButNotDefined(name))
           }
           .getOrElse(Resolve.local(name)(expr))
       }
@@ -107,21 +107,26 @@ object Resolve {
 
   def returnStmt: ReturnStmt => Resolve = {
     // Note: Resolving a return statement involves checking if it's inside a function.
-    def returnOrFail(keyword: Token, ifValid: => Resolve): Resolve = {
-      case Context(_, _, FunctionType.None, _) => ResolutionError.notInsideAFunction(keyword).fail
+    def returnOrFail(keyword: Token)(ifValid: => Resolve): Resolve = {
+      case Context(_, _, FunctionType.None, _) => ResolverError.notInsideAFunction(keyword).fail
       case context @ Context(_, _, FunctionType.Function | FunctionType.Method, _) => ifValid(context)
     }
 
     {
-      case ReturnStmt(keyword, Literal.None) => returnOrFail(keyword, _.ok)
-      case ReturnStmt(keyword, value)        => returnOrFail(keyword, Resolve.expr(value))
+      case ReturnStmt(keyword, Literal.None) => returnOrFail(keyword)(_.ok)
+      case ReturnStmt(keyword, value) =>
+        returnOrFail(keyword) {
+          case Context(_, _, FunctionType.Init, _) => ResolverError.returnFromInit(keyword).fail
+          case context                             => Resolve.expr(value)(context)
+        }
     }
   }
 
   def classDecl(oldClassType: ClassType): ClassDecl => Resolve = { case ClassDecl(name, methods) =>
     def resolveMethods: Resolve = context =>
       methods.foldFailFast(context.withFunctionType(FunctionType.Method).ok) { case (context, method) =>
-        Resolve.function(context.functionType)(method)(context.withFunctionType(FunctionType.Method))
+        val functionType = if (method.name.lexeme == Lexemes.Init) FunctionType.Init else FunctionType.Method
+        Resolve.function(context.functionType)(method)(context.withFunctionType(functionType))
       }
 
     val result = Scopes.declare(name).ok >=> Scopes.define(name).ok >=>
@@ -131,7 +136,7 @@ object Resolve {
 
   def self: Self => Resolve = {
     case expr @ Self(keyword) => {
-      case Context(_, _, _, ClassType.None) => ResolutionError.notInsideAClass(keyword).fail
+      case Context(_, _, _, ClassType.None) => ResolverError.notInsideAClass(keyword).fail
       case context                          => Resolve.local(keyword)(expr)(context)
     }
   }

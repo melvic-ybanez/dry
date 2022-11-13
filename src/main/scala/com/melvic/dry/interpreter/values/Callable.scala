@@ -24,27 +24,36 @@ object Callable {
   type Call = List[Value] => Result[Value]
 
   abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
+    def isInit: Boolean
+
     override def arity = params.size
 
     override def call: Call = { args =>
       val env = params.zip(args).foldLeft(Env.fromEnclosing(enclosing)) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
-      Evaluate.blockStmt(BlockStmt(body))(env).map {
-        case Returned(value) => value
-        case value           => value
-      }
+      Evaluate
+        .blockStmt(BlockStmt(body))(env)
+        .map(value => if (isInit) init.getOrElse(value) else value)
+        .map {
+          case Returned(value) => if (isInit) init.getOrElse(Value.None) else value
+          case value           => value
+        }
     }
+
+    lazy val init: Option[Value] = enclosing.at(0, Lexemes.Init)
   }
 
-  final case class Function(function: Def, enclosing: Env)
+  final case class Function(function: Def, enclosing: Env, isInit: Boolean)
       extends FunctionLike(function.params, function.body) {
-    def bind(instance: DryInstance): Function =
-      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance))
+    def bind(instance: DInstance): Function =
+      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), isInit)
   }
 
   final case class Lambda(lambda: Expr.Lambda, enclosing: Env)
-      extends FunctionLike(lambda.params, lambda.body)
+      extends FunctionLike(lambda.params, lambda.body) {
+    override def isInit: Boolean = false
+  }
 
   def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
     new Callable {

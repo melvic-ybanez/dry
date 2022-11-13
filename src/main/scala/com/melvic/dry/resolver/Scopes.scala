@@ -3,7 +3,7 @@ package com.melvic.dry.resolver
 import com.melvic.dry.Token
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction.ScopesFunction
-import com.melvic.dry.result.Failure.ResolutionError
+import com.melvic.dry.result.Failure.ResolverError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.ResultCoAlg
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -16,7 +16,7 @@ object Scopes {
 
   def declare(name: Token): ScopesFunction =
     mapHead { scope =>
-      if (scope.contains(name.lexeme)) Result.fail(ResolutionError.variableAlreadyDefined(name))
+      if (scope.contains(name.lexeme)) Result.fail(ResolverError.variableAlreadyDefined(name))
       else (scope + (name.lexeme -> false)).ok
     }
 

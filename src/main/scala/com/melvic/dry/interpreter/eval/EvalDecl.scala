@@ -4,7 +4,8 @@ import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl._
 import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.interpreter.values.Value.ToValue
-import com.melvic.dry.interpreter.values.{Callable, DryClass, Value}
+import com.melvic.dry.interpreter.values.{Callable, DClass, Value}
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result.implicits.ToResult
 
 private[eval] trait EvalDecl extends EvalStmt {
@@ -52,15 +53,19 @@ private[eval] trait EvalDecl extends EvalStmt {
    * syntactic sugars for lambda-expressions stored to variables.
    */
   def defDecl: Evaluate[Def] = { case function @ Def(name, _, _) =>
-    _.defineWith(name.lexeme, Callable.Function(function, _)).unit.ok
+    _.defineWith(name.lexeme, Callable.Function(function, _, isInit = false)).unit.ok
   }
 
   def classDecl: Evaluate[ClassDecl] = { case ClassDecl(name, methods) =>
     env =>
       env.define(name.lexeme, Value.None)
-      val klass = DryClass(
+      val klass = DClass(
         name.lexeme,
-        methods.map(method => method.name.lexeme -> Callable.Function(method, env)).toMap,
+        methods
+          .map(method =>
+            method.name.lexeme -> Callable.Function(method, env, method.name.lexeme == Lexemes.Init)
+          )
+          .toMap,
         env
       )
       env.assign(name, klass).unit.ok

@@ -5,4 +5,5 @@ object Lexemes {
   val Def: String = "def"
   val Class: String = "class"
   val Self: String = "self"
+  val Init: String = "init"
 }

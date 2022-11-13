@@ -117,44 +117,49 @@ object Failure {
       show"Runtime Error: $message\n[line ${token.line}]. $token"
   }
 
-  sealed trait ResolutionError extends Failure
+  sealed trait ResolverError extends Failure
 
-  object ResolutionError {
-    final case class VariableAlreadyDefined(name: Token) extends ResolutionError
-    final case class DeclaredButNotDefined(name: Token) extends ResolutionError
-    final case class NotInsideAFunction(keyword: Token) extends ResolutionError
-    final case class NotInsideAClass(keyword: Token) extends ResolutionError
+  object ResolverError {
+    final case class VariableAlreadyDefined(name: Token) extends ResolverError
+    final case class DeclaredButNotDefined(name: Token) extends ResolverError
+    final case class NotInsideAFunction(keyword: Token) extends ResolverError
+    final case class NotInsideAClass(keyword: Token) extends ResolverError
+    final case class ReturnFromInit(keyword: Token) extends ResolverError
 
-    def variableAlreadyDefined(name: Token): ResolutionError =
+    def variableAlreadyDefined(name: Token): ResolverError =
       VariableAlreadyDefined(name)
 
-    def declaredButNotDefined(name: Token): ResolutionError =
+    def declaredButNotDefined(name: Token): ResolverError =
       DeclaredButNotDefined(name)
 
-    def notInsideAFunction(keyword: Token): ResolutionError =
+    def notInsideAFunction(keyword: Token): ResolverError =
       NotInsideAFunction(keyword)
 
-    def notInsideAClass(keyword: Token): ResolutionError =
+    def notInsideAClass(keyword: Token): ResolverError =
       NotInsideAClass(keyword)
 
-    def show: Show[ResolutionError] = {
+    def returnFromInit(keyword: Token): ResolverError =
+      ReturnFromInit(keyword)
+
+    def show: Show[ResolverError] = {
       case VariableAlreadyDefined(name) =>
         errorMsg(name, show"Variable $name is already defined in this scope")
-      case DeclaredButNotDefined(name) => errorMsg(name, show"$name is declared but not yet defined")
+      case DeclaredButNotDefined(name) => errorMsg(name, show"'$name' is declared but not yet defined")
       case NotInsideAFunction(keyword) => errorMsg(keyword, show"'$keyword' is not inside a function")
       case NotInsideAClass(keyword)    => errorMsg(keyword, show"'$keyword' is not inside a class")
+      case ReturnFromInit(keyword) => errorMsg(keyword, show"'return' is not allowed inside a constructor")
     }
 
     private def errorMsg(token: Token, message: String): String =
-      showLineAndMessage(token.line, s"Resolution Error: $message")
+      showLineAndMessage(token.line, s"Resolver Error: $message")
   }
 
   def show: Show[Failure] = {
-    case Line(line, where, message)       => showFullLine(line, where, message)
-    case lexerError: LexerError           => LexerError.show(lexerError)
-    case parseError: ParseError           => ParseError.show(parseError)
-    case runtimeError: RuntimeError       => RuntimeError.show(runtimeError)
-    case resolutionError: ResolutionError => ResolutionError.show(resolutionError)
+    case Line(line, where, message)     => showFullLine(line, where, message)
+    case lexerError: LexerError         => LexerError.show(lexerError)
+    case parseError: ParseError         => ParseError.show(parseError)
+    case runtimeError: RuntimeError     => RuntimeError.show(runtimeError)
+    case resolutionError: ResolverError => ResolverError.show(resolutionError)
   }
 
   implicit class FailureOps(failure: Failure) {
