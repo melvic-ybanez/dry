@@ -1,13 +1,14 @@
 package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.values.Callable.{Function => DFunction}
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
-final case class DClass(name: String, methods: Map[String, Callable.Function], enclosing: Env)
+final case class DClass(name: String, methods: Map[String, DFunction], enclosing: Env)
     extends Callable
     with Metaclass
     with DObject {

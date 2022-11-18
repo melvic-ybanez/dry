@@ -55,6 +55,8 @@ object Callable {
     override def isInit: Boolean = false
   }
 
+  trait Varargs extends Callable
+
   def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
     new Callable {
       override def enclosing = initEnclosing
@@ -72,4 +74,12 @@ object Callable {
 
   def unarySuccess(enclosing: Env)(call: Value => Value): Callable =
     unary(enclosing)(call.andThen(value => Result.succeed(value)))
+
+  def varargs(env: Env)(initCall: Call): Varargs = new Varargs {
+    override def arity = Int.MaxValue
+
+    override def call = initCall
+
+    override def enclosing = env
+  }
 }

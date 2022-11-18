@@ -5,7 +5,7 @@ import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
-import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance}
+import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DList}
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -34,6 +34,7 @@ object Interpreter {
     .defineWith("str", Callable.unarySuccess(_)(arg => Str(Value.show(arg))))
     .defineWith("typeof", typeOf)
     .defineWith("assert", assert)
+    .defineWith("list", list)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_) {
     case Value.None   => Str("none")
@@ -48,7 +49,9 @@ object Interpreter {
 
   private def assert: Env => Callable = Callable(3, _) { case description :: value1 :: value2 :: _ =>
     if (value1 == value2) println(show"${Console.GREEN}[Success] $description${Console.RESET}")
-    else System.err.println(show"[Failure] $description Expected: $value1. Got: $value2")
+    else System.err.println(show"[Failure] $description. Expected: $value1. Got: $value2")
     Value.unit.ok
   }
+
+  private def list(env: Env): Callable = Callable.varargs(env)(elems => DList(elems, env).ok)
 }

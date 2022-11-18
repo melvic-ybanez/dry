@@ -3,6 +3,7 @@ package com.melvic.dry.interpreter.values
 import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.aux.Show.ShowInterpolator
+import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.values.Value.Num
 
 private[interpreter] trait Value {
@@ -39,6 +40,7 @@ object Value {
     case DClass(name, _, _)                       => name
     case _: Callable                              => "<callable>"
     case DInstance(klass, _)                      => show"$klass instance"
+    case DList(elems, _)                          => show"[${elems.map(Value.show).toCsv}]"
   }
 
   implicit class ToValue[A](value: A) {

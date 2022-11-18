@@ -31,6 +31,22 @@ def test_scopes() {
 
 test_scopes();
 
+// ========== test_lists.dry ========== 
+def test_lists() {
+    let xs = list(1, "two", 3);
+    assert("Stringify lists", str(xs), "[1, two, 3]");
+
+    assert("First element", xs._0, 1);
+    assert("Second element", xs._1, "two");
+    assert("Third element", xs._2, 3);
+    assert("Size is 3", xs.size(), 3);
+
+    xs._0 = 10;
+    assert("Updated first element", xs._0, 10);
+}
+
+test_lists();
+
 // ========== test_init.dry ========== 
 def test_init() {
     class Foo {

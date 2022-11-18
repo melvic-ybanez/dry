@@ -7,6 +7,7 @@ import com.melvic.dry.ast.Expr._
 import com.melvic.dry.interpreter.Interpreter
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.implicits._
+import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.{Callable, DObject, Value}
 import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
@@ -47,6 +48,7 @@ private[eval] trait EvalExpr {
 
       recurse(arguments, Nil).flatMap { args =>
         calleeValue match {
+          case callable: Varargs => callable.call(args)
           case Callable(arity, _, call) =>
             if (arity == args.size) call(args)
             else Result.fail(RuntimeError.incorrectArity(paren, arity, args.size))
