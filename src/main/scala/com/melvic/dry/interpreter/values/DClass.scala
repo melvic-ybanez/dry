@@ -15,10 +15,10 @@ final case class DClass(name: String, methods: Map[String, DFunction], enclosing
     with DObject {
   override def arity = findMethod(Lexemes.Init).map(_.arity).getOrElse(0)
 
-  override def call(token: Token) = arguments =>
+  override def call = arguments =>
     DInstance.fromClass(this).pipe { instance =>
       findMethod(Lexemes.Init)
-        .fold((instance: Value).ok)(_.bind(instance).call(token)(arguments).map(_ => instance))
+        .fold((instance: Value).ok)(_.bind(instance).call(arguments).map(_ => instance))
     }
 
   override def klass = Metaclass

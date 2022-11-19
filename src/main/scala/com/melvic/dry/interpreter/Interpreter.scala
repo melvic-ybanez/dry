@@ -4,6 +4,7 @@ import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Tests.{SuccessCountName, TestCountName}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
+import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
 import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DList}
 import com.melvic.dry.resolver.Locals
@@ -50,5 +51,5 @@ object Interpreter {
     case _: Callable  => Str("function")
   }
 
-  private def list(env: Env): Callable = Callable.varargs(env)(elems => DList(elems, env).ok)
+  private def list(env: Env): Callable = Varargs(env, elems => DList(elems, env).ok)
 }

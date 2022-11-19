@@ -71,7 +71,8 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
-    final case class IndexOutOfBounds(lineNumber: Int) extends RuntimeError
+    final case class IndexOutOfBounds(index: Int, lineNo: Int) extends RuntimeError
+    final case class InvalidIndex(value: String, lineNo: Int) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token)
@@ -97,8 +98,11 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
-    def indexOutOfBounds(lineNumber: Int): RuntimeError =
-      IndexOutOfBounds(lineNumber)
+    def indexOutOfBounds(index: Int, lineNo: Int): RuntimeError =
+      IndexOutOfBounds(index, lineNo)
+
+    def invalidIndex(value: String, lineNo: Int): RuntimeError =
+      InvalidIndex(value, lineNo)
 
     def show: Show[RuntimeError] = {
       case DivisionByZero(token) => errorMsg(token, "Division by zero")
@@ -113,7 +117,8 @@ object Failure {
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
       case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
-      case IndexOutOfBounds(index) => show"Runtime Error: Index out of bounds\n[line $index]."
+      case IndexOutOfBounds(index, lineNo) => show"Runtime Error. Index out of bounds: $index\n[line $lineNo]."
+      case InvalidIndex(value, lineNo) => show"Runtime Error. Invalid index: $value\n[line $lineNo]."
     }
 
     private def errorMsg(token: Token, message: String): String =

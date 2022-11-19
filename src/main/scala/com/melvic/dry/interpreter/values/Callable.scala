@@ -6,7 +6,7 @@ import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.eval.Evaluate
-import com.melvic.dry.interpreter.values.Callable.Call
+import com.melvic.dry.interpreter.values.Callable.{Call, LineNumber}
 import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result
@@ -15,9 +15,16 @@ import com.melvic.dry.result.Result.Result
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
-  def call(token: Token): Call
+  def call: Call
 
   def enclosing: Env
+
+  def callWithPos(token: Token): Call = {
+    local.define(LineNumber, Value.Num(token.line))
+    call
+  }
+
+  protected val local: Env = Env.fromEnclosing(enclosing)
 }
 
 object Callable {
@@ -30,9 +37,8 @@ object Callable {
 
     override def arity = params.size
 
-    override def call(token: Token): Call = { args =>
-      val initEnv = Env.fromEnclosing(enclosing).define(LineNumber, Value.Num(token.line))
-      val env = params.zip(args).foldLeft(initEnv) { case (env, (param, arg)) =>
+    override def call: Call = { args =>
+      val env = params.zip(args).foldLeft(local) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
       Evaluate
@@ -58,31 +64,23 @@ object Callable {
     override def isInit: Boolean = false
   }
 
-  trait Varargs extends Callable
+  final case class Varargs(enclosing: Env, call: Call) extends Callable {
+    override def arity = Int.MaxValue
+  }
 
-  def apply(initArity: Int, initEnclosing: Env)(initCall: Call): Callable =
-    new Callable {
-      override def enclosing = initEnclosing
+  abstract class CustomCallable(val arity: Int, val enclosing: Env) extends Callable
 
-      override def arity = initArity
-
-      override def call(token: Token) = initCall
+  def apply(arity: Int, enclosing: Env)(initCall: Call): Callable =
+    new CustomCallable(arity, enclosing) {
+      override def call = initCall
     }
 
   def unapply(callable: Callable): Option[(Int, Env, Token => Call)] =
-    Some(callable.arity, callable.enclosing, callable.call)
+    Some(callable.arity, callable.enclosing, callable.callWithPos)
 
   def unary(enclosing: Env)(call: Value => Result[Value]): Callable =
     Callable(1, enclosing) { case arg :: _ => call(arg) }
 
   def unarySuccess(enclosing: Env)(call: Value => Value): Callable =
     unary(enclosing)(call.andThen(value => Result.succeed(value)))
-
-  def varargs(env: Env)(initCall: Call): Varargs = new Varargs {
-    override def arity = Int.MaxValue
-
-    override def call(token: Token) = initCall
-
-    override def enclosing = env
-  }
 }
