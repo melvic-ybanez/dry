@@ -7,8 +7,39 @@ to Python and Scala developers:
 
 <img width="875" alt="Screen Shot 2022-11-06 at 11 16 42 PM" src="https://user-images.githubusercontent.com/4519785/200179103-f6b7b544-75ae-47ea-b429-3d25f3427ae6.png">
 
+### Contents
+1. [Installation](#installation)
+1. Getting Started
+1. [Running the tests](#running-the-tests)
+1. [Examples](#examples)
+1. Grammar
 
-## Examples
+# Installation
+Installation instructions will be provided after the first release.
+
+# Running the tests
+The project has a custom sbt command for running the test:
+```
+$ sbt testDry
+```
+If everything works correctly, your console should print a bunch of assertion results. The end of the logs should look like this:
+```
+[Success] Size is the number of elements passed to the `list` function
+[Success] For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`
+[Success] Index out of bounds
+[Success] List type
+[Success] Init should save the set variables
+[Success] Init should be capable of accepting parameters
+[Success] Type of class
+[Success] Type of instance
+[Success] Ducks should quack!
+[Success] Denji should say 'Woof!'
+[Success] Class properties should be updated
+Ran 26 tests. Successful: 26. Failed: 0.
+```
+The tests themselves are written in Dry. You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
+
+# Examples
 
 #### Basic functional programming:
 ```
