@@ -39,7 +39,6 @@ object Interpreter {
     .defineWith("assert", Tests.assert)
     .defineWith("show_test_results", Tests.showTestResults)
     .defineWith("list", env => Varargs(env, elems => DList(elems, env).ok))
-    .defineWith("errors", env => DInstance(DClass("Errors", Map.empty, env), Errors.all(env)))
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_) {
     case Value.None   => Str("none")

@@ -27,8 +27,6 @@ object Value {
 
   final case class Returned(value: Value) extends Value
 
-  final case class RuntimeError(failure: Failure.RuntimeError) extends Value
-
   def show: Show[Value] = {
     case None        => "none"
     case Bool(value) => value.toString
@@ -44,7 +42,6 @@ object Value {
     case _: Callable                              => "<callable>"
     case DInstance(klass, _)                      => show"$klass instance"
     case DList(elems, _)                          => show"[${elems.map(Value.show).toCsv}]"
-    case RuntimeError(error)                      => Failure.show(error)
   }
 
   implicit class ToValue[A](value: A) {
