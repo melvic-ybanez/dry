@@ -27,6 +27,14 @@ def test_list_at_method() {
     assert("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
 }
 
+def test_out_of_bounds() {
+    assert_error("Index out of bounds", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        let xs = list(1);
+        xs.at(2);
+    });
+}
+
 test_list_index();
 test_list_size();
 test_list_at_method();
+test_out_of_bounds();

@@ -126,12 +126,6 @@ object Env {
       Result.fromOption(table.get(name.lexeme), RuntimeError.undefinedVariable(name))
   }
 
-  object Keys {
-    val TestCount = "__tests_count__"
-    val SuccessCount = "__tests_success_count__"
-    val LineNumber = "__line_number__"
-  }
-
   def empty: Env = GlobalEnv(mutable.Map(), Map())
 
   def get(name: Token): Env => Result[Value] =

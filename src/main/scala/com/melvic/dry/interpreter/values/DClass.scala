@@ -1,6 +1,5 @@
 package com.melvic.dry.interpreter.values
 
-import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.Callable.{Function => DFunction}
 import com.melvic.dry.lexer.Lexemes

@@ -22,4 +22,9 @@ trait DObject extends Value {
     fields += (name.lexeme -> value)
     Value.None
   }
+
+  def addField(name: String, value: Value): this.type = {
+    fields += (name -> value)
+    this
+  }
 }

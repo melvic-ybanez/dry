@@ -1,8 +1,8 @@
 package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.interpreter.Env.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
@@ -36,9 +36,11 @@ object Interpreter {
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
-    .defineWith("assert", Tests.assert)
-    .defineWith("show_test_results", Tests.showTestResults)
+    .defineWith("assert", Assertions.assert)
+    .defineWith("assert_error", Assertions.assertError)
+    .defineWith("show_test_results", Assertions.showTestResults)
     .defineWith("list", env => Varargs(env, elems => DList(elems, env).ok))
+    .defineWith("Errors", errors)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_) {
     case Value.None   => Str("none")
@@ -50,4 +52,16 @@ object Interpreter {
     case _: DInstance => Str("instance")
     case _: Callable  => Str("function")
   }
+
+  private def errors: Env => DClass = DClass("Errors", Map.empty, _)
+    .addField("DIVISION_BY_ZERO", Str(Keys.Errors.DivisionByZero))
+    .addField("INVALID_OPERAND", Str(Keys.Errors.InvalidOperand))
+    .addField("INVALID_OPERANDS", Str(Keys.Errors.InvalidOperands))
+    .addField("UNDEFINED_VARIABLE", Str(Keys.Errors.UndefinedVariable))
+    .addField("NOT_CALLABLE", Str(Keys.Errors.NotCallable))
+    .addField("INCORRECT_ARITY", Str(Keys.Errors.IncorrectArity))
+    .addField("DOES_NOT_HAVE_PROPERTIES", Str(Keys.Errors.DoesNotHaveProperties))
+    .addField("UNDEFINED_PROPERTY", Str(Keys.Errors.UndefinedProperty))
+    .addField("INDEX_OUT_OF_BOUNDS", Str(Keys.Errors.IndexOutOfBounds))
+    .addField("INVALID_INDEX", Str(Keys.Errors.InvalidIndex))
 }
