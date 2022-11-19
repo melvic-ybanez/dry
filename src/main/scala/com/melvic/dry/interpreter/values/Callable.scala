@@ -5,8 +5,9 @@ import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.Env.Keys.LineNumber
 import com.melvic.dry.interpreter.eval.Evaluate
-import com.melvic.dry.interpreter.values.Callable.{Call, LineNumber}
+import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result
@@ -25,12 +26,12 @@ private[interpreter] trait Callable extends Value {
   }
 
   protected val local: Env = Env.fromEnclosing(enclosing)
+
+  def lineNumber: Int = local.at(0, LineNumber).flatMap(_.toNum.map(_.value.toInt)).getOrElse(0)
 }
 
 object Callable {
   type Call = List[Value] => Result[Value]
-
-  val LineNumber = "__line_number__"
 
   abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
     def isInit: Boolean
@@ -71,9 +72,15 @@ object Callable {
   abstract class CustomCallable(val arity: Int, val enclosing: Env) extends Callable
 
   def apply(arity: Int, enclosing: Env)(initCall: Call): Callable =
+    withLineNo(arity, enclosing)(_ => initCall)
+
+  def withLineNo(arity: Int, enclosing: Env)(initCall: Int => Call): Callable =
     new CustomCallable(arity, enclosing) {
-      override def call = initCall
+      override def call = initCall(lineNumber)
     }
+
+  def noArg(enclosing: Env)(initCall: => Result[Value]): Callable =
+    Callable(0, enclosing)(_ => initCall)
 
   def unapply(callable: Callable): Option[(Int, Env, Token => Call)] =
     Some(callable.arity, callable.enclosing, callable.callWithPos)

@@ -1,4 +1,4 @@
-def test_init() {
+def test_empty_init() {
     class Foo {
        def init() {
          self.message = "hello";
@@ -9,4 +9,16 @@ def test_init() {
     assert("Init should save the set variables", foo.message, "hello");
 }
 
-test_init();
+def test_init_with_params() {
+    class Foo {
+        def init(one, two) {
+            self.sum = one + two;
+        }
+    }
+
+    let foo = Foo(1, 2);
+    assert("Init should be capable of accepting parameters", foo.sum, 3);
+}
+
+test_empty_init();
+test_init_with_params();
