@@ -79,7 +79,7 @@ sealed trait Env {
     }
 
   /**
-   * This is typcially used for debugging.
+   * This is typically used for debugging.
    */
   def height: Int =
     this match {

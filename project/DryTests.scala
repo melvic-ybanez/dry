@@ -16,7 +16,7 @@ object DryTests {
       }
       .mkString("\n\n")
     val note = "// Note: This is an auto-generated script\n\n\n"
-    Path(Root + "/" + TestFilename).createFile().writeAll(note + contents)
+    Path(Root + "/" + TestFilename).createFile().writeAll(note + contents + "\n\n" + "show_test_results();")
   }
 
   def listTestFiles: List[File] = {

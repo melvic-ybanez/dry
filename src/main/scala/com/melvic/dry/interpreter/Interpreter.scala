@@ -1,8 +1,8 @@
 package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.Tests.{FailureCountName, SuccessCountName, TestCountName}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
 import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DList}
@@ -25,7 +25,7 @@ object Interpreter {
     recurse(declarations, Value.Unit)
   }
 
-  def natives: Env = Env.empty
+  val natives: Env = Env.empty
     .defineWith("print", Callable.unarySuccess(_)(arg => print(Value.show(arg)).unit))
     // we don't have standard library functions yet, so we are building a dedicated function for println for now.
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
@@ -33,7 +33,11 @@ object Interpreter {
     .defineWith("println", Callable.unarySuccess(_)(arg => println(Value.show(arg)).unit))
     .defineWith("str", Callable.unarySuccess(_)(arg => Str(Value.show(arg))))
     .defineWith("typeof", typeOf)
-    .defineWith("assert", assert)
+    .define(TestCountName, Num(0))
+    .define(SuccessCountName, Num(0))
+    .define(FailureCountName, Num(0))
+    .defineWith("assert", Tests.assert)
+    .defineWith("show_test_results", Tests.showTestResults)
     .defineWith("list", list)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_) {
@@ -45,12 +49,6 @@ object Interpreter {
     case _: DClass    => Str("class")
     case _: DInstance => Str("instance")
     case _: Callable  => Str("function")
-  }
-
-  private def assert: Env => Callable = Callable(3, _) { case description :: value1 :: value2 :: _ =>
-    if (value1 == value2) println(show"${Console.GREEN}[Success] $description${Console.RESET}")
-    else System.err.println(show"[Failure] $description. Expected: $value1. Got: $value2")
-    Value.unit.ok
   }
 
   private def list(env: Env): Callable = Callable.varargs(env)(elems => DList(elems, env).ok)
