@@ -1,7 +1,10 @@
+def test_list_str() {
+    let xs = list(1, "two", 3);
+    assert("Stringify lists", str(xs), "[1, two, 3]");
+}
+
 def test_list_index() {
     let xs = list(1, "two", 3);
-
-    assert("Stringify lists", str(xs), "[1, two, 3]");
 
     assert("First element", xs._0, 1);
     assert("Second element", xs._1, "two");
@@ -34,7 +37,13 @@ def test_out_of_bounds() {
     });
 }
 
+def test_list_type() {
+    assert("List type", typeof(list(1, 2)), "list");
+}
+
+test_list_str();
 test_list_index();
 test_list_size();
 test_list_at_method();
 test_out_of_bounds();
+test_list_type();

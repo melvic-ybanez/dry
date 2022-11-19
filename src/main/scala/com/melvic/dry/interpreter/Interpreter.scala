@@ -6,7 +6,7 @@ import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
-import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DList}
+import com.melvic.dry.interpreter.values._
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -50,7 +50,9 @@ object Interpreter {
     case Value.Unit   => Str("unit")
     case _: DClass    => Str("class")
     case _: DInstance => Str("instance")
-    case _: Callable  => Str("function")
+    case _: DList     => Str("list")
+    case _: DObject   => Str("object")
+    case _: Callable  => Str("callable")
   }
 
   private def errors: Env => DClass = DClass("Errors", Map.empty, _)
