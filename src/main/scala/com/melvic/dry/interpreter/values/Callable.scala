@@ -15,7 +15,7 @@ import com.melvic.dry.result.Result.Result
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
-  def call: Call
+  def call(token: Token): Call
 
   def enclosing: Env
 }
@@ -23,13 +23,16 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = List[Value] => Result[Value]
 
+  val LineNumber = "__line_number__"
+
   abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
     def isInit: Boolean
 
     override def arity = params.size
 
-    override def call: Call = { args =>
-      val env = params.zip(args).foldLeft(Env.fromEnclosing(enclosing)) { case (env, (param, arg)) =>
+    override def call(token: Token): Call = { args =>
+      val initEnv = Env.fromEnclosing(enclosing).define(LineNumber, Value.Num(token.line))
+      val env = params.zip(args).foldLeft(initEnv) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
       Evaluate
@@ -63,10 +66,10 @@ object Callable {
 
       override def arity = initArity
 
-      override def call = initCall
+      override def call(token: Token) = initCall
     }
 
-  def unapply(callable: Callable): Option[(Int, Env, Call)] =
+  def unapply(callable: Callable): Option[(Int, Env, Token => Call)] =
     Some(callable.arity, callable.enclosing, callable.call)
 
   def unary(enclosing: Env)(call: Value => Result[Value]): Callable =
@@ -78,7 +81,7 @@ object Callable {
   def varargs(env: Env)(initCall: Call): Varargs = new Varargs {
     override def arity = Int.MaxValue
 
-    override def call = initCall
+    override def call(token: Token) = initCall
 
     override def enclosing = env
   }

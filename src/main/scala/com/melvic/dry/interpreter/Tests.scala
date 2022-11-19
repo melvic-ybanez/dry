@@ -8,20 +8,16 @@ import com.melvic.dry.result.Result.implicits.ToResult
 import scala.Console._
 
 object Tests {
-  val TestCountName = "__tests_count"
-  val SuccessCountName = "__tests_success_count"
-  val FailureCountName = "__tests_failure_count"
+  val TestCountName = "__tests_count__"
+  val SuccessCountName = "__tests_success_count__"
 
   private[interpreter] def assert(env: Env): Callable =
     Callable(3, env) { case description :: value1 :: value2 :: _ =>
-      getTestData(env).foreach { case (testsCount, successCount, failureCount) =>
+      getTestData(env).foreach { case (testsCount, successCount, _) =>
         if (value1 == value2) {
           env.define(SuccessCountName, Num(successCount.value + 1))
           println(show"${Console.GREEN}[Success] $description${Console.RESET}")
-        } else {
-          env.define(FailureCountName, Num(failureCount.value + 1))
-          System.err.println(show"[Failure] $description. Expected: $value1. Got: $value2")
-        }
+        } else System.err.println(show"[Failure] $description. Expected: $value1. Got: $value2")
 
         env.define(TestCountName, Num(testsCount.value + 1))
       }
@@ -41,6 +37,5 @@ object Tests {
     for {
       testsCount   <- env.at(0, TestCountName).flatMap(_.toNum)
       successCount <- env.at(0, SuccessCountName).flatMap(_.toNum)
-      failureCount <- env.at(0, FailureCountName).flatMap(_.toNum)
-    } yield (testsCount, successCount, failureCount)
+    } yield (testsCount, successCount, Num(testsCount.value - successCount.value))
 }

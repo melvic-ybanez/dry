@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter.values
 
+import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.Callable.{Function => DFunction}
 import com.melvic.dry.lexer.Lexemes
@@ -14,9 +15,10 @@ final case class DClass(name: String, methods: Map[String, DFunction], enclosing
     with DObject {
   override def arity = findMethod(Lexemes.Init).map(_.arity).getOrElse(0)
 
-  override def call = arguments =>
+  override def call(token: Token) = arguments =>
     DInstance.fromClass(this).pipe { instance =>
-      findMethod(Lexemes.Init).fold((instance: Value).ok)(_.bind(instance).call(arguments).map(_ => instance))
+      findMethod(Lexemes.Init)
+        .fold((instance: Value).ok)(_.bind(instance).call(token)(arguments).map(_ => instance))
     }
 
   override def klass = Metaclass

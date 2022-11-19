@@ -32,6 +32,9 @@ sealed trait Env {
    */
   def define(name: String, value: Value): Env
 
+  def define(token: Token, value: Value): Env =
+    define(token.lexeme, value)
+
   /**
    * Like [[define]], but allows the caller to access this environment. This will be useful for chaining
    * applications of [[define]] where each value relies on the updated environment (i.e. a cyclic dependency
@@ -45,7 +48,7 @@ sealed trait Env {
   def get(name: Token): Result[Value]
 
   def assign(name: Token, value: Value): Result[Env] =
-    if (table.contains(name.lexeme)) Result.succeed(define(name.lexeme, value))
+    if (table.contains(name.lexeme)) Result.succeed(define(name, value))
     else
       this match {
         case GlobalEnv(_, _)            => Result.fail(RuntimeError.undefinedVariable(name))

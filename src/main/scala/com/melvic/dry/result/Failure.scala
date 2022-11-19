@@ -60,9 +60,7 @@ object Failure {
     }
   }
 
-  sealed trait RuntimeError extends Failure {
-    def token: Token
-  }
+  sealed trait RuntimeError extends Failure
 
   object RuntimeError {
     final case class DivisionByZero(token: Token) extends RuntimeError
@@ -73,6 +71,7 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
+    final case class IndexOutOfBounds(lineNumber: Int) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token)
@@ -98,6 +97,9 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
+    def indexOutOfBounds(lineNumber: Int): RuntimeError =
+      IndexOutOfBounds(lineNumber)
+
     def show: Show[RuntimeError] = {
       case DivisionByZero(token) => errorMsg(token, "Division by zero")
       case InvalidOperand(token, expected) =>
@@ -111,6 +113,7 @@ object Failure {
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
       case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
+      case IndexOutOfBounds(index) => show"Runtime Error: Index out of bounds\n[line $index]."
     }
 
     private def errorMsg(token: Token, message: String): String =

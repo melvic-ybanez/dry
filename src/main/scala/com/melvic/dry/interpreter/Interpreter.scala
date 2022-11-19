@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.Tests.{FailureCountName, SuccessCountName, TestCountName}
+import com.melvic.dry.interpreter.Tests.{SuccessCountName, TestCountName}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
 import com.melvic.dry.interpreter.values.{Callable, DClass, DInstance, DList}
@@ -35,7 +35,6 @@ object Interpreter {
     .defineWith("typeof", typeOf)
     .define(TestCountName, Num(0))
     .define(SuccessCountName, Num(0))
-    .define(FailureCountName, Num(0))
     .defineWith("assert", Tests.assert)
     .defineWith("show_test_results", Tests.showTestResults)
     .defineWith("list", list)

@@ -1,14 +1,32 @@
-def test_lists() {
+def test_list_index() {
     let xs = list(1, "two", 3);
+
     assert("Stringify lists", str(xs), "[1, two, 3]");
 
     assert("First element", xs._0, 1);
     assert("Second element", xs._1, "two");
     assert("Third element", xs._2, 3);
-    assert("Size is 3", xs.size(), 3);
 
     xs._0 = 10;
     assert("Updated first element", xs._0, 10);
 }
 
-test_lists();
+def test_list_size() {
+    let xs = list(1, 2, 3, 4, 5);
+    assert("Size is the number of elements passed to the `list` function", xs.size(), 5);
+}
+
+def test_list_at_method() {
+    let xs = list("first", "second", "third");
+    let success_count = 0;
+
+    if (xs._0 == xs.at(0)) success_count = success_count + 1;
+    if (xs._1 == xs.at(1)) success_count = success_count + 1;
+    if (xs._2 == xs.at(2)) success_count = success_count + 1;
+
+    assert("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
+}
+
+test_list_index();
+test_list_size();
+test_list_at_method();

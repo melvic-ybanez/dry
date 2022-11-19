@@ -29,7 +29,7 @@ private[eval] trait EvalDecl extends EvalStmt {
 
   def let: Evaluate[Let] = {
     def letDecl: Evaluate[LetDecl] = { case LetDecl(name) =>
-      _.define(name.lexeme, Value.None).unit.ok
+      _.define(name, Value.None).unit.ok
     }
 
     def letInit: Evaluate[LetInit] = { case LetInit(name, init) =>
@@ -37,7 +37,7 @@ private[eval] trait EvalDecl extends EvalStmt {
         Evaluate
           .expr(init)(env)
           .flatMap { value =>
-            env.define(name.lexeme, value).unit.ok
+            env.define(name, value).unit.ok
           }
 
     }
@@ -58,7 +58,7 @@ private[eval] trait EvalDecl extends EvalStmt {
 
   def classDecl: Evaluate[ClassDecl] = { case ClassDecl(name, methods) =>
     env =>
-      env.define(name.lexeme, Value.None)
+      env.define(name, Value.None)
       val klass = DClass(
         name.lexeme,
         methods
