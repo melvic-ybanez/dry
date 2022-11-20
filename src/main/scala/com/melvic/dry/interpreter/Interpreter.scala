@@ -5,13 +5,15 @@ import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
-import com.melvic.dry.interpreter.values.Value.{Bool, Num, Str, ToValue}
+import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue}
 import com.melvic.dry.interpreter.values._
 import com.melvic.dry.resolver.Locals
+import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.collection.mutable.ListBuffer
+import scala.io.StdIn.readLine
 
 object Interpreter {
   def interpret(declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
@@ -34,6 +36,13 @@ object Interpreter {
     // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
     // to a string that ends in a newline character
     .defineWith("println", Callable.unarySuccess(_)(arg => println(Value.show(arg)).unit))
+    .defineWith(
+      "readLine",
+      Callable.withLineNo(1, _)(line => {
+        case Str(prompt) :: _ => Str(readLine(prompt)).ok
+        case arg :: _         => RuntimeError.invalidArgument("string", Value.typeOf(arg), line).fail
+      })
+    )
     .defineWith("str", Callable.unarySuccess(_)(arg => Str(Value.show(arg))))
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
@@ -44,18 +53,7 @@ object Interpreter {
     .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))
     .defineWith("Errors", errors)
 
-  private def typeOf: Env => Callable = Callable.unarySuccess(_) {
-    case Value.None   => Str("none")
-    case Bool(_)      => Str("boolean")
-    case Num(_)       => Str("number")
-    case Str(_)       => Str("string")
-    case Value.Unit   => Str("unit")
-    case _: DClass    => Str("class")
-    case _: DInstance => Str("instance")
-    case _: DList     => Str("list")
-    case _: DObject   => Str("object")
-    case _: Callable  => Str("callable")
-  }
+  private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))
 
   private def errors: Env => DClass = DClass("Errors", Map.empty, _)
     .addField("DIVISION_BY_ZERO", Str(Keys.Errors.DivisionByZero))

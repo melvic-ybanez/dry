@@ -4,8 +4,8 @@ import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
+import com.melvic.dry.interpreter.Callable
 import com.melvic.dry.interpreter.values.Value.Num
-import com.melvic.dry.result.Failure
 
 private[interpreter] trait Value {
   def toNum: Option[Num] =
@@ -26,6 +26,19 @@ object Value {
   case object Unit extends Value
 
   final case class Returned(value: Value) extends Value
+
+  def typeOf: Value => String = {
+    case Value.None   => "none"
+    case Bool(_)      => "boolean"
+    case Num(_)       => "number"
+    case Str(_)       => "string"
+    case Value.Unit   => "unit"
+    case _: DClass    => "class"
+    case _: DInstance => "instance"
+    case _: DList     => "list"
+    case _: DObject   => "object"
+    case _: Callable  => "callable"
+  }
 
   def show: Show[Value] = {
     case None        => "none"

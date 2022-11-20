@@ -18,7 +18,7 @@ object Failure {
     Line(line, "", message)
 
   def showFullLine(line: Int, where: String, message: String): String =
-    s"[line $line] Error $where: $message"
+    s"${showLine(line)} Error $where: $message"
 
   def showLineAndMessage(line: Int, message: String): String =
     showFullLine(line, "", message)
@@ -71,8 +71,9 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
-    final case class IndexOutOfBounds(index: Int, lineNo: Int) extends RuntimeError
-    final case class InvalidIndex(value: String, lineNo: Int) extends RuntimeError
+    final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
+    final case class InvalidIndex(value: String, line: Int) extends RuntimeError
+    final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token)
@@ -98,11 +99,14 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
-    def indexOutOfBounds(index: Int, lineNo: Int): RuntimeError =
-      IndexOutOfBounds(index, lineNo)
+    def indexOutOfBounds(index: Int, line: Int): RuntimeError =
+      IndexOutOfBounds(index, line)
 
-    def invalidIndex(value: String, lineNo: Int): RuntimeError =
-      InvalidIndex(value, lineNo)
+    def invalidIndex(value: String, line: Int): RuntimeError =
+      InvalidIndex(value, line)
+
+    def invalidArgument(expected: String, got: String, line: Int): RuntimeError =
+      InvalidArgument(expected, got, line)
 
     def show: Show[RuntimeError] = {
       case DivisionByZero(token) => errorMsg(token, "Division by zero")
@@ -117,12 +121,15 @@ object Failure {
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
       case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
-      case IndexOutOfBounds(index, lineNo) => show"Runtime Error. Index out of bounds: $index\n[line $lineNo]."
-      case InvalidIndex(value, lineNo) => show"Runtime Error. Invalid index: $value\n[line $lineNo]."
+      case IndexOutOfBounds(index, line) =>
+        show"Runtime Error. Index out of bounds: $index\n[line $line]."
+      case InvalidIndex(value, line) => show"Runtime Error. Invalid index: $value\n${showLine(line)}."
+      case InvalidArgument(expected, got, line) =>
+        show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
     }
 
     private def errorMsg(token: Token, message: String): String =
-      show"Runtime Error: $message\n[line ${token.line}]. $token"
+      show"Runtime Error: $message\n${showLine(token.line)}. $token"
   }
 
   sealed trait ResolverError extends Failure
@@ -173,4 +180,7 @@ object Failure {
   implicit class FailureOps(failure: Failure) {
     def fail[A]: Result[A] = Result.fail(failure)
   }
+
+  private def showLine(line: Int): String =
+    s"[line $line]"
 }

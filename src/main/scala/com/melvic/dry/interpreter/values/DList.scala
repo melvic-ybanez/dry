@@ -27,15 +27,13 @@ final case class DList(elems: ListBuffer[Value], env: Env) extends DObject {
       .to(Map)
 
   private def addAtMethod: AddProperties =
-    _ + ("at" -> Callable.withLineNo(1, env) { lineNo =>
-      { case indexValue :: _ =>
-        indexValue.toNum
-          .fold(RuntimeError.invalidIndex(Value.show(indexValue), lineNo).fail[Value]) { num =>
-            val index = num.value.toInt
-            Result.fromOption(elems.lift(index), RuntimeError.indexOutOfBounds(index, lineNo))
-          }
-      }
-    })
+    _ + ("at" -> Callable.withLineNo(1, env)(line => { case indexValue :: _ =>
+      indexValue.toNum
+        .fold(RuntimeError.invalidIndex(Value.show(indexValue), line).fail[Value]) { num =>
+          val index = num.value.toInt
+          Result.fromOption(elems.lift(index), RuntimeError.indexOutOfBounds(index, line))
+        }
+    }))
 
   private def addSizeMethod: AddProperties =
     _ + ("size" -> Callable.noArg(env) { Value.Num(elems.size.toInt).ok })

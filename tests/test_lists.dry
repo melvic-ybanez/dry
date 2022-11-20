@@ -27,6 +27,7 @@ def test_list_at_method() {
     if (xs._1 == xs.at(1)) success_count = success_count + 1;
     if (xs._2 == xs.at(2)) success_count = success_count + 1;
 
+    // This description is a lie though
     assert("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
 }
 
