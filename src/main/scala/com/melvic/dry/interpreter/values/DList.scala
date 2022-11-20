@@ -1,17 +1,15 @@
 package com.melvic.dry.interpreter.values
 
-import com.melvic.dry.Token
-import com.melvic.dry.Token.TokenType
-import com.melvic.dry.ast.Expr.{Lambda, Literal}
-import com.melvic.dry.ast.Stmt.ReturnStmt
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
+import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.chaining.scalaUtilChainingOps
 
-final case class DList(elems: List[Value], env: Env) extends DObject {
+final case class DList(elems: ListBuffer[Value], env: Env) extends DObject {
   type AddProperties = Map[String, Value] => Map[String, Value]
 
   override def klass: Metaclass = DClass("List", Map.empty, env)
@@ -20,6 +18,7 @@ final case class DList(elems: List[Value], env: Env) extends DObject {
     addIndexFields
       .pipe(addAtMethod)
       .pipe(addSizeMethod)
+      .pipe(addAddMethod)
       .to(mutable.Map)
 
   private def addIndexFields =
@@ -39,11 +38,8 @@ final case class DList(elems: List[Value], env: Env) extends DObject {
     })
 
   private def addSizeMethod: AddProperties =
-    _ + ("size" -> Callable.Lambda(
-      Lambda(
-        Nil,
-        ReturnStmt(Token(TokenType.Return, "return", 0), Literal.Number(elems.size)) :: Nil
-      ),
-      env
-    ))
+    _ + ("size" -> Callable.noArg(env) { Value.Num(elems.size.toInt).ok })
+
+  private def addAddMethod: AddProperties =
+    _ + ("add" -> Callable.unarySuccess(env)(elem => copy(elems = elems += elem)))
 }

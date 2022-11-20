@@ -11,6 +11,8 @@ import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
+import scala.collection.mutable.ListBuffer
+
 object Interpreter {
   def interpret(declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
     val env = LocalEnv(enclosing.table, natives.withLocals(locals))
@@ -39,7 +41,7 @@ object Interpreter {
     .defineWith("assert", Assertions.assert)
     .defineWith("assert_error", Assertions.assertError)
     .defineWith("show_test_results", Assertions.showTestResults)
-    .defineWith("list", env => Varargs(env, elems => DList(elems, env).ok))
+    .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))
     .defineWith("Errors", errors)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_) {

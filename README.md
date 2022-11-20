@@ -24,10 +24,13 @@ $ sbt testDry
 ```
 If everything works correctly, your console should print a bunch of assertion results. The end of the logs should look like this:
 ```
+[Success] Updated first element
 [Success] Size is the number of elements passed to the `list` function
 [Success] For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`
 [Success] Index out of bounds
 [Success] List type
+[Success] New element is added to the list
+[Success] Size should increase after adding new item
 [Success] Init should save the set variables
 [Success] Init should be capable of accepting parameters
 [Success] Type of class
@@ -35,7 +38,7 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 26 tests. Successful: 26. Failed: 0.
+Ran 28 tests. Successful: 28. Failed: 0.
 ```
 The tests themselves are written in Dry. You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 

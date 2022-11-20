@@ -30,6 +30,12 @@ def test_list_at_method() {
     assert("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
 }
 
+def test_list_add_method() {
+    let xs = list("one");
+    assert("New element is added to the list", str(xs.add("two")), "[one, two]");
+    assert("Size should increase after adding new item", xs.size(), 2);
+}
+
 def test_out_of_bounds() {
     assert_error("Index out of bounds", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
         let xs = list(1);
@@ -47,3 +53,4 @@ test_list_size();
 test_list_at_method();
 test_out_of_bounds();
 test_list_type();
+test_list_add_method();

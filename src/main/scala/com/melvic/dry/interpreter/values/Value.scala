@@ -41,7 +41,7 @@ object Value {
     case DClass(name, _, _)                       => name
     case _: Callable                              => "<callable>"
     case DInstance(klass, _)                      => show"$klass instance"
-    case DList(elems, _)                          => show"[${elems.map(Value.show).toCsv}]"
+    case DList(elems, _)                          => show"[${elems.toList.map(Value.show).toCsv}]"
   }
 
   implicit class ToValue[A](value: A) {
