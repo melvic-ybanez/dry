@@ -73,7 +73,6 @@ object Token {
     case object If extends TokenType
     case object None extends TokenType
     case object Return extends TokenType
-    case object Super extends TokenType
     case object Self extends TokenType
     case object True extends TokenType
     case object Let extends TokenType

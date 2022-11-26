@@ -146,25 +146,23 @@ final case class Lexer(
 }
 
 object Lexer {
-  // TODO: Move hardcoded values to `Lexemes`
   val Keywords: Map[String, TokenType] = Map(
-    "and"         -> TokenType.And,
-    "or"          -> TokenType.Or,
-    Lexemes.Class -> TokenType.Class,
-    "if"          -> TokenType.If,
-    "else"        -> TokenType.Else,
-    "true"        -> TokenType.True,
-    "false"       -> TokenType.False,
-    "let"         -> TokenType.Let,
-    "while"       -> TokenType.While,
-    "for"         -> TokenType.For,
-    Lexemes.Def   -> TokenType.Def,
-    "none"        -> TokenType.None,
-    "return"      -> TokenType.Return,
-    "super"       -> TokenType.Super,
-    Lexemes.Self  -> TokenType.Self,
-    "not"         -> TokenType.Not,
-    "lambda"      -> TokenType.Lambda
+    Lexemes.And    -> TokenType.And,
+    Lexemes.Or     -> TokenType.Or,
+    Lexemes.Class  -> TokenType.Class,
+    Lexemes.If     -> TokenType.If,
+    Lexemes.Else   -> TokenType.Else,
+    Lexemes.True   -> TokenType.True,
+    Lexemes.False  -> TokenType.False,
+    Lexemes.Let    -> TokenType.Let,
+    Lexemes.While  -> TokenType.While,
+    Lexemes.For    -> TokenType.For,
+    Lexemes.Def    -> TokenType.Def,
+    Lexemes.None   -> TokenType.None,
+    Lexemes.Return -> TokenType.Return,
+    Lexemes.Self   -> TokenType.Self,
+    Lexemes.Not    -> TokenType.Not,
+    Lexemes.Lambda -> TokenType.Lambda
   )
 
   def scanTokens(source: String): Result[List[Token]] =
