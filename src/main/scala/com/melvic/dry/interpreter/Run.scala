@@ -20,7 +20,8 @@ object Run {
           ".",
           // this is a trick I'm using to make repl accept expressions that
           // do not end with semicolons.
-          if (input.endsWith(";")) input else s"println(str($input));",
+          if (!input.endsWith(";")  && !input.endsWith("}")) input + ";"
+          else input,
           env
         )
         .map { case (value, _) =>
