@@ -6,7 +6,7 @@ import com.melvic.dry.ast.Decl.{ClassDecl, Def, StmtDecl}
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
+import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, Import, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
@@ -58,24 +58,16 @@ object Resolve {
     case returnStmt: ReturnStmt => Resolve.returnStmt(returnStmt)
     case While(condition, body) => Resolve.expr(condition) >=> Resolve.stmt(body)
     case blockStmt: BlockStmt   => Resolve.blockStmt(blockStmt)
+    case importStmt: Import     => Scopes.declare(importStmt.name).ok >=> Scopes.define(importStmt.name).ok
   }
 
   def expr: Expr => Resolve = {
-    case _: Literal              => _.ok
-    case Unary(_, operand)       => Resolve.expr(operand)
-    case Binary(left, _, right)  => Resolve.expr(left) >=> Resolve.expr(right)
-    case Logical(left, _, right) => Resolve.expr(left) >=> Resolve.expr(right)
-    case Grouping(expr)          => Resolve.expr(expr)
-    case expr @ Variable(name) =>
-      Scopes.resolveFromHead { scope =>
-        scope
-          .get(name.lexeme)
-          .map { found =>
-            if (found) Resolve.local(name)(expr)
-            else fail(ResolverError.declaredButNotDefined(name))
-          }
-          .getOrElse(Resolve.local(name)(expr))
-      }
+    case _: Literal                     => _.ok
+    case Unary(_, operand)              => Resolve.expr(operand)
+    case Binary(left, _, right)         => Resolve.expr(left) >=> Resolve.expr(right)
+    case Logical(left, _, right)        => Resolve.expr(left) >=> Resolve.expr(right)
+    case Grouping(expr)                 => Resolve.expr(expr)
+    case variable: Variable             => Resolve.variable(variable)
     case expr @ Assignment(name, value) => Resolve.expr(value) >=> Resolve.local(name)(expr)
     case Call(callee, arguments, _) =>
       Resolve.expr(callee) >=> { scopes =>
@@ -85,6 +77,18 @@ object Resolve {
     case Get(obj, _)        => Resolve.expr(obj)
     case Set(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
     case self: Self         => Resolve.self(self)
+  }
+
+  def variable: Variable => Resolve = { case expr @ Variable(name) =>
+    Scopes.resolveFromHead { scope =>
+      scope
+        .get(name.lexeme)
+        .map { found =>
+          if (found) Resolve.local(name)(expr)
+          else fail(ResolverError.declaredButNotDefined(name))
+        }
+        .getOrElse(Resolve.local(name)(expr))
+    }
   }
 
   /**

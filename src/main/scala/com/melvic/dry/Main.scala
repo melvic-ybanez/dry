@@ -6,7 +6,7 @@ object Main {
   def main(args: Array[String]): Unit =
     args match {
       case Array()     => Run.repl(Env.empty)
-      case Array(path) => Run.path(path)
+      case Array(path) => Run.mainModule(path)
       case _           => println("Usage: dry [script]")
     }
 }

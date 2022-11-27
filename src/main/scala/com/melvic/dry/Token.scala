@@ -78,6 +78,7 @@ object Token {
     case object Let extends TokenType
     case object While extends TokenType
     case object Lambda extends TokenType
+    case object Import extends TokenType
   }
 
   def show: Show[Token] = _.lexeme

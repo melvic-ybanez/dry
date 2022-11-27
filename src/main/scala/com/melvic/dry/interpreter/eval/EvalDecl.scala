@@ -39,7 +39,6 @@ private[eval] trait EvalDecl extends EvalStmt {
           .flatMap { value =>
             env.define(name, value).unit.ok
           }
-
     }
 
     {

@@ -162,7 +162,8 @@ object Lexer {
     Lexemes.Return -> TokenType.Return,
     Lexemes.Self   -> TokenType.Self,
     Lexemes.Not    -> TokenType.Not,
-    Lexemes.Lambda -> TokenType.Lambda
+    Lexemes.Lambda -> TokenType.Lambda,
+    Lexemes.Import -> TokenType.Import
   )
 
   def scanTokens(source: String): Result[List[Token]] =

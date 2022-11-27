@@ -16,8 +16,8 @@ import scala.collection.mutable.ListBuffer
 import scala.io.StdIn.readLine
 
 object Interpreter {
-  def interpret(declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
-    val env = LocalEnv(enclosing.table, natives.withLocals(locals))
+  def interpret(mainModule: String, declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
+    val env = LocalEnv(enclosing.table, natives.withLocals(locals)).define(Keys.MainModule, Str(mainModule))
     def recurse(declarations: List[Decl], value: Value): EvalOut =
       declarations match {
         case Nil => Result.succeed(value)

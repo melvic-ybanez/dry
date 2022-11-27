@@ -18,4 +18,5 @@ object Lexemes {
   val Return: String = "return"
   val Not: String = "not"
   val Lambda: String = "lambda"
+  val Import: String = "import"
 }

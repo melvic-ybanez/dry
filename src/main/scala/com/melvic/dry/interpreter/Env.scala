@@ -8,6 +8,7 @@ import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.{Show, Token}
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -79,14 +80,16 @@ sealed trait Env {
       case LocalEnv(table, enclosing) => LocalEnv(table, enclosing.withLocals(locals))
     }
 
-  /**
-   * This is typically used for debugging.
-   */
-  def height: Int =
-    this match {
-      case GlobalEnv(_, _)        => 1
-      case LocalEnv(_, enclosing) => 1 + enclosing.height
-    }
+  def height: Int = {
+    @tailrec
+    def recurse(height: Int, env: Env): Int =
+      env match {
+        case GlobalEnv(_, _)        => height
+        case LocalEnv(_, enclosing) => recurse(height + 1, enclosing)
+      }
+
+    recurse(1, this)
+  }
 }
 
 object Env {

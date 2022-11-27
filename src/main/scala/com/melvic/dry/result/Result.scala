@@ -34,10 +34,10 @@ object Result {
       def ok: Result[A] =
         Result.succeed(value)
 
-      def env: Env => Result[A] =
+      def fromEnv: Env => Result[A] =
         _ => Result.succeed(value)
 
-      def env[B](implicit ev: A =:= Result[B]): Env => A =
+      def fromEnv[B](implicit ev: A =:= Result[B]): Env => A =
         _ => value
     }
 

@@ -5,9 +5,8 @@ import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Expr.Literal
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, ReturnStmt}
+import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, Import, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
-import com.melvic.dry.aux.Show.ShowInterpolator
 
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
@@ -17,7 +16,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       TokenType.If        -> { _.ifStatement },
       TokenType.While     -> { _.whileStatement },
       TokenType.For       -> { _.forStatement },
-      TokenType.Return    -> { _.returnStatement }
+      TokenType.Return    -> { _.returnStatement },
+      TokenType.Import    -> { _.importStatement }
     )
 
   def expressionStatement: ParseResult[Stmt] =
@@ -123,4 +123,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       else expression.flatMapParser(_.consume(TokenType.Semicolon, ";", "return value"))
     expr.mapValue(ReturnStmt(keyword, _))
   }
+
+  def importStatement: ParseResult[Stmt] =
+    consume(TokenType.Identifier, "identifier", "import")
+      .flatMap { case Step(path, next) =>
+        next.consume(TokenType.Semicolon, ";", "import path").mapValue(_ => Import(path :: Nil))
+      }
 }

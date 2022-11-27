@@ -1,0 +1,4 @@
+import imported;
+
+assert("Access variable from imported file", imported.x, 10);
+
