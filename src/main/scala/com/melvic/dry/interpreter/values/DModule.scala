@@ -7,4 +7,9 @@ import com.melvic.dry.result.Result.Result
 final case class DModule(env: Env) extends Value {
   def get(name: Token): Result[Value] =
     env.get(name)
+
+  def set(name: Token, value: Value): Value.None = {
+    env.assign(name, value)
+    Value.None
+  }
 }

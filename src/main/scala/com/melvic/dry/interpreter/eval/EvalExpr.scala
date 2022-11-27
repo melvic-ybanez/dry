@@ -185,7 +185,7 @@ private[eval] trait EvalExpr {
       .expr(obj)
       .flatMap {
         case instance: DObject => Evaluate.expr(value).map(instance.set(name, _))
-        case DModule(env)      => _ => Evaluate.assignment(Assignment(name, value))(env)
+        case module: DModule   => Evaluate.expr(value).map(module.set(name, _))
         case _                 => RuntimeError.doesNotHaveProperties(obj, name).fail[Value].fromEnv
       }
   }

@@ -1,4 +1,8 @@
 import imported;
 
-assert("Access variable from imported file", imported.x, 10);
+assert("Access variable from imported module", imported.x, 10);
+assert("Access function from imported module", imported.five(), 5);
+
+imported.x = 15;
+assert("Modify values from imported module", imported.x, 15);
 

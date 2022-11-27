@@ -31,6 +31,9 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] List type
 [Success] New element is added to the list
 [Success] Size should increase after adding new item
+[Success] Access variable from imported module
+[Success] Access function from imported module
+[Success] Modify values from imported module
 [Success] Init should save the set variables
 [Success] Init should be capable of accepting parameters
 [Success] Type of class
@@ -38,7 +41,7 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 28 tests. Successful: 28. Failed: 0.
+Ran 31 tests. Successful: 31. Failed: 0.
 ```
 The tests themselves are written in Dry. You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 
