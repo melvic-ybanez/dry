@@ -23,13 +23,12 @@ object Run {
           if (input.endsWith(";")) input else s"println(str($input));",
           env
         )
-        .map {
-          case (Value.Unit, _) => repl(env) // this is to avoid extra blank lines in the output
-          case (value, _) =>
+        .map { case (value, _) =>
+          if (value != Value.Unit)
             println(Value.show(value))
-            repl(env)
         }
         .pipe(Result.foreachFailure(_)(error => System.err.println(Failure.show(error))))
+      repl(env)
     }
   }
 
