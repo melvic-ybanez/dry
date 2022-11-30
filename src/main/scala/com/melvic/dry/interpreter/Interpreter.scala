@@ -3,7 +3,7 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
-import com.melvic.dry.interpreter.eval.{EvalOut, Evaluate}
+import com.melvic.dry.interpreter.eval.{Context, EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue}
 import com.melvic.dry.interpreter.values._
@@ -23,8 +23,8 @@ object Interpreter {
         case Nil => Result.succeed(value)
         case statement :: rest =>
           Evaluate
-            .decl(statement)
-            .andThen(_.flatMap(recurse(rest, _)))(env)
+            .decl(Context(statement, env))
+            .flatMap(recurse(rest, _))
       }
 
     recurse(declarations, Value.Unit)
