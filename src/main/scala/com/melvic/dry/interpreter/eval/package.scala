@@ -5,9 +5,6 @@ import com.melvic.dry.interpreter.values.Value
 import com.melvic.dry.result.Result.Result
 
 package object eval {
-  type Evaluate[A] = Evaluate.Evaluate[A]
-  type EvalResult = EvalResultF[Value]
-  type EvalResultF[+V] = Env => Result[V]
   type EvalOut = Result[Value]
 
   def isTruthy(value: Value): Boolean =

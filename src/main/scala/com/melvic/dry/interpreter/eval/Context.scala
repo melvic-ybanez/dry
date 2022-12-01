@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.interpreter.Env
 
-final case class Context[A](node: A, env: Env) {
+final case class Context[+A](node: A, env: Env) {
   def withNode[B](newNode: B): Context[B] =
     copy(node = newNode)
 }

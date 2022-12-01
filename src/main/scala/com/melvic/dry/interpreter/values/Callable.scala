@@ -6,7 +6,7 @@ import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.Keys.LineNumber
-import com.melvic.dry.interpreter.eval.Evaluate
+import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.lexer.Lexemes
@@ -43,7 +43,7 @@ object Callable {
         env.define(param.lexeme, arg)
       }
       Evaluate
-        .blockStmt(BlockStmt(body))(env)
+        .blockStmt(Context(BlockStmt(body), env))
         .map(value => if (isInit) init.getOrElse(value) else value)
         .map {
           case Returned(value) => if (isInit) init.getOrElse(Value.None) else value

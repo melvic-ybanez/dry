@@ -33,17 +33,6 @@ object Result {
     implicit class ToResult[A](value: A) {
       def ok: Result[A] =
         Result.succeed(value)
-
-      def fromEnv: Env => Result[A] =
-        _ => Result.succeed(value)
-
-      def fromEnv[B](implicit ev: A =:= Result[B]): Env => A =
-        _ => value
-    }
-
-    implicit class ResultOps[A](result: Result[A]) {
-      def withEnv: Env => Result[A] =
-        _ => result
     }
   }
 }
