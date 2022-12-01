@@ -37,7 +37,7 @@ private[eval] trait EvalStmt {
         case decl :: rest =>
           outcome.flatMap {
             case returned: Returned => returned.ok
-            case _                  => recurse(Evaluate.decl(Context(decl, localEnv)), rest)
+            case _                  => recurse(Evaluate.decl(Context(decl, localEnv, locals)), rest)
           }
       }
     }

@@ -62,14 +62,14 @@ object Value {
       val str = value.toString
       if (str.endsWith(".0")) str.init.init
       else str
-    case Str(str)                                 => str
-    case Value.Unit                               => ""
-    case Callable.Function(Def(name, _, _), _, _) => show"<function $name>"
-    case Callable.Lambda(_, _)                    => s"<lambda function>"
-    case DClass(name, _, _)                       => name
-    case _: Callable                              => "<callable>"
-    case DInstance(klass, _)                      => show"$klass instance"
-    case DList(elems, _)                          => show"[${elems.toList.map(Value.show).toCsv}]"
+    case Str(str)                                    => str
+    case Value.Unit                                  => ""
+    case Callable.Function(Def(name, _, _), _, _, _) => show"<function $name>"
+    case Callable.Lambda(_, _, _)                    => s"<lambda function>"
+    case DClass(name, _, _)                          => name
+    case _: Callable                                 => "<callable>"
+    case DInstance(klass, _)                         => show"$klass instance"
+    case DList(elems, _)                             => show"[${elems.toList.map(Value.show).toCsv}]"
   }
 
   implicit class ToValue[A](value: A) {

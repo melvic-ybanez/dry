@@ -11,7 +11,7 @@ import scala.io.StdIn.readLine
 import scala.util.chaining.scalaUtilChainingOps
 
 object Run {
-  def repl(env: Env): Unit = {
+  def repl(env: Env, locals: Locals): Unit = {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
@@ -20,16 +20,23 @@ object Run {
           ".",
           // this is a trick I'm using to make repl accept expressions that
           // do not end with semicolons.
-          if (!input.endsWith(";")  && !input.endsWith("}")) input + ";"
+          if (!input.endsWith(";") && !input.endsWith("}")) input + ";"
           else input,
-          env
+          env,
+          locals
         )
-        .map { case (value, _) =>
+        .map { case (value, locals) =>
           if (value != Value.Unit)
             println(Value.show(value))
+          locals
         }
-        .pipe(Result.foreachFailure(_)(error => System.err.println(Failure.show(error))))
-      repl(env)
+        .pipe { result =>
+          Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
+          result match {
+            case Left(_)          => repl(env, locals)
+            case Right(newLocals) => repl(env, newLocals)
+          }
+        }
     }
   }
 
@@ -46,15 +53,15 @@ object Run {
     val code = source.getLines().mkString("\n")
     source.close
 
-    val result = Run.source(mainModule, code, env)
-    result.map { case (_, locals) => env.withLocals(locals) }
+    val result = Run.source(mainModule, code, env, Locals.empty)
+    result.map(_ => env)
   }
 
-  def source(mainModule: String, source: String, env: Env): Result[(Value, Locals)] =
+  def source(mainModule: String, source: String, env: Env, oldLocals: Locals): Result[(Value, Locals)] =
     for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
-      locals <- Resolve.resolveAll(decls)(Context.default).map(_.locals)
+      locals <- Resolve.resolveAll(decls)(Context.default).map(_.locals ++ oldLocals)
       value  <- Interpreter.interpret(mainModule, decls, env, locals)
     } yield (value, locals)
 }

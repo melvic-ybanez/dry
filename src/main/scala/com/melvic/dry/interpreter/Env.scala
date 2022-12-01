@@ -23,12 +23,6 @@ sealed trait Env {
   def table: Table
 
   /**
-   * For backwards-compatibility, I'm putting the locals here. This would make it easier to access them via
-   * any environment.
-   */
-  def locals: Locals
-
-  /**
    * Adds a new variable to the environment.
    */
   def define(name: String, value: Value): Env
@@ -50,7 +44,7 @@ sealed trait Env {
     if (table.contains(name.lexeme)) Result.succeed(define(name, value))
     else
       this match {
-        case GlobalEnv(_, _)            => Result.fail(RuntimeError.undefinedVariable(name))
+        case GlobalEnv(_)            => Result.fail(RuntimeError.undefinedVariable(name))
         case LocalEnv(table, enclosing) => enclosing.assign(name, value).map(LocalEnv(table, _))
       }
 
@@ -70,21 +64,15 @@ sealed trait Env {
     if (distance == 0) this
     else
       this match {
-        case GlobalEnv(_, _)        => this
+        case GlobalEnv(_)        => this
         case LocalEnv(_, enclosing) => enclosing.ancestorAt(distance - 1)
       }
-
-  def withLocals(locals: Locals): Env =
-    this match {
-      case GlobalEnv(table, _)        => GlobalEnv(table, locals)
-      case LocalEnv(table, enclosing) => LocalEnv(table, enclosing.withLocals(locals))
-    }
 
   def height: Int = {
     @tailrec
     def recurse(height: Int, env: Env): Int =
       env match {
-        case GlobalEnv(_, _)        => height
+        case GlobalEnv(_)        => height
         case LocalEnv(_, enclosing) => recurse(height + 1, enclosing)
       }
 
@@ -100,7 +88,6 @@ object Env {
    * lexical scoping.
    */
   final case class LocalEnv(table: Table, enclosing: Env) extends Env {
-    def locals: Locals = enclosing.locals
 
     /**
      * Adds a new variable to the environment.
@@ -117,7 +104,7 @@ object Env {
   /**
    * A global [[Env]] that doesn't have an enclosing scope.
    */
-  final case class GlobalEnv(table: Table, locals: Locals) extends Env {
+  final case class GlobalEnv(table: Table) extends Env {
 
     /**
      * Adds a new variable to the environment. Note that this allows variable redefinitions.
@@ -129,7 +116,7 @@ object Env {
       Result.fromOption(table.get(name.lexeme), RuntimeError.undefinedVariable(name))
   }
 
-  def empty: Env = GlobalEnv(mutable.Map(), Map())
+  def empty: Env = GlobalEnv(mutable.Map())
 
   def get(name: Token): Env => Result[Value] =
     _.get(name)
@@ -141,7 +128,7 @@ object Env {
     def mapValues: Table => Map[String, String] = _.view.mapValues(Value.show).toMap
 
     {
-      case GlobalEnv(table, _) => s"Global { table: ${mapValues(table)} }"
+      case GlobalEnv(table) => s"Global { table: ${mapValues(table)} }"
       case LocalEnv(table, enclosing) =>
         show"Local { table: ${mapValues(table)}, enclosing: $enclosing}"
     }

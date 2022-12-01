@@ -17,13 +17,13 @@ import scala.io.StdIn.readLine
 
 object Interpreter {
   def interpret(mainModule: String, declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
-    val env = LocalEnv(enclosing.table, natives.withLocals(locals)).define(Keys.MainModule, Str(mainModule))
+    val env = LocalEnv(enclosing.table, natives).define(Keys.MainModule, Str(mainModule))
     def recurse(declarations: List[Decl], value: Value): EvalOut =
       declarations match {
         case Nil => Result.succeed(value)
         case statement :: rest =>
           Evaluate
-            .decl(Context(statement, env))
+            .decl(Context(statement, env, locals))
             .flatMap(recurse(rest, _))
       }
 

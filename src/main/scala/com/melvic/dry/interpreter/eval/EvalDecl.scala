@@ -50,7 +50,7 @@ private[eval] trait EvalDecl extends EvalStmt {
    * syntactic sugars for lambda-expressions stored to variables.
    */
   def defDecl(implicit context: Context[Def]): Out =
-    env.defineWith(node.name.lexeme, Callable.Function(node, _, isInit = false)).unit.ok
+    env.defineWith(node.name.lexeme, Callable.Function(node, _, locals, isInit = false)).unit.ok
 
   def classDecl(implicit context: Context[ClassDecl]): Out =
     node match {
@@ -60,7 +60,7 @@ private[eval] trait EvalDecl extends EvalStmt {
           name.lexeme,
           methods
             .map(method =>
-              method.name.lexeme -> Callable.Function(method, env, method.name.lexeme == Lexemes.Init)
+              method.name.lexeme -> Callable.Function(method, env, locals, method.name.lexeme == Lexemes.Init)
             )
             .toMap,
           env

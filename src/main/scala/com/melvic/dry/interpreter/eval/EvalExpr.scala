@@ -35,7 +35,7 @@ private[eval] trait EvalExpr {
   }
 
   def lambda(implicit context: Context[Lambda]): Out =
-    Callable.Lambda(node, env).ok
+    Callable.Lambda(node, env, locals).ok
 
   def call(implicit context: Context[Call]): Out = node match {
     case Call(callee, arguments, paren) =>
@@ -168,7 +168,7 @@ private[eval] trait EvalExpr {
     Evaluate
       .expr(node.value)
       .flatMap { value =>
-        env.locals
+        locals
           .get(LocalExprKey(node))
           .map(distance => env.assignAt(distance, node.name, value))
           .fold(Interpreter.natives.assign(node.name, value))(_.ok)
@@ -200,7 +200,7 @@ private[eval] trait EvalExpr {
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
-    env.locals
+    locals
       .get(LocalExprKey(expr))
       .flatMap(distance => env.at(distance, name.lexeme))
       .fold(Interpreter.natives.get(name))(_.ok)

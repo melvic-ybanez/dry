@@ -10,6 +10,7 @@ import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.lexer.Lexemes
+import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -34,7 +35,8 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = PartialFunction[List[Value], Result[Value]]
 
-  abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
+  abstract class FunctionLike(val params: List[Token], val body: List[Decl], locals: Locals)
+      extends Callable {
     def isInit: Boolean
 
     override def arity = params.size
@@ -44,7 +46,7 @@ object Callable {
         env.define(param.lexeme, arg)
       }
       Evaluate
-        .blockStmt(Context(BlockStmt(body), env))
+        .blockStmt(Context(BlockStmt(body), env, locals))
         .map(value => if (isInit) init.getOrElse(value) else value)
         .map {
           case Returned(value) => if (isInit) init.getOrElse(Value.None) else value
@@ -55,14 +57,14 @@ object Callable {
     lazy val init: Option[Value] = enclosing.at(0, Lexemes.Init)
   }
 
-  final case class Function(function: Def, enclosing: Env, isInit: Boolean)
-      extends FunctionLike(function.params, function.body) {
+  final case class Function(function: Def, enclosing: Env, locals: Locals, isInit: Boolean)
+      extends FunctionLike(function.params, function.body, locals) {
     def bind(instance: DObject): Function =
-      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), isInit)
+      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), locals, isInit)
   }
 
-  final case class Lambda(lambda: Expr.Lambda, enclosing: Env)
-      extends FunctionLike(lambda.params, lambda.body) {
+  final case class Lambda(lambda: Expr.Lambda, enclosing: Env, locals: Locals)
+      extends FunctionLike(lambda.params, lambda.body, locals) {
     override def isInit: Boolean = false
   }
 
