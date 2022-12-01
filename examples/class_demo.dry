@@ -1,6 +1,3 @@
-// Note: This script is currently not picked up by the testDry command because the name of the file does not
-// start with the correct prefix.
-
 class Pet {
   // default implementation
   def make_sound() {
