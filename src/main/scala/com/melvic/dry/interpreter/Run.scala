@@ -6,6 +6,7 @@ import com.melvic.dry.resolver.{Context, Locals, Resolve}
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.{Failure, Result}
 
+import java.nio.file.{Path, Paths}
 import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.chaining.scalaUtilChainingOps
@@ -17,13 +18,13 @@ object Run {
     else {
       Run
         .source(
-          ".",
           // this is a trick I'm using to make repl accept expressions that
           // do not end with semicolons.
           if (!input.endsWith(";") && !input.endsWith("}")) input + ";"
           else input,
           env,
-          locals
+          locals,
+          Nil
         )
         .map { case (value, locals) =>
           if (value != Value.Unit)
@@ -41,27 +42,27 @@ object Run {
   }
 
   def mainModule(path: String): Unit = {
-    val result = Run.path(path, path)
+    val result = Run.path(path, ModuleManager.getSourcePaths(Paths.get(path)))
     Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
     System.exit(if (result.isLeft) -1 else 0)
   }
 
-  def path(mainModule: String, path: String): Result[Env] = {
+  def path(path: String, sourcePaths: List[Path]): Result[Env] = {
     val env = Env.empty
 
     val source = Source.fromFile(path)
     val code = source.getLines().mkString("\n")
     source.close
 
-    val result = Run.source(mainModule, code, env, Locals.empty)
+    val result = Run.source(code, env, Locals.empty, sourcePaths)
     result.map(_ => env)
   }
 
-  def source(mainModule: String, source: String, env: Env, oldLocals: Locals): Result[(Value, Locals)] =
+  def source(source: String, env: Env, oldLocals: Locals, sourcePaths: List[Path]): Result[(Value, Locals)] =
     for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
       locals <- Resolve.resolveAll(decls)(Context.default).map(_.locals ++ oldLocals)
-      value  <- Interpreter.interpret(mainModule, decls, env, locals)
+      value  <- Interpreter.interpret(decls, env, locals, sourcePaths)
     } yield (value, locals)
 }

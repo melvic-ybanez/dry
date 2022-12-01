@@ -3,7 +3,8 @@ package com.melvic.dry.interpreter
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
-import com.melvic.dry.interpreter.eval.{Context, EvalOut, Evaluate}
+import com.melvic.dry.interpreter.eval.Evaluate.Out
+import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
@@ -12,18 +13,19 @@ import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
+import java.nio.file.Path
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn.readLine
 
 object Interpreter {
-  def interpret(mainModule: String, declarations: List[Decl], enclosing: Env, locals: Locals): EvalOut = {
-    val env = LocalEnv(enclosing.table, natives).define(Keys.MainModule, Str(mainModule))
-    def recurse(declarations: List[Decl], value: Value): EvalOut =
+  def interpret(declarations: List[Decl], enclosing: Env, locals: Locals, sourcePaths: List[Path]): Out = {
+    val env = LocalEnv(enclosing.table, natives)
+    def recurse(declarations: List[Decl], value: Value): Out =
       declarations match {
         case Nil => Result.succeed(value)
         case statement :: rest =>
           Evaluate
-            .decl(Context(statement, env, locals))
+            .decl(Context(statement, env, locals, sourcePaths))
             .flatMap(recurse(rest, _))
       }
 

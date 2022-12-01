@@ -84,6 +84,7 @@ object Assertions {
       case InvalidIndex(_, _)          => Keys.Errors.InvalidIndex
       case InvalidArgument(_, _, _)    => Keys.Errors.InvalidArgument
       case UndefinedProperty(_)        => Keys.Errors.UndefinedProperty
+      case ModuleNotFound(_, _)        => Keys.Errors.ModuleNotFound
     }
 
   private def getTestData(env: Env): Option[(Num, Num, Num)] =

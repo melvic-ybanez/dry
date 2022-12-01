@@ -15,6 +15,8 @@ import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
+import java.nio.file.Path
+
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
@@ -35,8 +37,12 @@ private[interpreter] trait Callable extends Value {
 object Callable {
   type Call = PartialFunction[List[Value], Result[Value]]
 
-  abstract class FunctionLike(val params: List[Token], val body: List[Decl], locals: Locals)
-      extends Callable {
+  abstract class FunctionLike(
+      val params: List[Token],
+      val body: List[Decl],
+      locals: Locals,
+      sourcePaths: List[Path]
+  ) extends Callable {
     def isInit: Boolean
 
     override def arity = params.size
@@ -46,7 +52,7 @@ object Callable {
         env.define(param.lexeme, arg)
       }
       Evaluate
-        .blockStmt(Context(BlockStmt(body), env, locals))
+        .blockStmt(Context(BlockStmt(body), env, locals, sourcePaths))
         .map(value => if (isInit) init.getOrElse(value) else value)
         .map {
           case Returned(value) => if (isInit) init.getOrElse(Value.None) else value
@@ -57,14 +63,19 @@ object Callable {
     lazy val init: Option[Value] = enclosing.at(0, Lexemes.Init)
   }
 
-  final case class Function(function: Def, enclosing: Env, locals: Locals, isInit: Boolean)
-      extends FunctionLike(function.params, function.body, locals) {
+  final case class Function(
+      function: Def,
+      enclosing: Env,
+      locals: Locals,
+      sourcePaths: List[Path],
+      isInit: Boolean
+  ) extends FunctionLike(function.params, function.body, locals, sourcePaths) {
     def bind(instance: DObject): Function =
-      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), locals, isInit)
+      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), locals, sourcePaths, isInit)
   }
 
-  final case class Lambda(lambda: Expr.Lambda, enclosing: Env, locals: Locals)
-      extends FunctionLike(lambda.params, lambda.body, locals) {
+  final case class Lambda(lambda: Expr.Lambda, enclosing: Env, locals: Locals, sourcePaths: List[Path])
+      extends FunctionLike(lambda.params, lambda.body, locals, sourcePaths) {
     override def isInit: Boolean = false
   }
 

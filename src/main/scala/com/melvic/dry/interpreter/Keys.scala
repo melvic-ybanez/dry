@@ -18,5 +18,6 @@ object Keys {
     val IndexOutOfBounds = "__index_out_of_bounds__"
     val InvalidIndex = "__invalid_index__"
     val InvalidArgument = "__invalid_argument__"
+    val ModuleNotFound = "__module_not_found__"
   }
 }

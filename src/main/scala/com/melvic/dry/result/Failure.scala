@@ -74,6 +74,7 @@ object Failure {
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
     final case class InvalidIndex(value: String, line: Int) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
+    final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token)
@@ -108,6 +109,9 @@ object Failure {
     def invalidArgument(expected: String, got: String, line: Int): RuntimeError =
       InvalidArgument(expected, got, line)
 
+    def moduleNotFound(name: String, token: Token): RuntimeError =
+      ModuleNotFound(name, token)
+
     def show: Show[RuntimeError] = {
       case DivisionByZero(token) => errorMsg(token, "Division by zero")
       case InvalidOperand(token, expected) =>
@@ -126,6 +130,7 @@ object Failure {
       case InvalidIndex(value, line) => show"Runtime Error. Invalid index: $value\n${showLine(line)}."
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
+      case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")
     }
 
     private def errorMsg(token: Token, message: String): String =

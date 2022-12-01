@@ -8,13 +8,12 @@ import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
-import com.melvic.dry.interpreter.values.Value.{Str, ToValue}
+import com.melvic.dry.interpreter.values.Value.ToValue
 import com.melvic.dry.interpreter.values.{DModule, Value}
-import com.melvic.dry.interpreter.{Env, Keys, ModuleLoader, Run}
+import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
+import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits._
-
-import java.nio.file.Paths
 
 private[eval] trait EvalStmt {
   def stmt(implicit context: Context[Stmt]): Out = node match {
@@ -31,13 +30,13 @@ private[eval] trait EvalStmt {
 
   def blockStmt(implicit context: Context[BlockStmt]): Out = {
     val localEnv = Env.fromEnclosing(env)
-    def recurse(outcome: EvalOut, decls: List[Decl]): EvalOut = {
+    def recurse(outcome: Out, decls: List[Decl]): Out = {
       decls match {
         case Nil => outcome
         case decl :: rest =>
           outcome.flatMap {
             case returned: Returned => returned.ok
-            case _                  => recurse(Evaluate.decl(Context(decl, localEnv, locals)), rest)
+            case _ => recurse(Evaluate.decl(Context(decl, localEnv, locals, sourcePaths)), rest)
           }
       }
     }
@@ -60,7 +59,7 @@ private[eval] trait EvalStmt {
       }
 
   def whileStmt(implicit context: Context[While]): Out = {
-    def recurse(out: Value): EvalOut =
+    def recurse(out: Value): Out =
       Evaluate.expr(node.condition).flatMap { condition =>
         if (!isTruthy(condition)) Result.succeed(out)
         else
@@ -77,19 +76,18 @@ private[eval] trait EvalStmt {
     Evaluate.expr(node.value).map(Returned)
 
   def importStmt(implicit context: Context[Import]): Out = {
-    // Since the interpreter is exposing the main module's path to the user,
-    // we can summon it here, though it assumes that it's located in the layer below
-    // the natives (hence, `height - 2`)
-    val mainModule = env.at(env.height - 2, Keys.MainModule).map {
-      case Str(value) => value
-      case _          => "."
-    } getOrElse "."
+    val moduleComponents = node.path.map(Token.show)
 
-    Run
-      .path(
-        mainModule,
-        ModuleLoader(Paths.get(mainModule)).fullPathOf(node.path.map(Token.show).mkString(".")).toString
+    Result
+      .fromOption(
+        ModuleManager.fullPathOf(moduleComponents, sourcePaths),
+        RuntimeError.moduleNotFound(moduleComponents.mkString, node.name)
       )
-      .map(moduleEnv => env.define(node.name.lexeme, DModule(moduleEnv)).unit)
+      .flatMap(path =>
+        Run
+          .path(path.toString, sourcePaths)
+          .map(moduleEnv => env.define(node.name.lexeme, DModule(moduleEnv)).unit)
+      )
+
   }
 }

@@ -35,7 +35,7 @@ private[eval] trait EvalExpr {
   }
 
   def lambda(implicit context: Context[Lambda]): Out =
-    Callable.Lambda(node, env, locals).ok
+    Callable.Lambda(node, env, locals, sourcePaths).ok
 
   def call(implicit context: Context[Call]): Out = node match {
     case Call(callee, arguments, paren) =>
