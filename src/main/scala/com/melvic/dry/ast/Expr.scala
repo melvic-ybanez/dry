@@ -53,5 +53,8 @@ object Expr {
     case Call(callee, arguments, _)     => show"$callee(${arguments.map(Expr.show).toCsv})"
     case Lambda(params, body) =>
       show"lambda(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
+    case Get(obj, name)        => show"$obj.$name"
+    case Self(_)               => "self"
+    case Set(obj, name, value) => show"$obj.$name = $value"
   }
 }

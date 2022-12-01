@@ -23,7 +23,7 @@ final case class ModuleLoader(mainModule: Path) {
     val sourcePath = mainDirectory.resolve(".dry_config")
     if (Files.exists(sourcePath)) {
       val source = Source.fromFile(sourcePath.toFile)
-      val config = source.getLines.filter(_.nonEmpty).toList
+      val config = source.getLines().filter(_.nonEmpty).toList
       source.close
 
       config.headOption.flatMap(parseSourceRoot(_).map(Paths.get(_))).getOrElse(mainDirectory)

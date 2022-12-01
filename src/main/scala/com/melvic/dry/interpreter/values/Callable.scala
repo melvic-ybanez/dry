@@ -12,6 +12,7 @@ import com.melvic.dry.interpreter.values.Value.Returned
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
+import com.melvic.dry.result.Result.implicits.ToResult
 
 private[interpreter] trait Callable extends Value {
   def arity: Int
@@ -31,7 +32,7 @@ private[interpreter] trait Callable extends Value {
 }
 
 object Callable {
-  type Call = List[Value] => Result[Value]
+  type Call = PartialFunction[List[Value], Result[Value]]
 
   abstract class FunctionLike(val params: List[Token], val body: List[Decl]) extends Callable {
     def isInit: Boolean
@@ -76,7 +77,7 @@ object Callable {
 
   def withLineNo(arity: Int, enclosing: Env)(initCall: Int => Call): Callable =
     new CustomCallable(arity, enclosing) {
-      override def call = initCall(lineNumber)
+      override def call = initCall(lineNumber).orElse(_ => Value.None.ok)
     }
 
   def noArg(enclosing: Env)(initCall: => Result[Value]): Callable =
@@ -85,9 +86,9 @@ object Callable {
   def unapply(callable: Callable): Option[(Int, Env, Token => Call)] =
     Some(callable.arity, callable.enclosing, callable.callWithPos)
 
-  def unary(enclosing: Env)(call: Value => Result[Value]): Callable =
+  def unary(enclosing: Env)(call: PartialFunction[Value, Result[Value]]): Callable =
     Callable(1, enclosing) { case arg :: _ => call(arg) }
 
-  def unarySuccess(enclosing: Env)(call: Value => Value): Callable =
+  def unarySuccess(enclosing: Env)(call: PartialFunction[Value, Value]): Callable =
     unary(enclosing)(call.andThen(value => Result.succeed(value)))
 }

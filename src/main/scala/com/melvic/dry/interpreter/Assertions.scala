@@ -44,6 +44,7 @@ object Assertions {
               {
                 case One(value: RuntimeError)    => check(Str(errorKey(value)))
                 case Many(head: RuntimeError, _) => check(Str(errorKey(head)))
+                case _                           => ()
               },
               _ => System.err.println(show"[Failure] $description. Expected error: $error.")
             )
@@ -79,9 +80,10 @@ object Assertions {
       case NotCallable(_)              => Keys.Errors.NotCallable
       case IncorrectArity(_, _, _)     => Keys.Errors.IncorrectArity
       case DoesNotHaveProperties(_, _) => Keys.Errors.DoesNotHaveProperties
-      case UndefinedVariable(_)        => Keys.Errors.UndefinedVariable
       case IndexOutOfBounds(_, _)      => Keys.Errors.IndexOutOfBounds
       case InvalidIndex(_, _)          => Keys.Errors.InvalidIndex
+      case InvalidArgument(_, _, _)    => Keys.Errors.InvalidArgument
+      case UndefinedProperty(_)        => Keys.Errors.UndefinedProperty
     }
 
   private def getTestData(env: Env): Option[(Num, Num, Num)] =

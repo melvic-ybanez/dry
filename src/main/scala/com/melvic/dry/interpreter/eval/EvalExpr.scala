@@ -16,6 +16,8 @@ import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits._
 
+import scala.annotation.nowarn
+
 private[eval] trait EvalExpr {
   def expr(implicit context: Context[Expr]): Out = node match {
     case lambda: Lambda         => Evaluate.lambda(lambda)
@@ -65,10 +67,13 @@ private[eval] trait EvalExpr {
         def logical(predicate: Value => Boolean): Out =
           if (predicate(left)) left.ok else Evaluate.expr(right)
 
-        operator.tokenType match {
+        @nowarn
+        val result = operator.tokenType match {
           case TokenType.Or  => logical(isTruthy)
           case TokenType.And => logical(!isTruthy(_))
         }
+
+        result
       }
   }
 
@@ -109,7 +114,7 @@ private[eval] trait EvalExpr {
           binary(f, Bool)
 
         def bitwise(f: (Long, Long) => Long): Result[Num] =
-          combineUnsafe { case (x, y) => f(x.toLong, y.toLong) }
+          combineUnsafe { case (x, y) => f(x.toLong, y.toLong).toDouble }
 
         operatorType match {
           case TokenType.Plus =>

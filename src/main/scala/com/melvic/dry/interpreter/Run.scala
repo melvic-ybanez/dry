@@ -43,7 +43,7 @@ object Run {
     val env = Env.empty
 
     val source = Source.fromFile(path)
-    val code = source.getLines.mkString("\n")
+    val code = source.getLines().mkString("\n")
     source.close
 
     val result = Run.source(mainModule, code, env)

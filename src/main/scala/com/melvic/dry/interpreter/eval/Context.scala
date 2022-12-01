@@ -2,6 +2,8 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.interpreter.Env
 
+import scala.language.implicitConversions
+
 final case class Context[+A](node: A, env: Env) {
   def withNode[B](newNode: B): Context[B] =
     copy(node = newNode)

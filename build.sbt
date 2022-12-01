@@ -7,6 +7,8 @@ lazy val root = (project in file("."))
     name := "dry"
   )
 
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
+
 lazy val createTests = taskKey[Unit]("Create tests for the Dry programming language")
 
 createTests := DryTests.createMainTestFile()

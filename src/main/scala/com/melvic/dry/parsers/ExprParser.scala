@@ -6,7 +6,7 @@ import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.result.Failure.ParseError
 
-import scala.util.chaining.scalaUtilChainingOps
+import scala.annotation.nowarn
 
 private[parsers] trait ExprParser { _: Parser =>
   def expression: ParseResult[Expr] =
@@ -148,10 +148,12 @@ private[parsers] trait ExprParser { _: Parser =>
           case TokenType.Number(_) => true
           case TokenType.Str(_)    => true
         }.map { parser =>
-          (parser.previous.tokenType match {
+          @nowarn
+          val literal = parser.previous.tokenType match {
             case TokenType.Number(number) => Literal.Number(number)
             case TokenType.Str(string)    => Literal.Str(string)
-          }).pipe(Step(_, parser))
+          }
+          Step(literal, parser)
         }
       }
       .orElse(matchAny(TokenType.Self).map(p => Step(Self(p.previous), p)))

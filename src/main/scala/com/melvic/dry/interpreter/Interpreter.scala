@@ -5,7 +5,7 @@ import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.{Context, EvalOut, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
-import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue}
+import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
 import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Failure.RuntimeError
@@ -40,7 +40,8 @@ object Interpreter {
       "readLine",
       Callable.withLineNo(1, _)(line => {
         case Str(prompt) :: _ => Str(readLine(prompt)).ok
-        case arg :: _         => RuntimeError.invalidArgument("string", Value.typeOf(arg), line).fail
+        case arg :: _         => RuntimeError.invalidArgument(Types.String, Value.typeOf(arg), line).fail
+        case Nil              => RuntimeError.invalidArgument(Types.String, Types.None, line).fail
       })
     )
     .defineWith("str", Callable.unarySuccess(_)(arg => Str(Value.show(arg))))

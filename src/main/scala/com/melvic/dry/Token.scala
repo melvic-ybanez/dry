@@ -57,8 +57,8 @@ object Token {
 
   trait Literals {
     case object Identifier extends TokenType
-    final case class Str(value: String) extends TokenType
-    final case class Number(value: Double) extends TokenType
+    case class Str private (value: String) extends TokenType
+    case class Number private (value: Double) extends TokenType
   }
 
   trait Keywords {
