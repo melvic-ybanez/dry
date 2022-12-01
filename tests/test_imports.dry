@@ -1,8 +1,22 @@
-import imported;
+def test_imported_top_level_modules() {
+    import imported;
 
-assert("Access variable from imported module", imported.x, 10);
-assert("Access function from imported module", imported.five(), 5);
+    assert_equal("Access variable from imported module", imported.x, 10);
+    assert_equal("Access function from imported module", imported.five(), 5);
 
-imported.x = 15;
-assert("Modify values from imported module", imported.x, 15);
+    imported.x = 15;
+    assert_equal("Modify values from imported module", imported.x, 15);
+}
+
+def test_imported_modules_from_another_dir() {
+    import imports.nested;
+
+    assert_equal("Access variable from imported module", nested.x, 100);
+
+    nested.x = 90;
+    assert_equal("Modify values from imported module", nested.x, 90);
+}
+
+test_imported_top_level_modules();
+test_imported_modules_from_another_dir();
 

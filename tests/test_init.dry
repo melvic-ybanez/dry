@@ -6,7 +6,7 @@ def test_empty_init() {
     }
 
     let foo = Foo();
-    assert("Init should save the set variables", foo.message, "hello");
+    assert_equal("Init should save the set variables", foo.message, "hello");
 }
 
 def test_init_with_params() {
@@ -17,7 +17,7 @@ def test_init_with_params() {
     }
 
     let foo = Foo(1, 2);
-    assert("Init should be capable of accepting parameters", foo.sum, 3);
+    assert_equal("Init should be capable of accepting parameters", foo.sum, 3);
 }
 
 test_empty_init();

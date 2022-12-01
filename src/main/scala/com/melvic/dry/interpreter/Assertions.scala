@@ -14,7 +14,7 @@ import com.melvic.dry.result.Result.implicits.ToResult
 import scala.Console._
 
 object Assertions {
-  private[interpreter] def assert(env: Env): Callable =
+  private[interpreter] def assertEqual(env: Env): Callable =
     Callable(3, env) { case description :: value1 :: value2 :: _ =>
       getTestData(env).foreach { case (testsCount, successCount, _) =>
         if (value1 == value2) {

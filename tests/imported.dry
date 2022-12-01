@@ -1,3 +1,5 @@
+// This file is used to test modules imported from the same directory as the main module
+
 let x = 10;
 
 def five() {

@@ -50,7 +50,7 @@ object Interpreter {
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
-    .defineWith("assert", Assertions.assert)
+    .defineWith("assert_equal", Assertions.assertEqual)
     .defineWith("assert_error", Assertions.assertError)
     .defineWith("show_test_results", Assertions.showTestResults)
     .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))

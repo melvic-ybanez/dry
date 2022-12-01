@@ -1,5 +1,6 @@
 package com.melvic.dry.parsers
 
+import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Expr.Literal
@@ -124,9 +125,18 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     expr.mapValue(ReturnStmt(keyword, _))
   }
 
-  def importStatement: ParseResult[Stmt] =
-    consume(TokenType.Identifier, "identifier", "import")
-      .flatMap { case Step(path, next) =>
-        next.consume(TokenType.Semicolon, ";", "import path").mapValue(_ => Import(path :: Nil))
+  def importStatement: ParseResult[Stmt] = {
+    def parseComponents(parser: Parser, components: List[Token]): ParseResult[List[Token]] =
+      parser.matchAny(TokenType.Dot).fold(ParseResult.succeed(components.reverse, parser)) { next =>
+        next.consume(TokenType.Identifier, "identifier", "import").flatMap { case Step(component, next) =>
+          parseComponents(next, component :: components)
+        }
       }
+
+    for {
+      firstComponent <- consume(TokenType.Identifier, "identifier", "import")
+      allComponents  <- parseComponents(firstComponent.next, firstComponent.value :: Nil)
+      semicolon      <- allComponents.consume(TokenType.Semicolon, ";", "import path")
+    } yield Step(Import(allComponents.value), semicolon.next)
+  }
 }
