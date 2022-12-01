@@ -5,10 +5,7 @@ import com.melvic.dry.resolver.Locals
 
 import scala.language.implicitConversions
 
-final case class Context[+A](node: A, env: Env, locals: Locals) {
-  def withNode[B](newNode: B): Context[B] =
-    copy(node = newNode)
-}
+final case class Context[+A](node: A, env: Env, locals: Locals)
 
 object Context {
   object implicits {
