@@ -1,0 +1,6 @@
+let fib = lambda(n) {
+  if (n <= 1) return n;
+
+  // Dry supports recursion, both with lambdas and named functions.
+  return fib(n - 2) + fib(n - 1);
+};

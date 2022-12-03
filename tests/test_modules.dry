@@ -17,6 +17,13 @@ def test_imported_modules_from_another_dir() {
     assert_equal("Modify values from imported module", nested.x, 90);
 }
 
+def test_modules_found_via_dry_path() {
+    import imported_utils;
+
+    assert_equal("Access method from module found via Dry Path", imported_utils.fib(3), 2);
+}
+
 test_imported_top_level_modules();
 test_imported_modules_from_another_dir();
+test_modules_found_via_dry_path();
 
