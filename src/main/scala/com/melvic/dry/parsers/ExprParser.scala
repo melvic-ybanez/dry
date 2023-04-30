@@ -25,7 +25,7 @@ private[parsers] trait ExprParser { _: Parser =>
           lValue match {
             case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
             case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, rValue), parser)
-            case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previous), parser)
+            case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previousToken), parser)
           }
         }
       }
@@ -93,7 +93,7 @@ private[parsers] trait ExprParser { _: Parser =>
   def unary: ParseResult[Expr] =
     matchAny(TokenType.Not, TokenType.Minus)
       .map { parser =>
-        val operator = parser.previous
+        val operator = parser.previousToken
         parser.unary.mapValue(Unary(operator, _))
       }
       .getOrElse(call)
@@ -149,15 +149,15 @@ private[parsers] trait ExprParser { _: Parser =>
           case TokenType.Str(_)    => true
         }.map { parser =>
           @nowarn
-          val literal = parser.previous.tokenType match {
+          val literal = parser.previousToken.tokenType match {
             case TokenType.Number(number) => Literal.Number(number)
             case TokenType.Str(string)    => Literal.Str(string)
           }
           Step(literal, parser)
         }
       }
-      .orElse(matchAny(TokenType.Self).map(p => Step(Self(p.previous), p)))
-      .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previous), p)))
+      .orElse(matchAny(TokenType.Self).map(p => Step(Self(p.previousToken), p)))
+      .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previousToken), p)))
       .map(_.toParseResult)
       .getOrElse(
         matchAny(TokenType.LeftParen)
@@ -204,7 +204,7 @@ private[parsers] trait ExprParser { _: Parser =>
         parser
           .matchAny(operators: _*)
           .map { parser =>
-            val operator = parser.previous
+            val operator = parser.previousToken
             operand(parser).flatMap { case Step(right, newParser) =>
               // recursively check if another operator from the given set, followed by
               // the same operand, is found again

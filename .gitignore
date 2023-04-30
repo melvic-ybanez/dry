@@ -33,3 +33,5 @@ org.scala-ide.sdt.update-site/site.xml
 *.sc
 
 tests/tests.dry
+
+.metals
