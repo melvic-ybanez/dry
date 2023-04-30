@@ -54,10 +54,10 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
   }
 
   def advance: Step[Token] =
-    if (isAtEnd) Step(previous, this)
+    if (isAtEnd) Step(previousToken, this)
     else {
       val parser = copy(current = current + 1)
-      Step(parser.previous, parser)
+      Step(parser.previousToken, parser)
     }
 
   def consume(tokenType: TokenType, expected: String, after: String): ParseResult[Token] =
@@ -70,7 +70,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
   def peek: Token =
     tokens(current)
 
-  def previous: Token =
+  def previousToken: Token =
     tokens(current - 1)
 
   /**
@@ -81,7 +81,7 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
       @tailrec
       def recurse(parser: Parser): Parser =
         if (parser.isAtEnd) parser
-        else if (parser.previous.tokenType == TokenType.Semicolon) parser
+        else if (parser.previousToken.tokenType == TokenType.Semicolon) parser
         else
           parser.peek.tokenType match {
             case TokenType.Class | TokenType.Def | TokenType.If | TokenType.For | TokenType.While |
@@ -95,20 +95,22 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
 
   def params: ParseResult[List[Token]] =
     for {
-      leftParen <- consume(TokenType.LeftParen, "(", "function name")
-      params <-
-        if (!leftParen.check(TokenType.RightParen)) {
-          def recurse(params: List[Token], parser: Parser): ParseResult[List[Token]] =
-            parser
-              .matchAny(TokenType.Comma)
-              .fold(ParseResult.succeed(params.reverse, parser))(
-                _.consume(TokenType.Identifier, "parameter name", ",").mapValue(_ :: params)
-              )
+      afterLeftParen <- consume(TokenType.LeftParen, "(", "function name")
+      params <- {
+        def parseWhileNextIsComma(params: List[Token], parser: Parser): ParseResult[List[Token]] =
+          parser
+            .matchAny(TokenType.Identifier)
+            .fold(ParseResult.succeed(params, parser)) { next =>
+              val newParams = next.previousToken :: params
+              next
+                .matchAny(TokenType.Comma)
+                .fold(ParseResult.succeed(newParams, next))(parseWhileNextIsComma(newParams, _))
+            }
 
-          leftParen.consume(TokenType.Identifier, "parameter name", "(").flatMap { case Step(param, parser) =>
-            recurse(param :: Nil, parser).flatMapParser(_.consume(TokenType.RightParen, ")", "parameters"))
-          }
-        } else leftParen.consume(TokenType.RightParen, ")", "(").mapValue(_ => Nil)
+        parseWhileNextIsComma(Nil, afterLeftParen)
+          .mapValue(_.reverse)
+          .flatMapParser(_.consume(TokenType.RightParen, ")", "parameters"))
+      }
     } yield params
 }
 
