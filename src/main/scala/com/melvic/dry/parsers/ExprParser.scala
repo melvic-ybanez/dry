@@ -2,8 +2,11 @@ package com.melvic.dry.parsers
 
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.ast.Expr
+import com.melvic.dry.ast.Decl.StmtDecl
+import com.melvic.dry.ast.{Expr, Stmt}
 import com.melvic.dry.ast.Expr._
+import com.melvic.dry.ast.Stmt.ReturnStmt
+import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.nowarn
@@ -109,14 +112,16 @@ private[parsers] trait ExprParser { _: Parser =>
             }
           }
 
-      val result =
+      val resultForArgs =
         if (!parser.check(TokenType.RightParen))
           parser.expression.flatMap(step => recurse(step.value :: Nil, step.next))
         else ParseResult.succeed(Nil, parser)
 
-      result.parser
+      resultForArgs.parser
         .consume(TokenType.RightParen, ")", "function call arguments")
-        .flatMap(step => result.mapValue(Call(callee, _, step.value)).mapParser(_ => step.next))
+        .flatMap(step =>
+          resultForArgs.mapValue(callOrLambda(callee, _, step.value)).mapParser(_ => step.next)
+        )
     }
 
     primary.flatMap {
@@ -125,16 +130,53 @@ private[parsers] trait ExprParser { _: Parser =>
         def propAccess(expr: Expr, next: Parser) =
           next.consume(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
 
+        def checkForPropAccess = step.next
+          .matchAny(TokenType.Dot)
+          .fold(ParseResult.fromStep(step))(propAccess(step.value, _).flatMap(checkForCalls))
+
         step.next
           .matchAny(TokenType.LeftParen)
-          .fold(
-            step.next
-              .matchAny(TokenType.Dot)
-              .fold(ParseResult.fromStep(step))(propAccess(step.value, _).flatMap(checkForCalls))
-          )(parenCall(step.value, _).flatMap(checkForCalls))
+          .fold(checkForPropAccess)(parenCall(step.value, _).flatMap(checkForCalls))
       }
 
       checkForCalls
+    }
+  }
+
+  /**
+   * Decides whether to construct a Call or a Lambda node. This is useful for partial application.
+   * {{{
+   *   let sum = labmda(x, y) { return x + y };
+   *   let onePlus = sum(1, _);
+   *
+   *   println(onePlus(3));    // prints 4
+   *   println(onePlus(5));    // prints 6
+   * }}}
+   * The partial application call above should desugar to the following code:
+   * {{{let onePlus = lambda(y) { return sum(1, y); };}}}
+   */
+  private def callOrLambda(callee: Expr, args: List[Expr], paren: Token): Expr = {
+    // concatenate all the param names to get a new unique one.
+    // This will prevent name clashing
+    lazy val uniqueBaseName = args.foldLeft("") {
+      case (acc, Variable(Token(_, name, _))) => acc + name
+      case (acc, _)                           => acc
+    }
+
+    val (params, newArgs) = args.zipWithIndex.foldLeft(List.empty[Token], List.empty[Expr]) {
+      case ((params, args), (Variable(Token(_, Lexemes.Wildcard, line)), i)) =>
+        val newParam = Token(TokenType.Identifier, uniqueBaseName + i, line)
+        val newArg = Variable(newParam)
+        (newParam :: params, newArg :: args)
+      case ((params, args), (arg, i)) =>
+        (params, arg :: args)
+    }
+
+    if (params.isEmpty) Call(callee, args, paren)
+    else {
+      val returnStatement =
+        ReturnStmt(Token(TokenType.Return, Lexemes.Return, paren.line), Call(callee, newArgs.reverse, paren))
+      Lambda(params.reverse, returnStatement :: Nil)
     }
   }
 
