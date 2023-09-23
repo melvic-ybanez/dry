@@ -35,3 +35,5 @@ org.scala-ide.sdt.update-site/site.xml
 tests/tests.dry
 
 .metals
+
+.bsp
