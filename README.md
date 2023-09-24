@@ -46,8 +46,8 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 37 tests. Successful: 37. Failed: 0.
+Ran 41 tests. Successful: 41. Failed: 0.
 ```
-The tests themselves are written in Dry. You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
+The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 
 **Note:** More details will be added here soon.
