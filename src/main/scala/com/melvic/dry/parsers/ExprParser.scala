@@ -11,6 +11,7 @@ import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.nowarn
 
+//noinspection ScalaWeakerAccess
 private[parsers] trait ExprParser { _: Parser =>
   def expression: ParseResult[Expr] =
     assignment

@@ -9,6 +9,7 @@ import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, Import, ReturnStmt}
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
+//noinspection ScalaWeakerAccess
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
     select(

@@ -1,0 +1,16 @@
+let sum = lambda(x, y) { return x + y };
+let onePlus = sum(1, _);
+
+assert_equal("Supply first function arg only", onePlus(3), 4);
+assert_equal("Supply second function arg only", sum(_, 3)(7), 10);
+
+class HasMinus {
+    def minus(x, y) {
+        return x - y;
+    }
+}
+
+let tenMinus = HasMinus().minus(10, _);
+
+assert_equal("Supply first method arg only", tenMinus(6), 4);
+assert_equal("Supply second method arg only", HasMinus().minus(_, 4)(15), 11);
