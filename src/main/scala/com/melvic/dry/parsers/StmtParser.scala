@@ -92,7 +92,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   /**
    * A for-loop is just a syntactic sugar over the while-loop.
    * {{{
-   *   <for> ::= "for" "(" (";" | <let> | <expression>)
+   *   <for> ::= "for" "(" (";" | <let> | <expr-stmt>)
    *    (<expression>? ";") <expression> ")" <statement>
    * }}}
    */

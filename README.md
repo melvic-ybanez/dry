@@ -60,7 +60,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <expr-stmt> ::= <expression> ";"
 <if> ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
 <while> ::= "while" "(" <expression> ")" <statement>
-<for> ::= "for" "(" (";" | <let> | <expression>) 
+<for> ::= "for" "(" (";" | <let> | <expr-stmt>) 
       (<expression>? ";") <expression> ")" <statement>
 <return> ::= "return" <expression>? ";"
 <import> ::= "import" <identifier> ("." <identifier>)* ";"
