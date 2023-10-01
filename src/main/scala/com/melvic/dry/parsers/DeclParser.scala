@@ -12,6 +12,10 @@ import com.melvic.dry.parsers.Step._
 import scala.util.chaining.scalaUtilChainingOps
 
 private[parsers] trait DeclParser extends StmtParser { _: Parser =>
+
+  /**
+   * {{{<declaration> ::= <class> | <function> | <let> | <statement>}}}
+   */
   def declaration: ParseResult[Decl] =
     matchAny(TokenType.Class)
       .map(_.classDecl)
@@ -23,6 +27,9 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
         case result                           => result
       }
 
+  /**
+   * {{{<let> ::= "let" <identifier> ("=" <expression>)? ";"}}}
+   */
   def letDecl: ParseResult[Let] = {
     def consumeSemicolon(parser: Parser): ParseResult[Token] =
       parser.consume(TokenType.Semicolon, ";", "let")
@@ -38,6 +45,9 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
     }
   }
 
+  /**
+   * {{{<function> ::= "def" <identifier> <params> <block>}}}
+   */
   def defDecl(kind: String): ParseResult[Def] =
     for {
       name   <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Def}' keyword")
@@ -51,6 +61,9 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
       body      <- leftBrace.block
     } yield body
 
+  /**
+   * {{{<class> ::= "class" <identifier> "{" <method>* "}"}}}
+   */
   def classDecl: ParseResult[ClassDecl] =
     for {
       name       <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Class}' keyword")

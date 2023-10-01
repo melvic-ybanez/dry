@@ -11,6 +11,10 @@ import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
 //noinspection ScalaWeakerAccess
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
+
+  /**
+   * {{{<statement> ::= <expr-stmt> | <block> | <if> | <while> | <for> | <return> | <import>}}}
+   */
   def statement: ParseResult[Stmt] =
     select(
       expressionStatement,
@@ -22,12 +26,20 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       TokenType.Import    -> { _.importStatement }
     )
 
+  /**
+   * {{{<expr-stmt> ::= <expression> ";"}}}
+   */
   def expressionStatement: ParseResult[Stmt] =
     for {
       expr      <- expression
       semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
     } yield Step(ExprStmt(expr.value), semicolon.next)
 
+  /**
+   * {{{<block> ::= "{" <declaration>* "}"}}}
+   *
+   * Note: the parsing of `{` is assumed to have already been done. Not very neat, I know.
+   */
   def block: ParseResult[BlockStmt] = {
     def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
       result.flatMap { case Step(declarations, parser) =>
@@ -46,6 +58,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     }
   }
 
+  /**
+   * {{{<if> ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?}}}
+   */
   def ifStatement: ParseResult[Stmt] =
     for {
       leftParen  <- consume(TokenType.LeftParen, "(", "if")
@@ -63,6 +78,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
         }
     } yield ifStmt
 
+  /**
+   * {{{<while> ::= "while" "(" <expression> ")" <statement>}}}
+   */
   def whileStatement: ParseResult[While] =
     for {
       leftParen  <- consume(TokenType.LeftParen, "(", "while")
@@ -73,6 +91,10 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
 
   /**
    * A for-loop is just a syntactic sugar over the while-loop.
+   * {{{
+   *   <for> ::= "for" "(" (";" | <let> | <expression>)
+   *    (<expression>? ";") <expression> ")" <statement>
+   * }}}
    */
   def forStatement: ParseResult[Stmt] = {
     val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case Step(_, next) =>
@@ -117,6 +139,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     } yield Step(whileLoop(init.value, cond.value, inc.value, body.value), body.next)
   }
 
+  /**
+   * {{{<return> ::= "return" <expression>? ";"}}}
+   */
   def returnStatement: ParseResult[Stmt] = {
     val keyword = previousToken
     val expr =
@@ -126,6 +151,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     expr.mapValue(ReturnStmt(keyword, _))
   }
 
+  /**
+   * {{{<import> ::= "import" <identifier> ("." <identifier>)* ";"}}}
+   */
   def importStatement: ParseResult[Stmt] = {
     def parseComponents(parser: Parser, components: List[Token]): ParseResult[List[Token]] =
       parser.matchAny(TokenType.Dot).fold(ParseResult.succeed(components.reverse, parser)) { next =>

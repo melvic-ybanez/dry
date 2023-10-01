@@ -13,6 +13,10 @@ import scala.annotation.nowarn
 
 //noinspection ScalaWeakerAccess
 private[parsers] trait ExprParser { _: Parser =>
+
+  /**
+   * {{{<expression> ::= <assignment>}}}
+   */
   def expression: ParseResult[Expr] =
     assignment
 
@@ -37,7 +41,7 @@ private[parsers] trait ExprParser { _: Parser =>
   }
 
   /**
-   * {{{<lambda> ::= "Lambda" <params> <function-body> | <or>}}}
+   * {{{<lambda> ::= "lambda" <params> <function-body> | <or>}}}
    */
   def lambda: ParseResult[Expr] =
     matchAny(TokenType.Lambda)
@@ -78,6 +82,9 @@ private[parsers] trait ExprParser { _: Parser =>
       TokenType.LessEqual
     )
 
+  /**
+   * {{{<term> ::= <factor> ("-" | "+=" | "&" | "|" | "^" | "<<" | ">>" | ">>>" <factor>)*}}}
+   */
   def term: ParseResult[Expr] =
     leftAssocBinary(
       _.factor,
@@ -91,9 +98,15 @@ private[parsers] trait ExprParser { _: Parser =>
       TokenType.URightShift
     )
 
+  /**
+   * {{{<factor> ::= <unary> ("/" | "*" | "%" <unary>)*}}}
+   */
   def factor: ParseResult[Expr] =
     leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star, TokenType.Modulo)
 
+  /**
+   * {{{<unary> ::= ("!" | "-") <expression> | <call>}}}
+   */
   def unary: ParseResult[Expr] =
     matchAny(TokenType.Not, TokenType.Minus)
       .map { parser =>
@@ -102,6 +115,9 @@ private[parsers] trait ExprParser { _: Parser =>
       }
       .getOrElse(call)
 
+  /**
+   * {{{<call> ::= <primary> ("(" <expression>* ")" | "." <identifier>)}}}
+   */
   def call: ParseResult[Expr] = {
     def parenCall(callee: Expr, parser: Parser): ParseResult[Expr] = {
       def recurse(args: List[Expr], parser: Parser): ParseResult[List[Expr]] =
@@ -147,7 +163,7 @@ private[parsers] trait ExprParser { _: Parser =>
   /**
    * Decides whether to construct a Call or a Lambda node. This is useful for partial application.
    * {{{
-   *   let sum = labmda(x, y) { return x + y };
+   *   let sum = lambda(x, y) { return x + y };
    *   let onePlus = sum(1, _);
    *
    *   println(onePlus(3));    // prints 4
@@ -181,6 +197,12 @@ private[parsers] trait ExprParser { _: Parser =>
     }
   }
 
+  /**
+   * {{{
+   *   <primary> ::= "false" | "true" | "none" | <number> | <string>
+   *     | "self" | <identifier> | "(" <expression> ")"
+   * }}}
+   */
   def primary: ParseResult[Expr] =
     matchAny(TokenType.False)
       .map(Step(Literal.False, _))
@@ -205,10 +227,9 @@ private[parsers] trait ExprParser { _: Parser =>
       .getOrElse(
         matchAny(TokenType.LeftParen)
           .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
-            parser =>
-              parser.expression.flatMap { case Step(expr, newParser) =>
-                newParser.consume(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
-              }
+            _.expression.flatMap { case Step(expr, newParser) =>
+              newParser.consume(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
+            }
           }
       )
 

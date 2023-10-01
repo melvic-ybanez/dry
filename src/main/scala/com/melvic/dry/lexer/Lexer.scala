@@ -23,10 +23,10 @@ final case class Lexer(
 
   def scanNext: Result[Lexer] = prepareNext.scan
 
-  def updateTokens(f: List[Token] => List[Token]): Lexer =
+  private def updateTokens(f: List[Token] => List[Token]): Lexer =
     copy(tokens = f(tokens))
 
-  def scan: Result[Lexer] = {
+  private def scan: Result[Lexer] = {
     val (char, lexer) = readAndAdvance
     char match {
       case '(' => lexer.addToken(TokenType.LeftParen).ok
@@ -68,14 +68,14 @@ final case class Lexer(
     }
   }
 
-  def readAndAdvance: (Char, Lexer) =
+  private def readAndAdvance: (Char, Lexer) =
     (source(current), advance)
 
   def peek: Char = peekN(1)
 
-  def peekNext: Char = peekN(2)
+  private def peekNext: Char = peekN(2)
 
-  def peekN(n: Int): Char = {
+  private def peekN(n: Int): Char = {
     val index = current + n - 1
     if (index >= source.length) 0.toChar
     else source(index)
@@ -84,7 +84,7 @@ final case class Lexer(
   def advance: Lexer =
     copy(current = current + 1)
 
-  def advanceWhile(predicate: Lexer => Boolean): Lexer = {
+  private def advanceWhile(predicate: Lexer => Boolean): Lexer = {
     @tailrec
     def loop(lexer: Lexer): Lexer =
       if (!predicate(lexer)) lexer
@@ -93,27 +93,30 @@ final case class Lexer(
     loop(this)
   }
 
-  def nextLine: Lexer =
+  private def nextLine: Lexer =
     copy(line = line + 1)
 
-  def addToken(tokenType: TokenType): Lexer =
+  private def addToken(tokenType: TokenType): Lexer =
     updateTokens(_ :+ Token(tokenType, lexeme, line))
 
-  def addTokenOrElse(char: Char, typeIfMatch: TokenType, typeIfNotMatch: TokenType): Result[Lexer] =
+  private def addTokenOrElse(char: Char, typeIfMatch: TokenType, typeIfNotMatch: TokenType): Result[Lexer] =
     matchChar(char).fold(addToken(typeIfNotMatch))(_.addToken(typeIfMatch)).ok
 
-  def matchChar(expected: Char): Option[Lexer] =
+  private def matchChar(expected: Char): Option[Lexer] =
     if (isAtEnd || source(current) != expected) None
     else Some(advance)
 
   def isAtEnd: Boolean = current >= source.length
 
-  def prepareNext: Lexer = copy(start = current)
+  private def prepareNext: Lexer = copy(start = current)
 
-  def scanComment: Lexer =
+  private def scanComment: Lexer =
     advanceWhile(lexer => lexer.peek != '\n' && !lexer.isAtEnd)
 
-  def scanString: Result[Lexer] = {
+  /**
+   * {{{<string> ::= '"' (.?"\n"?)* '"'}}}
+   */
+  private def scanString: Result[Lexer] = {
     @tailrec
     def loop(lexer: Lexer): Lexer =
       if (lexer.peek == '"' || lexer.isAtEnd) lexer
@@ -129,7 +132,13 @@ final case class Lexer(
     }
   }
 
-  def scanDigit: Lexer = {
+  /**
+   * {{{
+   *   <number> ::= <whole-num> ("." <whole-num>*)?
+   *   <whole-num> ::= '0' ... '9'
+   * }}}
+   */
+  private def scanDigit: Lexer = {
     val wholeNumber = advanceWhile(lexer => Lexer.isDigit(lexer.peek))
     val withFractional =
       if (wholeNumber.peek == '.' && Lexer.isDigit(wholeNumber.peekNext))
@@ -138,7 +147,7 @@ final case class Lexer(
     withFractional.addToken(TokenType.Number(withFractional.lexeme.toDouble))
   }
 
-  def scanIdentifier: Lexer = {
+  private def scanIdentifier: Lexer = {
     val lexer = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))
     val tokenType = Lexer.Keywords.getOrElse(lexer.lexeme, TokenType.Identifier)
     lexer.addToken(tokenType)
@@ -169,7 +178,7 @@ object Lexer {
   def scanTokens(source: String): Result[List[Token]] =
     Lexer.fromSource(source).map(_.tokens)
 
-  def fromSource(source: String): Result[Lexer] = {
+  private def fromSource(source: String): Result[Lexer] = {
     @tailrec
     def loop(lexer: Lexer): Result[Lexer] =
       if (lexer.isAtEnd) Result.succeed(lexer)
@@ -183,13 +192,13 @@ object Lexer {
       .map(lexer => lexer.updateTokens(_ :+ Token(TokenType.Eof, "", lexer.line)))
   }
 
-  def isDigit(char: Char): Boolean =
+  private def isDigit(char: Char): Boolean =
     Character.isDigit(char)
 
-  def isAlpha(char: Char): Boolean =
+  private def isAlpha(char: Char): Boolean =
     (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char == '_'
 
-  def isAlphanumeric(char: Char): Boolean =
+  private def isAlphanumeric(char: Char): Boolean =
     isAlpha(char) || isDigit(char)
 
   private def enableEscapeSequences(value: String): String =

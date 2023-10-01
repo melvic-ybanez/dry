@@ -93,6 +93,9 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
       recurse(parser)
     }
 
+  /**
+   * {{{<params> ::= "(" <identifier>* ")"}}}
+   */
   def params: ParseResult[List[Token]] =
     for {
       afterLeftParen <- consume(TokenType.LeftParen, "(", "function name")
