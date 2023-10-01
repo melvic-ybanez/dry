@@ -147,6 +147,9 @@ final case class Lexer(
     withFractional.addToken(TokenType.Number(withFractional.lexeme.toDouble))
   }
 
+  /**
+   * {{{<identifier> ::= <alpha> (<alpha>? <whole-num>?)*}}}
+   */
   private def scanIdentifier: Lexer = {
     val lexer = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))
     val tokenType = Lexer.Keywords.getOrElse(lexer.lexeme, TokenType.Identifier)

@@ -1,5 +1,7 @@
 package com.melvic.dry.interpreter
 
+import com.melvic.dry.ast.Decl
+import com.melvic.dry.interpreter.eval.Evaluate
 import com.melvic.dry.lexer.Lexer
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.resolver.{Context, Locals, Resolve}
@@ -16,28 +18,28 @@ object Run {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      Run
-        .source(
-          // this is a trick I'm using to make repl accept expressions that
-          // do not end with semicolons.
-          if (!input.endsWith(";") && !input.endsWith("}")) input + ";"
-          else input,
-          env,
-          locals,
-          Nil
-        )
-        .map { case (value, locals) =>
-          if (value != Value.Unit)
-            println(Value.show(value))
-          locals
-        }
-        .pipe { result =>
-          Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
-          result match {
-            case Left(_)          => repl(env, locals)
-            case Right(newLocals) => repl(env, newLocals)
+      def runSource(): Unit =
+        Run
+          .source(input, env, locals, Nil)
+          .map { case (value, locals) =>
+            if (value != Value.Unit)
+              println(Value.show(value))
+            locals
           }
-        }
+          .pipe { result =>
+            Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
+            result match {
+              case Left(_)          => repl(env, locals)
+              case Right(newLocals) => repl(env, newLocals)
+            }
+          }
+
+      Run.expression(input, env) match {
+        case Left(_) => runSource()
+        case Right(value) =>
+          println(Value.show(value))
+          repl(env, locals)
+      }
     }
   }
 
@@ -65,4 +67,11 @@ object Run {
       locals <- Resolve.resolveAll(decls)(Context.default).map(_.locals ++ oldLocals)
       value  <- Interpreter.interpret(decls, env, locals, sourcePaths)
     } yield (value, locals)
+
+  def expression(source: String, env: Env): Result[Value] =
+    for {
+      tokens <- Lexer.scanTokens(source)
+      expr   <- Parser.fromTokens(tokens).expression.result
+      value  <- Evaluate.expr(eval.Context(expr, env, Locals.empty, Nil))
+    } yield value
 }
