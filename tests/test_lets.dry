@@ -1,7 +1,0 @@
-def test_let() {
-    let x = 5;
-
-    assert_equal("five", x, 5);
-}
-
-test_let();

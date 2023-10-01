@@ -18,9 +18,9 @@ object Run {
     val input = readLine("> ")
     if (input == "exit") ()
     else {
-      def runSource(): Unit =
+      def runScript(): Unit =
         Run
-          .source(input, env, locals, Nil)
+          .script(input, env, locals, Nil)
           .map { case (value, locals) =>
             if (value != Value.Unit)
               println(Value.show(value))
@@ -35,7 +35,7 @@ object Run {
           }
 
       Run.expression(input, env) match {
-        case Left(_) => runSource()
+        case Left(_) => runScript()
         case Right(value) =>
           println(Value.show(value))
           repl(env, locals)
@@ -56,11 +56,11 @@ object Run {
     val code = source.getLines().mkString("\n")
     source.close
 
-    val result = Run.source(code, env, Locals.empty, sourcePaths)
+    val result = Run.script(code, env, Locals.empty, sourcePaths)
     result.map(_ => env)
   }
 
-  def source(source: String, env: Env, oldLocals: Locals, sourcePaths: List[Path]): Result[(Value, Locals)] =
+  def script(source: String, env: Env, oldLocals: Locals, sourcePaths: List[Path]): Result[(Value, Locals)] =
     for {
       tokens <- Lexer.scanTokens(source)
       decls  <- Parser.fromTokens(tokens).parse.result
