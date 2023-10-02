@@ -6,14 +6,18 @@ import com.melvic.dry.result.{Failure, Result}
 import scala.io.StdIn.readLine
 import scala.util.chaining.scalaUtilChainingOps
 
-sealed trait Repl {
-  def read: String
-
+trait Repl {
   def write(value: Value): Unit
 
-  def loop(env: Env, locals: Locals): Unit = {
-    val input = read
-    if (input == "exit") ()
+  def continue(env: Env, locals: Locals): Unit
+
+  def exit(): Unit
+
+  def start(env: Env, locals: Locals): Unit =
+    continue(env, locals)
+
+  def start(input: String, env: Env, locals: Locals): Unit =
+    if (input == "exit") exit()
     else {
       def runScript(): Unit =
         Interpret
@@ -25,8 +29,8 @@ sealed trait Repl {
           .pipe { result =>
             Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
             result match {
-              case Left(_) => loop(env, locals)
-              case Right(newLocals) => loop(env, newLocals)
+              case Left(_) => continue(env, locals)
+              case Right(newLocals) => continue(env, newLocals)
             }
           }
 
@@ -34,18 +38,22 @@ sealed trait Repl {
         case Left(_) => runScript()
         case Right(value) =>
           write(value)
-          loop(env, locals)
+          continue(env, locals)
       }
     }
-  }
 }
 
 object Repl {
   private class LiveRepl extends Repl {
-    override def read: String = readLine("> ")
-
     override def write(value: Value): Unit =
       println(Value.show(value))
+
+    override def continue(env: Env, locals: Locals): Unit = {
+      val input = readLine("repl> ")
+      start(input, env, locals)
+    }
+
+    override def exit(): Unit = ()
   }
 
   def live: Repl = new LiveRepl

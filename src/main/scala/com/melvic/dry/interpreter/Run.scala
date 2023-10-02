@@ -15,7 +15,7 @@ import scala.util.chaining.scalaUtilChainingOps
 
 object Run {
   def repl(env: Env, locals: Locals): Unit =
-    Repl.live.loop(env, locals)
+    Repl.live.start(env, locals)
 
   def mainModule(path: String): Unit = {
     val result = Run.path(path, ModuleManager.getSourcePaths(Paths.get(path)))

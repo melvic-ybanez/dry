@@ -4,7 +4,12 @@ ThisBuild / scalaVersion := "2.13.8"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "dry"
+    name := "dry",
+    libraryDependencies ++= Seq(
+      "org.scalactic" %% "scalactic" % "3.2.17",
+      "org.scalatest" %% "scalatest" % "3.2.17" % "test",
+      "org.scalatestplus" %% "scalacheck-1-17" % "3.2.17.0" % "test"
+    )
   )
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
