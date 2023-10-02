@@ -8,17 +8,21 @@ import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
-import com.melvic.dry.resolver.Locals
+import com.melvic.dry.lexer.Lexer
+import com.melvic.dry.parsers.Parser
+import com.melvic.dry.resolver
+import com.melvic.dry.resolver.{Locals, Resolve}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
+import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import java.nio.file.Path
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn.readLine
 
-object Interpreter {
-  def interpret(declarations: List[Decl], enclosing: Env, locals: Locals, sourcePaths: List[Path]): Out = {
+object Interpret {
+  def declarations(declarations: List[Decl], enclosing: Env, locals: Locals, sourcePaths: List[Path]): Out = {
     val env = LocalEnv(enclosing.table, natives)
     def recurse(declarations: List[Decl], value: Value): Out =
       declarations match {
@@ -31,6 +35,22 @@ object Interpreter {
 
     recurse(declarations, Value.Unit)
   }
+
+  //noinspection SpellCheckingInspection
+  def script(source: String, env: Env, oldLocals: Locals, sourcePaths: List[Path]): Result[(Value, Locals)] =
+    for {
+      tokens <- Lexer.scanTokens(source)
+      decls  <- Parser.fromTokens(tokens).parse.result
+      locals <- Resolve.resolveAll(decls)(resolver.Context.default).map(_.locals ++ oldLocals)
+      value  <- Interpret.declarations(decls, env, locals, sourcePaths)
+    } yield (value, locals)
+
+  def expression(source: String, env: Env): Result[Value] =
+    for {
+      tokens <- Lexer.scanTokens(source)
+      expr   <- Parser.fromTokens(tokens).expression.result
+      value  <- Evaluate.expr(Context(expr, env, Locals.empty, Nil))
+    } yield value
 
   val natives: Env = Env.empty
     .defineWith("print", Callable.unarySuccess(_)(arg => print(Value.show(arg)).unit))

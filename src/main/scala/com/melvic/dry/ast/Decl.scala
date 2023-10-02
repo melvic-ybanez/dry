@@ -6,8 +6,10 @@ import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.{Show, Token}
 
+//noinspection SpellCheckingInspection
 trait Decl
 
+//noinspection SpellCheckingInspection
 object Decl {
   sealed trait Let extends Decl
 
@@ -34,11 +36,19 @@ object Decl {
 
   final case class ClassDecl(name: Token, methods: List[Def]) extends Decl
 
+  object ClassDecl {
+    def show: Show[ClassDecl] = {
+      case ClassDecl(name, methods) =>
+        show"${Lexemes.Class} $name ${BlockStmt.fromDecls(methods: _*)}"
+    }
+  }
+
   def show: Show[Decl] = {
     case let: Let           => Let.show(let)
     case stmtDecl: StmtDecl => StmtDecl.show(stmtDecl)
     case Def(name, params, body) =>
       s"${Lexemes.Def} $name(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
+    case classDecl: ClassDecl => ClassDecl.show(classDecl)
     case stmt: Stmt => Stmt.show(stmt)
   }
 }

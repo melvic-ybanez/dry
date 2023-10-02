@@ -53,36 +53,36 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 
 ```bnf
 <declaration> ::= <class> | <function> | <let> | <statement>
-<class> ::= "class" <identifier> "{" <function>* "}"
-<function> ::= "def" <identifier> <params> <block>
-<let> ::= "let" <identifier> ("=" <expression>)? ";"
-<statement> ::= <expr-stmt> | <block> | <if> | <while> | <for> | <return> | <import>
-<expr-stmt> ::= <expression> ";"
-<if> ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
-<while> ::= "while" "(" <expression> ")" <statement>
-<for> ::= "for" "(" (";" | <let> | <expr-stmt>) 
+<class>       ::= "class" <identifier> "{" <function>* "}"
+<function>    ::= "def" <identifier> <params> <block>
+<let>         ::= "let" <identifier> ("=" <expression>)? ";"
+<statement>   ::= <expr-stmt> | <block> | <if> | <while> | <for> | <return> | <import>
+<expr-stmt>   ::= <expression> ";"
+<if>          ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
+<while>       ::= "while" "(" <expression> ")" <statement>
+<for>         ::= "for" "(" (";" | <let> | <expr-stmt>)
       (<expression>? ";") <expression> ")" <statement>
-<return> ::= "return" <expression>? ";"
-<import> ::= "import" <identifier> ("." <identifier>)* ";"
-<expression> ::= <assignment>
-<assignment> ::= (<call> ".")? <identifier> "=" <assignment> | <lambda>
-<call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)
-<identifier> ::= <alpha> (<alpha>? <whole-num>?)*
-<lambda> ::= "lambda" <params> <block> | <or>
-<block> ::= "{" <declaration>* "}"
-<params> ::= "(" (<identifier> | ("," <identifier>)*)? ")"
-<or> ::= <and> ("or" <and>)*
-<and> ::= <equality> ("and" <equality>)*
-<equality> ::= <comparison> ("!=" | "==" <comparison>)*
-<comparison> ::= <term> (">" | ">=" | "<" | "<=" <term>)*
-<term> ::= <factor> ("-" | "+=" | "&" | "|" | "^" | "<<" | ">>" 
+<return>      ::= "return" <expression>? ";"
+<import>      ::= "import" <identifier> ("." <identifier>)* ";"
+<expression>  ::= <assignment>
+<assignment>  ::= (<call> ".")? <identifier> "=" <assignment> | <lambda>
+<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)
+<identifier>  ::= <alpha> (<alpha>? <whole-num>?)*
+<lambda>      ::= "lambda" <params> <block> | <or>
+<block>       ::= "{" <declaration>* "}"
+<params>      ::= "(" (<identifier> | ("," <identifier>)*)? ")"
+<or>          ::= <and> ("or" <and>)*
+<and>         ::= <equality> ("and" <equality>)*
+<equality>    ::= <comparison> ("!=" | "==" <comparison>)*
+<comparison>  ::= <term> (">" | ">=" | "<" | "<=" <term>)*
+<term>        ::= <factor> ("-" | "+=" | "&" | "|" | "^" | "<<" | ">>"
       | ">>>" | "<=" <factor>)*
-<factor> ::= <unary> ("/" | "*" | "%" <unary>)*
-<unary> ::= ("!" | "-") <expression> | <call>
-<primary> ::= "false" | "true" | "none" | <number> | <string>
+<factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
+<unary>       ::= ("!" | "-") <expression> | <call>
+<primary>     ::= "false" | "true" | "none" | <number> | <string>
       | "self" | <identifier> | "(" <expression> ")"
-<number> ::= <whole-num> ("." <whole-num>*)?
-<string> ::= '"' (.?"\n"?)* '"'
-<alpha> ::= 'a' ... 'z' | 'A' ... 'Z' 
-<whole-num> ::= '0' ... '9'
+<number>      ::= <whole-num> ("." <whole-num>*)?
+<string>      ::= '"' (.?"\n"?)* '"'
+<alpha>       ::= 'a' ... 'z' | 'A' ... 'Z'
+<whole-num>   ::= '0' ... '9'
 ```

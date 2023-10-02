@@ -4,7 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
-import com.melvic.dry.interpreter.Interpreter
+import com.melvic.dry.interpreter.Interpret
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
@@ -171,7 +171,7 @@ private[eval] trait EvalExpr {
         locals
           .get(LocalExprKey(node))
           .map(distance => env.assignAt(distance, node.name, value))
-          .fold(Interpreter.natives.assign(node.name, value))(_.ok)
+          .fold(Interpret.natives.assign(node.name, value))(_.ok)
           .map(_ => value)
       }
 
@@ -203,5 +203,5 @@ private[eval] trait EvalExpr {
     locals
       .get(LocalExprKey(expr))
       .flatMap(distance => env.at(distance, name.lexeme))
-      .fold(Interpreter.natives.get(name))(_.ok)
+      .fold(Interpret.natives.get(name))(_.ok)
 }
