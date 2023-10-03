@@ -60,6 +60,8 @@ object ReplSpec {
 
     def runInput(input: String): Unit =
       start(input, Env.empty, Scopes.empty)
+
+    override def displayWelcomeMessage(): Unit = ()
   }
 
   object TestRepl {

@@ -13,8 +13,12 @@ trait Repl {
 
   def exit(): Unit
 
-  def start(env: Env, scopes: Scopes): Unit =
+  def displayWelcomeMessage(): Unit
+
+  def start(env: Env, scopes: Scopes): Unit = {
+    displayWelcomeMessage()
     continue(env, scopes)
+  }
 
   def start(input: String, env: Env, scopes: Scopes): Unit =
     if (input == "exit") exit()
@@ -49,11 +53,14 @@ object Repl {
       println(Value.show(value))
 
     override def continue(env: Env, scopes: Scopes): Unit = {
-      val input = readLine("repl> ")
+      val input = readLine("dry> ")
       start(input, env, scopes)
     }
 
     override def exit(): Unit = ()
+
+    override def displayWelcomeMessage(): Unit =
+      println("Welcome to Dry.\nType in expressions and statements for evaluation. Type 'exit' to quit.")
   }
 
   def live: Repl = new LiveRepl
