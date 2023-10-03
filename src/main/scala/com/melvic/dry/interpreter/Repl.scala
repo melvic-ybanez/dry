@@ -1,6 +1,6 @@
 package com.melvic.dry.interpreter
 
-import com.melvic.dry.resolver.Locals
+import com.melvic.dry.resolver.Scopes
 import com.melvic.dry.result.{Failure, Result}
 
 import scala.io.StdIn.readLine
@@ -9,36 +9,36 @@ import scala.util.chaining.scalaUtilChainingOps
 trait Repl {
   def write(value: Value): Unit
 
-  def continue(env: Env, locals: Locals): Unit
+  def continue(env: Env, scopes: Scopes): Unit
 
   def exit(): Unit
 
-  def start(env: Env, locals: Locals): Unit =
-    continue(env, locals)
+  def start(env: Env, scopes: Scopes): Unit =
+    continue(env, scopes)
 
-  def start(input: String, env: Env, locals: Locals): Unit =
+  def start(input: String, env: Env, scopes: Scopes): Unit =
     if (input == "exit") exit()
     else {
       def runScript(): Unit =
         Interpret
-          .script(input, env, locals, Nil)
-          .map { case (value, locals) =>
+          .script(input, env, scopes, Nil)
+          .map { case (value, scopes) =>
             if (value != Value.Unit) write(value)
-            locals
+            scopes
           }
           .pipe { result =>
             Result.foreachFailure(result)(error => System.err.println(Failure.show(error)))
             result match {
-              case Left(_) => continue(env, locals)
-              case Right(newLocals) => continue(env, newLocals)
+              case Left(_)          => continue(env, scopes)
+              case Right(newScopes) => continue(env, newScopes)
             }
           }
 
-      Interpret.expression(input, env) match {
+      Interpret.expression(input, env, scopes) match {
         case Left(_) => runScript()
         case Right(value) =>
           write(value)
-          continue(env, locals)
+          continue(env, scopes)
       }
     }
 }
@@ -48,9 +48,9 @@ object Repl {
     override def write(value: Value): Unit =
       println(Value.show(value))
 
-    override def continue(env: Env, locals: Locals): Unit = {
+    override def continue(env: Env, scopes: Scopes): Unit = {
       val input = readLine("repl> ")
-      start(input, env, locals)
+      start(input, env, scopes)
     }
 
     override def exit(): Unit = ()

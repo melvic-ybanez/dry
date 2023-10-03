@@ -10,6 +10,7 @@ import com.melvic.dry.interpreter.values.{Callable, DClass, Value}
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result.implicits.ToResult
 
+//noinspection SpellCheckingInspection
 private[eval] trait EvalDecl extends EvalStmt {
   def decl(implicit context: Context[Decl]): Out = node match {
     case stmt: StmtDecl   => Evaluate.stmtDecl(stmt)

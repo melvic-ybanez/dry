@@ -13,12 +13,13 @@ import com.melvic.dry.aux.implicits._
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.resolver.ScopesFunction._
 import com.melvic.dry.result.Failure.ResolverError
-import com.melvic.dry.result.Result.ResultCoAlg
+import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}
 
+//noinspection SpellCheckingInspection
 object Resolve {
-  type Resolve = ResultCoAlg[Context]
+  type Resolve = ResultFrom[Context]
 
   def resolveAll: List[Decl] => Resolve = decls =>
     Resolve.scanFunctions(decls).andThen(_.flatMap(Resolve.decls(decls)))
@@ -29,7 +30,7 @@ object Resolve {
   def decls: List[Decl] => Resolve = decls =>
     context => decls.foldFailFast(context.ok)((context, decl) => Resolve.decl(decl)(context))
 
-  def scanFunctions: List[Decl] => Resolve = decls =>
+  private def scanFunctions: List[Decl] => Resolve = decls =>
     context =>
       decls.foldFailFast(context.ok) {
         case (context, Def(name, _, _))             => Scopes.declare(name).ok(context)
@@ -146,7 +147,7 @@ object Resolve {
     }
   }
 
-  def exprWithDepth(depth: Int): Expr => Resolve = expr =>
+  private def exprWithDepth(depth: Int): Expr => Resolve = expr =>
     context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok
 
   def local(name: Token): Expr => Resolve = { expr => context =>

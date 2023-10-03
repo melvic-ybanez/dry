@@ -2,7 +2,6 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
-import com.melvic.dry.resolver.Locals
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
@@ -44,7 +43,7 @@ sealed trait Env {
     if (table.contains(name.lexeme)) Result.succeed(define(name, value))
     else
       this match {
-        case GlobalEnv(_)            => Result.fail(RuntimeError.undefinedVariable(name))
+        case GlobalEnv(_)               => Result.fail(RuntimeError.undefinedVariable(name))
         case LocalEnv(table, enclosing) => enclosing.assign(name, value).map(LocalEnv(table, _))
       }
 
@@ -60,11 +59,11 @@ sealed trait Env {
       env
     }
 
-  def ancestorAt(distance: Int): Env =
+  private def ancestorAt(distance: Int): Env =
     if (distance == 0) this
     else
       this match {
-        case GlobalEnv(_)        => this
+        case GlobalEnv(_)           => this
         case LocalEnv(_, enclosing) => enclosing.ancestorAt(distance - 1)
       }
 
@@ -72,7 +71,7 @@ sealed trait Env {
     @tailrec
     def recurse(height: Int, env: Env): Int =
       env match {
-        case GlobalEnv(_)        => height
+        case GlobalEnv(_)           => height
         case LocalEnv(_, enclosing) => recurse(height + 1, enclosing)
       }
 

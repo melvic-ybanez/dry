@@ -6,7 +6,7 @@ import com.melvic.dry.interpreter.Env
 
 object Result {
   type Result[+A] = Either[Nel[Failure], A]
-  type ResultCoAlg[A] = A => Result[A]
+  type ResultFrom[A] = A => Result[A]
 
   def succeed[A](value: A): Result[A] =
     Right(value)

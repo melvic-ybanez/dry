@@ -11,7 +11,7 @@ import com.melvic.dry.interpreter.values._
 import com.melvic.dry.lexer.Lexer
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.resolver
-import com.melvic.dry.resolver.{Locals, Resolve}
+import com.melvic.dry.resolver.{Locals, Resolve, Scopes}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
@@ -36,20 +36,26 @@ object Interpret {
     recurse(declarations, Value.Unit)
   }
 
-  //noinspection SpellCheckingInspection
-  def script(source: String, env: Env, oldLocals: Locals, sourcePaths: List[Path]): Result[(Value, Locals)] =
+  // noinspection SpellCheckingInspection
+  def script(
+      source: String,
+      env: Env,
+      scopes: Scopes,
+      sourcePaths: List[Path]
+  ): Result[(Value, Scopes)] =
     for {
-      tokens <- Lexer.scanTokens(source)
-      decls  <- Parser.fromTokens(tokens).parse.result
-      locals <- Resolve.resolveAll(decls)(resolver.Context.default).map(_.locals ++ oldLocals)
-      value  <- Interpret.declarations(decls, env, locals, sourcePaths)
-    } yield (value, locals)
+      tokens  <- Lexer.scanTokens(source)
+      decls   <- Parser.fromTokens(tokens).parse.result
+      context <- Resolve.resolveAll(decls)(resolver.Context.default.copy(scopes = scopes))
+      value   <- Interpret.declarations(decls, env, context.locals, sourcePaths)
+    } yield (value, context.scopes)
 
-  def expression(source: String, env: Env): Result[Value] =
+  def expression(source: String, env: Env, scopes: Scopes): Result[Value] =
     for {
-      tokens <- Lexer.scanTokens(source)
-      expr   <- Parser.fromTokens(tokens).expression.result
-      value  <- Evaluate.expr(Context(expr, env, Locals.empty, Nil))
+      tokens  <- Lexer.scanTokens(source)
+      expr    <- Parser.fromTokens(tokens).expression.result
+      context <- Resolve.expr(expr)(resolver.Context.default.copy(scopes = scopes))
+      value   <- Evaluate.expr(Context(expr, env, context.locals, Nil))
     } yield value
 
   val natives: Env = Env.empty
