@@ -5,10 +5,14 @@ import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction.ScopesFunction
 import com.melvic.dry.result.Failure.ResolverError
 import com.melvic.dry.result.Result
-import com.melvic.dry.result.Result.ResultCoAlg
+import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult
 
 object Scopes {
+  type Scopes = List[Scope]
+
+  def empty: Scopes = List.empty[Scope]
+
   def start: ScopesFunction =
     scopes => (Map.empty[String, Boolean] :: scopes).ok
 
@@ -26,7 +30,7 @@ object Scopes {
   def put(name: String): ScopesFunction =
     mapHeadOk(_ + (name -> true))
 
-  def mapHead(update: ResultCoAlg[Scope]): ScopesFunction = {
+  def mapHead(update: ResultFrom[Scope]): ScopesFunction = {
     case Nil           => (Scopes.start >=> mapHead(update))(Nil)
     case scope :: rest => update(scope).map(_ :: rest)
   }

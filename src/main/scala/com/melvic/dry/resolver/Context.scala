@@ -1,7 +1,7 @@
 package com.melvic.dry.resolver
 
 final case class Context(
-    scopes: List[Scope],
+    scopes: Scopes,
     locals: Locals,
     functionType: FunctionType,
     classType: ClassType

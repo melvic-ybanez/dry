@@ -2,13 +2,11 @@ package com.melvic.dry.tests
 
 import com.melvic.dry.interpreter.{Env, Repl, Value}
 import com.melvic.dry.lexer.Lexemes
-import com.melvic.dry.resolver.Locals
+import com.melvic.dry.resolver.{Locals, Scopes}
 import com.melvic.dry.tests.ReplSpec.{Active, Exited, TestRepl}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-
-import java.text.DecimalFormat
 
 class ReplSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks {
   "Literal values" should "evaluate to themselves" in forAll { (i: Int, d: Double, s: String, b: Boolean) =>
@@ -54,14 +52,14 @@ object ReplSpec {
     override def write(value: Value): Unit =
       lastValue = Some(value)
 
-    override def continue(env: Env, locals: Locals): Unit =
+    override def continue(env: Env, scopes: Scopes): Unit =
       status = Active
 
     override def exit(): Unit =
       status = Exited
 
     def runInput(input: String): Unit =
-      start(input, Env.empty, Locals.empty)
+      start(input, Env.empty, Scopes.empty)
   }
 
   object TestRepl {
