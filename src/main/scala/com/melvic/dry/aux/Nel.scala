@@ -2,6 +2,8 @@ package com.melvic.dry.aux
 
 import com.melvic.dry.aux.Nel.{Many, One}
 
+import scala.annotation.tailrec
+
 /**
  * Non-empty list
  */
@@ -22,11 +24,22 @@ sealed trait Nel[+A] {
       case Many(head, tail) => head :: (tail ++ that)
     }
 
+  def foldLeft[B](init: B)(f: (B, A) => B): B = {
+    @tailrec
+    def recurse(acc: B, rest: Nel[A]): B =
+      rest match {
+        case One(value)       => f(acc, value)
+        case Many(head, tail) => recurse(f(acc, head), tail)
+      }
+
+    recurse(init, this)
+  }
+
+  def toList: List[A] =
+    foldLeft(List.empty[A]) { case (acc, value) => value :: acc }.reverse
+
   def length: Int =
-    this match {
-      case One(_)        => 1
-      case Many(_, tail) => 1 + tail.length
-    }
+    foldLeft(0) { case (sum, _) => sum + 1 }
 }
 
 object Nel {
