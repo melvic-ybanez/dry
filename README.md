@@ -6,7 +6,9 @@ Dry is a dynamically-typed, high-level programming language currently being writ
 
 ### Contents
 1. [Installation](#installation)
-1. Getting Started
+1. [Getting Started](#getting-started)
+   - [Starting the REPL](#starting-the-repl)
+   - [Running a Dry Script](#running-a-dry-script)
 1. [Running the tests](#running-the-tests)
 1. Examples and Tests
    - [General](https://github.com/melvic-ybanez/dry/blob/main/examples/demo.dry)
@@ -17,14 +19,92 @@ Dry is a dynamically-typed, high-level programming language currently being writ
 1. [Grammar](#grammar)
 
 # Installation
-Installation instructions will be provided after the first release.
+
+1. The easiest way to install Dry on your system is to download a Dry distributable, which is 
+   just a jar file, from the [releases](https://github.com/melvic-ybanez/dry/releases) page. 
+   I recommend you choose the one from the latest release. You can put the jar file in a directory of your choosing.
+1. Install [Java](https://www.java.com/en/), if you haven't already. 
+1. Since Dry is a Scala application, it is compiled to Java bytecode. This means you can
+   run the Jar file you downloaded in the previous section the same way you run any Java
+   Jar application, using the `java -jar` command.
+
+   Go to the downloaded jar's directory and enter the following:
+
+   ```shell
+   $ java -jar dry-<version>.jar
+   ```
+
+   where `version` is the version of the release you downloaded. You should see a 
+   welcome message in the screen:
+
+   ```
+   Welcome to Dry.
+   Type in expressions and statements for evaluation. Type 'exit' to quit.
+   dry> 
+   ```
+
+   You are now ready to start playing with Dry.
+
+# Getting Started
+
+In Dry, like in some languages, you can either start a REPL, or run a script. This section will show you both.
+
+## Starting the REPL
+
+The welcome message you saw at the end of the [installation](#installation) section indicates that
+you have entered the REPL (read-eval-print-loop) environment. That's what would
+happen if you ran Dry without specifying a path to a Dry script. 
+
+Many languages such as Scala, Python, Haskell, or any of the known Lisp dialects like Clojure, 
+have their own support for REPLs, so programmers coming from a background of any of 
+these languages might already be familiar with it.
+
+The REPL allows you to enter expressions and declarations, and see their evaluated results immediately:
+
+```shell
+dry> 100 + 20 - 8 * 5
+80
+dry> 200
+200
+dry> "hello" + "world"
+helloworld
+dry> let x = 10;
+dry> x * x
+100
+dry> 
+```
+
+To quit the REPL, enter `exit`:
+
+```shell
+dry> exit
+Bye!
+```
+
+## Running a Dry Script
+
+To run a Dry script, you need to save the script to a file first and pass its path
+as an argument to the jar command. For instance, the code you saw at the beginning 
+of this ReadMe file is available in `examples/class_demo.dry` under this repository. We can
+try running that with Dry:
+
+```shell
+$ java -jar dry-<version>.jar <path-to-repo>/examples/class_demo.dry
+quack!
+Woof
+quack!
+1 1 2 3 5
+```
 
 # Running the tests
 The project has a custom sbt command for running the test:
+
 ```
 $ sbt testDry
 ```
+
 If everything works correctly, your console should print a bunch of assertion results. The end of the logs should look like this:
+
 ```
 [Success] Binding third param
 =========== test_modules.dry ===========
@@ -46,6 +126,13 @@ If everything works correctly, your console should print a bunch of assertion re
 Ran 41 tests. Successful: 41. Failed: 0.
 ```
 The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
+
+There is also a set of tests written in Scala, and you can run them like normal
+Scala tests:
+
+```shell
+$ sbt test
+```
 
 # Grammar
 
