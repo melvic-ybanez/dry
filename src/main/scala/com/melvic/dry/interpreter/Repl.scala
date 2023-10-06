@@ -24,8 +24,10 @@ trait Repl {
   }
 
   def start(input: String, env: Env, scopes: Scopes): Unit =
-    if (input == "exit") exit()
-    else {
+    if (input == "exit") {
+      writeSuccess(Value.Str("Bye!"))
+      exit()
+    } else {
       def runExpression(scriptFailures: Nel[Failure]): Unit =
         Interpret.expression(input, env, scopes) match {
           case Left(exprFailures) =>

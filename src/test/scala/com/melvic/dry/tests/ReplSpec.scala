@@ -18,6 +18,7 @@ class ReplSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyC
   it should "quit when the 'exit' command is entered" in {
     val repl = TestRepl.default
     repl.eval("exit")
+    repl.lastValue should be(Some(Value.Str("Bye!")))
     repl.status should be(Exited)
   }
 
