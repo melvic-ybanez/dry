@@ -45,6 +45,23 @@ class ReplSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyC
     assertValue(repl, Value.Num(x.toDouble / 2))
   }
 
+  it should "evaluate expressions and print their results" in forAll { (_x: Int, _y: Int, _z: Int) =>
+    // let's just limit the values to avoid funny formatting of large numbers for now
+    val x = _x % 1000
+    val y = _y % 1000
+    val z = _z % 1000
+
+    val repl = TestRepl.default
+
+    repl.eval(s"$x + $y * $z / 5 ")
+    repl.lastValue should be(Some(Value.Num(x + y * z.toDouble / 5)))
+
+    repl.eval(s"$x % 10")
+    repl.lastValue should be(Some(Value.Num(x % 10)))
+
+    // TODO: Add tests for other operators (e.g. bitwise operators, logical operators, etc.)
+  }
+
   def assertValues(i: Int, d: Double, s: String, b: Boolean)(run: (TestRepl, String) => Unit): Unit = {
     def testValue(input: String, value: Value): Unit = {
       val repl = TestRepl.default

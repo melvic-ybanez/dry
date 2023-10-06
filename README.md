@@ -75,7 +75,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <and>         ::= <equality> ("and" <equality>)*
 <equality>    ::= <comparison> ("!=" | "==" <comparison>)*
 <comparison>  ::= <term> (">" | ">=" | "<" | "<=" <term>)*
-<term>        ::= <factor> ("-" | "+=" | "&" | "|" | "^" | "<<" | ">>"
+<term>        ::= <factor> ("-" | "+" | "&" | "|" | "^" | "<<" | ">>"
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
 <unary>       ::= ("!" | "-") <expression> | <call>

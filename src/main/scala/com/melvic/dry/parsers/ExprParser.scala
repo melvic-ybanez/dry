@@ -83,7 +83,7 @@ private[parsers] trait ExprParser { _: Parser =>
     )
 
   /**
-   * {{{<term> ::= <factor> ("-" | "+=" | "&" | "|" | "^" | "<<" | ">>" | ">>>" <factor>)*}}}
+   * {{{<term> ::= <factor> ("-" | "+" | "&" | "|" | "^" | "<<" | ">>" | ">>>" <factor>)*}}}
    */
   def term: ParseResult[Expr] =
     leftAssocBinary(
