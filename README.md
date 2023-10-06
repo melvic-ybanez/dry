@@ -1,6 +1,9 @@
 # Dry
 
-Dry is a dynamically-typed, high-level programming language currently being written in Scala. 
+Dry is a dynamically-typed, high-level programming language currently being written in Scala.
+
+The image below shows an overview of Dry's syntax via examples. You can learn more about the 
+language [here](#contents).
 
 <img width="875" alt="Screen Shot 2022-11-06 at 11 16 42 PM" src="https://user-images.githubusercontent.com/4519785/200179103-f6b7b544-75ae-47ea-b429-3d25f3427ae6.png">
 
