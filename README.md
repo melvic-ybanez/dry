@@ -8,6 +8,9 @@ language [here](#contents).
 <img width="875" alt="Screen Shot 2022-11-06 at 11 16 42 PM" src="https://user-images.githubusercontent.com/4519785/200179103-f6b7b544-75ae-47ea-b429-3d25f3427ae6.png">
 
 ### Contents
+1. [Introduction](#introduction)
+   - [What is Dry](#what-is-dry)
+   - [Why Use Dry](#why-use-dry)
 1. [Installation](#installation)
 1. [Getting Started](#getting-started)
    - [Starting the REPL](#starting-the-repl)
@@ -20,6 +23,36 @@ language [here](#contents).
    - [Modules](https://github.com/melvic-ybanez/dry/blob/main/tests/test_imports.dry)
    - More [here](https://github.com/melvic-ybanez/dry/blob/main/tests/) and [here](https://github.com/melvic-ybanez/dry/blob/main/examples/)
 1. [Grammar](#grammar)
+
+# Introduction
+
+## What is Dry
+
+You can think of Dry as a Python-like programming language with curly braces and 
+better support for functional programming (e.g. multi-line lambdas and partial 
+function application). Dry is both _dynamically_ and _strongly_ typed, just like Python.
+
+Dry was also heavily influenced by the Lox language, and you'll see why in the next section.
+
+The name doesn't actually mean "Don't Repeat Yourself" (though maybe it can be a good slogan).
+Dry was named after the eye condition from which I suffered for about 2 years.
+
+## Why Use Dry
+
+Dry started as a hobby project, when I was going through the first part of
+[Crafting Interpreters](https://craftinginterpreters.com/). This is why Lox, the object
+language in that book, had also influenced the design of Dry.
+
+However, as Dry started to grow, it became more and more of a language
+for cases where Python would normally shine. 
+It became a language for people like myself back then (when I used Python at work), 
+who would sometimes wish Python had multi-line lambdas, supported braces and not overly rely on indentations.
+
+Of course Dry doesn't have the libraries and tools that Python has, but if the following
+are true about you or your requirements, then you might want to give Dry a try:
+1. You want an expressive language to write scripts, and you don't need the help of a static type system.
+1. You don't need much tools and libraries for your project.
+1. You like Python but want to use first-class functions a lot.
 
 # Installation
 
