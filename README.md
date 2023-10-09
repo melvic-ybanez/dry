@@ -186,11 +186,11 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <for>         ::= "for" "(" (";" | <let> | <expr-stmt>)
       (<expression>? ";") <expression> ")" <statement>
 <return>      ::= "return" <expression>? ";"
-<import>      ::= "import" <identifier> ("." <identifier>)* ";"
+<import>      ::= "import" <identifier>("."<identifier>)* ";"
 <expression>  ::= <assignment>
-<assignment>  ::= (<call> ".")? <identifier> "=" <assignment> | <lambda>
+<assignment>  ::= (<call>".")?<identifier> "=" <assignment> | <lambda>
 <call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)
-<identifier>  ::= <alpha> (<alpha>? <whole-num>?)*
+<identifier>  ::= <alpha>(<alpha>?<digit>?)*
 <lambda>      ::= "lambda" <params> <block> | <or>
 <block>       ::= "{" <declaration>* "}"
 <params>      ::= "(" (<identifier> | ("," <identifier>)*)? ")"
@@ -204,8 +204,10 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <unary>       ::= ("!" | "-") <expression> | <call>
 <primary>     ::= "false" | "true" | "none" | <number> | <string>
       | "self" | <identifier> | "(" <expression> ")"
-<number>      ::= <whole-num> ("." <whole-num>*)?
-<string>      ::= '"' (.?"\n"?)* '"'
+<number>      ::= <sign>?<nat>("."<nat>)?
+<sign>        ::= "-" | "+"
+<string>      ::= '"'(.?"\n"?)*'"'
 <alpha>       ::= 'a' ... 'z' | 'A' ... 'Z'
-<whole-num>   ::= '0' ... '9'
+<nat>         ::= <digit><digit>*
+<digit>       ::= '0' ... '9'
 ```

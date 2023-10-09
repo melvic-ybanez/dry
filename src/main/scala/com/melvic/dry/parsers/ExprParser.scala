@@ -21,7 +21,7 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   /**
-   * {{{<assignment> ::= (<call> ".")? <identifier> "=" <assignment> | <lambda>}}}
+   * {{{<assignment> ::= (<call>".")?<identifier> "=" <assignment> | <lambda>}}}
    */
   def assignment: ParseResult[Expr] = {
     // parse the left value as a lambda to cover all possible expression (including chained `get`s)

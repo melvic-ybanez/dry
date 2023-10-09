@@ -62,7 +62,7 @@ final case class Lexer(
       case ' ' | '\r' | '\t'     => lexer.ok
       case '\n'                  => lexer.nextLine.ok
       case '"'                   => lexer.scanString
-      case c if Lexer.isDigit(c) => lexer.scanDigit.ok
+      case c if Lexer.isDigit(c) => lexer.scanNumber.ok
       case c if Lexer.isAlpha(c) => lexer.scanIdentifier.ok
       case c                     => Result.fail(LexerError.invalidCharacter(line, c))
     }
@@ -114,7 +114,7 @@ final case class Lexer(
     advanceWhile(lexer => lexer.peek != '\n' && !lexer.isAtEnd)
 
   /**
-   * {{{<string> ::= '"' (.?"\n"?)* '"'}}}
+   * {{{<string> ::= '"'(.?"\n"?)*'"'}}}
    */
   private def scanString: Result[Lexer] = {
     @tailrec
@@ -134,11 +134,13 @@ final case class Lexer(
 
   /**
    * {{{
-   *   <number> ::= <whole-num> ("." <whole-num>*)?
-   *   <whole-num> ::= '0' ... '9'
+   *  <number> ::= <sign>?<nat>("."<nat>)?
+   *  <sign>   ::= "-" | "+"
+   *  <nat>    ::= <digit><digit>*
+   *  <digit>  ::= '0' ... '9'
    * }}}
    */
-  private def scanDigit: Lexer = {
+  private def scanNumber: Lexer = {
     val wholeNumber = advanceWhile(lexer => Lexer.isDigit(lexer.peek))
     val withFractional =
       if (wholeNumber.peek == '.' && Lexer.isDigit(wholeNumber.peekNext))
@@ -148,7 +150,7 @@ final case class Lexer(
   }
 
   /**
-   * {{{<identifier> ::= <alpha> (<alpha>? <whole-num>?)*}}}
+   * {{{<identifier> ::= <alpha>(<alpha>?<digit>?)*}}}
    */
   private def scanIdentifier: Lexer = {
     val lexer = advanceWhile(lexer => Lexer.isAlphanumeric(lexer.peek))

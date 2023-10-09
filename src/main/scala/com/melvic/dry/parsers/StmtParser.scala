@@ -152,7 +152,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   }
 
   /**
-   * {{{<import> ::= "import" <identifier> ("." <identifier>)* ";"}}}
+   * {{{<import> ::= "import" <identifier>("."<identifier>)* ";"}}}
    */
   def importStatement: ParseResult[Stmt] = {
     def parseComponents(parser: Parser, components: List[Token]): ParseResult[List[Token]] =
