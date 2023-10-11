@@ -95,7 +95,9 @@ object Repl {
       )
 
     override def writeFailures(failures: List[Failure]): Unit =
-      failures.foreach(failure => System.err.println(Failure.show(failure)))
+      failures.foreach(failure =>
+        System.err.println(s"${Console.RED}${Failure.show(failure)}${Console.RESET}")
+      )
   }
 
   def live: Repl = new LiveRepl
