@@ -57,17 +57,21 @@ trait Repl {
 object Repl {
   private class LiveRepl extends Repl {
     override def writeSuccess(value: Value): Unit =
-      println(Value.show(value))
+      println(s"${Console.GREEN}${Value.show(value)}${Console.RESET}")
 
     override def continue(env: Env, scopes: Scopes): Unit = {
-      val input = readLine("dry> ")
+      val input = readLine(s"${Console.YELLOW}dry> ${Console.RESET}")
       start(input, env, scopes)
     }
 
     override def exit(): Unit = ()
 
     override def displayWelcomeMessage(): Unit =
-      println("Welcome to Dry.\nType in expressions and statements for evaluation. Type 'exit' to quit.")
+      println(
+        s"${Console.BLUE}Welcome to Dry.\n" +
+          s"Type in expressions and statements for evaluation. " +
+          s"Type 'exit' to quit.${Console.RESET}"
+      )
 
     override def writeFailures(failures: List[Failure]): Unit =
       failures.foreach(failure => System.err.println(Failure.show(failure)))

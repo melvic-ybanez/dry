@@ -71,7 +71,13 @@ object Callable {
       isInit: Boolean
   ) extends FunctionLike(function.params, function.body, locals, sourcePaths) {
     def bind(instance: DObject): Function =
-      Function(function, Env.fromEnclosing(enclosing).define(Lexemes.Self, instance), locals, sourcePaths, isInit)
+      Function(
+        function,
+        Env.fromEnclosing(enclosing).define(Lexemes.Self, instance),
+        locals,
+        sourcePaths,
+        isInit
+      )
   }
 
   final case class Lambda(lambda: Expr.Lambda, enclosing: Env, locals: Locals, sourcePaths: List[Path])

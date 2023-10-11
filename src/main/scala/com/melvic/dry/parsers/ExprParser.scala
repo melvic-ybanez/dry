@@ -2,8 +2,7 @@ package com.melvic.dry.parsers
 
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.ast.Decl.StmtDecl
-import com.melvic.dry.ast.{Expr, Stmt}
+import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.ReturnStmt
 import com.melvic.dry.lexer.Lexemes

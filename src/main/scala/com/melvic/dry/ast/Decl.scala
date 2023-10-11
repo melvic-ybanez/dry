@@ -37,9 +37,8 @@ object Decl {
   final case class ClassDecl(name: Token, methods: List[Def]) extends Decl
 
   object ClassDecl {
-    def show: Show[ClassDecl] = {
-      case ClassDecl(name, methods) =>
-        show"${Lexemes.Class} $name ${BlockStmt.fromDecls(methods: _*)}"
+    def show: Show[ClassDecl] = { case ClassDecl(name, methods) =>
+      show"${Lexemes.Class} $name ${BlockStmt.fromDecls(methods: _*)}"
     }
   }
 
@@ -49,6 +48,6 @@ object Decl {
     case Def(name, params, body) =>
       s"${Lexemes.Def} $name(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
     case classDecl: ClassDecl => ClassDecl.show(classDecl)
-    case stmt: Stmt => Stmt.show(stmt)
+    case stmt: Stmt           => Stmt.show(stmt)
   }
 }

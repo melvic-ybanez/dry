@@ -39,7 +39,6 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
       // make sure to convert a successful result to a failing one
       .flatMap(_ => ParseResult.failAll(moreErrors, newParser))
 
-
   def fold[B](ifError: (Nel[Failure], Parser) => B)(ifSuccess: Step[A] => B): B =
     result match {
       case Left(errors) => ifError(errors, parser)
