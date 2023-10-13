@@ -35,12 +35,12 @@ function application). Dry is both _dynamically_ and _strongly_ typed, just like
 Dry was also heavily influenced by the Lox language, and you'll see why in the next section.
 
 The name doesn't actually mean "Don't Repeat Yourself" (though maybe it can be a good slogan).
-Dry was named after the eye condition from which I suffered for about 2 years.
+Dry was rather named after the eye condition from which I suffered for about 2 years.
 
 ## Why Use Dry
 
 Dry started as a hobby project, when I was going through the first part of
-[Crafting Interpreters](https://craftinginterpreters.com/). This is why Lox, the object
+[Crafting Interpreters](https://craftinginterpreters.com/). This is how Lox, the object
 language in that book, had also influenced the design of Dry.
 
 However, as Dry started to grow, it became more and more of a language
@@ -56,8 +56,7 @@ are true about you or your requirements, then you might want to give Dry a try:
 
 # Installation
 
-1. The easiest way to install Dry on your system is to download a Dry distributable, which is 
-   just a jar file, from the [releases](https://github.com/melvic-ybanez/dry/releases) page. 
+1. The easiest way to install Dry on your system is to download a Dry executable (a Jar file) from the [releases](https://github.com/melvic-ybanez/dry/releases) page. 
    I recommend you choose the one from the latest release. You can put the jar file in a directory of your choosing.
 1. Install [Java](https://www.java.com/en/), if you haven't already. 
 1. Since Dry is a Scala application, it is compiled to Java bytecode. This means you can
@@ -92,7 +91,7 @@ you have entered the REPL (read-eval-print-loop) environment. That's what would
 happen if you ran Dry without specifying a path to a Dry script. 
 
 Many languages such as Scala, Python, Haskell, or any of the known Lisp dialects like Clojure, 
-have their own support for REPLs, so programmers coming from a background of any of 
+have their own supports for REPLs, so programmers coming from a background of any of 
 these languages might already be familiar with it.
 
 The REPL allows you to enter expressions and declarations, and see their evaluated results immediately:
@@ -100,13 +99,21 @@ The REPL allows you to enter expressions and declarations, and see their evaluat
 ```shell
 dry> 100 + 20 - 8 * 5
 80
-dry> 200
-200
 dry> "hello" + "world"
 helloworld
 dry> let x = 10;
 dry> x * x
 100
+dry> def sum(x, y) { return x + y; }
+dry> sum(10, 9)
+19
+dry> sum(11, (lambda(y) { return y * y; })(2))
+15
+dry> let one_plus = sum(1, _);   // partial application
+dry> one_plus(5)
+6
+dry> one_plus(6)
+7
 dry> 
 ```
 
@@ -131,6 +138,8 @@ Woof
 quack!
 1 1 2 3 5
 ```
+
+As shown above, Dry source files end with the `.dry`.
 
 # Running the tests
 The project has a custom sbt command for running the test:
