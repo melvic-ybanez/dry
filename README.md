@@ -216,7 +216,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <number>      ::= <sign>?<nat>("."<nat>)?
 <sign>        ::= "-" | "+"
 <string>      ::= '"'(.?"\n"?)*'"'
-<alpha>       ::= 'a' ... 'z' | 'A' ... 'Z'
+<alpha>       ::= 'a' ... 'z' | 'A' ... 'Z' | '_'
 <nat>         ::= <digit><digit>*
 <digit>       ::= '0' ... '9'
 ```

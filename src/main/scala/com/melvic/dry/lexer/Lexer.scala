@@ -200,6 +200,10 @@ object Lexer {
   private def isDigit(char: Char): Boolean =
     Character.isDigit(char)
 
+
+  /**
+   * {{{<alpha> ::= 'a' ... 'z' | 'A' ... 'Z' | '_'}}}
+   */
   private def isAlpha(char: Char): Boolean =
     (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char == '_'
 
