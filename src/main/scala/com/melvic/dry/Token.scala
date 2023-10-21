@@ -14,7 +14,15 @@ object Token {
       else None
   }
 
-  object TokenType extends Arithmetic with Bitwise with Comparison with Literals with Keywords with Others {
+  object TokenType extends Arithmetic with Bitwise with Comparison with Literals with Keywords {
+    case object Identifier extends TokenType
+    case object LeftParen extends TokenType
+    case object RightParen extends TokenType
+    case object LeftBrace extends TokenType
+    case object RightBrace extends TokenType
+    case object Comma extends TokenType
+    case object Dot extends TokenType
+    case object Semicolon extends TokenType
     case object Eof extends TokenType
   }
 
@@ -45,18 +53,7 @@ object Token {
     case object LessEqual extends TokenType
   }
 
-  trait Others {
-    case object LeftParen extends TokenType
-    case object RightParen extends TokenType
-    case object LeftBrace extends TokenType
-    case object RightBrace extends TokenType
-    case object Comma extends TokenType
-    case object Dot extends TokenType
-    case object Semicolon extends TokenType
-  }
-
   trait Literals {
-    case object Identifier extends TokenType
     case class Str private (value: String) extends TokenType
     case class Number private (value: Double) extends TokenType
   }
