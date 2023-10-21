@@ -104,10 +104,10 @@ private[parsers] trait ExprParser { _: Parser =>
     leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star, TokenType.Modulo)
 
   /**
-   * {{{<unary> ::= ("!" | "-") <expression> | <call>}}}
+   * {{{<unary> ::= ("!" | "-" | "+") <expression> | <call>}}}
    */
   def unary: ParseResult[Expr] =
-    matchAny(TokenType.Not, TokenType.Minus)
+    matchAny(TokenType.Not, TokenType.Minus, TokenType.Plus)
       .map { parser =>
         val operator = parser.previousToken
         parser.unary.mapValue(Unary(operator, _))

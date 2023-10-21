@@ -210,7 +210,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <term>        ::= <factor> ("-" | "+" | "&" | "|" | "^" | "<<" | ">>"
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
-<unary>       ::= ("!" | "-") <expression> | <call>
+<unary>       ::= ("!" | "-" | "+") <expression> | <call>
 <primary>     ::= "false" | "true" | "none" | <number> | <string>
       | "self" | <identifier> | "(" <expression> ")"
 <number>      ::= <sign>?<nat>("."<nat>)?

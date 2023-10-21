@@ -18,6 +18,7 @@ import com.melvic.dry.result.Result.implicits._
 
 import scala.annotation.nowarn
 
+//noinspection ScalaWeakerAccess
 private[eval] trait EvalExpr {
   def expr(implicit context: Context[Expr]): Out = node match {
     case lambda: Lambda         => Evaluate.lambda(lambda)
@@ -81,14 +82,17 @@ private[eval] trait EvalExpr {
     Evaluate
       .expr(node.operand)
       .flatMap { operand =>
+        def unaryForNum(f: Double => Double) =
+          Result.fromOption(
+            operand.toNum.map(num => Num(f(num.value))),
+            RuntimeError.invalidOperand(node.operator, "number" :: Nil)
+          )
+
         node.operator match {
-          case TokenType.Minus(_, _) =>
-            Result.fromOption(
-              operand.toNum.map(num => Num(-num.value)),
-              RuntimeError.invalidOperand(node.operator, "number" :: Nil)
-            )
-          case TokenType.Not(_, _) => Bool(!isTruthy(operand)).ok
-          case _                   => VNone.ok
+          case TokenType.Minus(_, _) => unaryForNum(-_)
+          case TokenType.Plus(_, _)  => unaryForNum(identity)
+          case TokenType.Not(_, _)   => Bool(!isTruthy(operand)).ok
+          case _                     => VNone.ok
         }
       }
 
