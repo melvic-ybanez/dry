@@ -54,8 +54,8 @@ final case class Lexer(
       case '>' =>
         lexer
           .matchChar('>')
-          .fold(lexer.addTokenOrElse('=', TokenType.GreaterEqual, TokenType.Greater))(l =>
-            l.matchChar('>').fold(l.addToken(TokenType.RightShift).ok)(_.addToken(TokenType.URightShift).ok)
+          .fold(lexer.addTokenOrElse('=', TokenType.GreaterEqual, TokenType.Greater))(
+            _.addTokenOrElse('>', TokenType.URightShift, TokenType.RightShift)
           )
       case '/' =>
         lexer.matchChar('/').fold(lexer.addToken(TokenType.Slash).ok)(_.scanComment.ok)
@@ -199,7 +199,6 @@ object Lexer {
 
   private def isDigit(char: Char): Boolean =
     Character.isDigit(char)
-
 
   /**
    * {{{<alpha> ::= 'a' ... 'z' | 'A' ... 'Z' | '_'}}}
