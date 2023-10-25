@@ -42,7 +42,7 @@ object Failure {
   sealed trait ParseError extends Failure
 
   object ParseError {
-    private final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
+    final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
 
     def expected(start: Token, end: String, after: String): ParseError =

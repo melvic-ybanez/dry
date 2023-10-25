@@ -7,8 +7,6 @@ import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.values.Callable
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue}
-import com.melvic.dry.result.Failure
-import com.melvic.dry.result.Failure.ParseError.InvalidAssignmentTarget
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Failure.RuntimeError._
 import com.melvic.dry.result.Result.implicits.ToResult
