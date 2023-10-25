@@ -32,7 +32,10 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
     copy(parser = f(parser))
 
   def flatMapParser(f: Parser => ParseResult[_]): ParseResult[A] =
-    f(parser).copy(result = result)
+    f(parser) match {
+      case ParseResult(Left(errors), _)     => ParseResult(Result.failAll(errors), parser)
+      case ParseResult(Right(_), newParser) => ParseResult(result, newParser)
+    }
 
   def combineErrors(moreErrors: Nel[Failure], newParser: Parser): ParseResult[A] =
     leftMap((errors, _) => (errors ++ moreErrors, newParser))

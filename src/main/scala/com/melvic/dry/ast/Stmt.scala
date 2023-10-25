@@ -8,6 +8,7 @@ import com.melvic.dry.{Show, Token}
 
 sealed trait Stmt extends Decl
 
+//noinspection SpellCheckingInspection
 object Stmt {
   final case class ExprStmt(expr: Expr) extends Stmt
 
@@ -20,7 +21,7 @@ object Stmt {
     def fromDecls(declarations: Decl*): BlockStmt =
       BlockStmt(declarations.toList)
 
-    def fromStmts(stmts: Stmt*): BlockStmt =
+    def fromStatements(stmts: Stmt*): BlockStmt =
       fromDecls(stmts.map(StmtDecl(_)): _*)
 
     def append(block: Stmt, child: Decl): BlockStmt =
@@ -42,10 +43,10 @@ object Stmt {
 
     def show: Show[IfStmt] = {
       case IfThen(condition, thenBranch) =>
-        s"if (${Expr.show(condition)}) ${BlockStmt.show(BlockStmt.fromStmts(thenBranch))}"
+        s"if (${Expr.show(condition)}) ${BlockStmt.show(BlockStmt.fromStatements(thenBranch))}"
       case IfThenElse(condition, thenBranch, elseBranch) =>
         IfStmt.show(IfThen(condition, thenBranch)) + " else " + BlockStmt.show(
-          BlockStmt.fromStmts(elseBranch)
+          BlockStmt.fromStatements(elseBranch)
         )
     }
   }

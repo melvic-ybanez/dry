@@ -1,5 +1,5 @@
 def test_function_partial_application() {
-    let sum = lambda(x, y) { return x + y };
+    let sum = lambda(x, y) { return x + y; };
     let onePlus = sum(1, _);
 
     assert_equal("Supply first function arg only", onePlus(3), 4);
