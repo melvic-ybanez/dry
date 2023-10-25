@@ -133,11 +133,13 @@ private[parsers] trait ExprParser { _: Parser =>
           parser.expression.flatMap(step => recurse(step.value :: Nil, step.next))
         else ParseResult.succeed(Nil, parser)
 
-      resultForArgs.parser
-        .consume(TokenType.RightParen, ")", "function call arguments")
-        .flatMap(step =>
-          resultForArgs.mapValue(callOrLambda(callee, _, step.value)).mapParser(_ => step.next)
-        )
+      resultForArgs.flatMap { case Step(_, next) =>
+        next
+          .consume(TokenType.RightParen, ")", "function call arguments")
+          .flatMap(step =>
+            resultForArgs.mapValue(callOrLambda(callee, _, step.value)).mapParser(_ => step.next)
+          )
+      }
     }
 
     primary.flatMap {

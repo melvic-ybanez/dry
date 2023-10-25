@@ -1,8 +1,10 @@
 // Based on the examples from "Crafting Interpreters"
 def test_scopes() {
+    // these aren't really globals though
     let a = "global a";
     let b = "global b";
     let c = "global c";
+
     {
         let a = "outer a";
         let b = "outer b";
@@ -26,3 +28,9 @@ def test_scopes() {
 }
 
 test_scopes();
+
+// global
+let a = "before";
+assert_equal("a = 'before'", a, "before");
+a = "after";
+assert_equal("a = 'after'", a, "after");

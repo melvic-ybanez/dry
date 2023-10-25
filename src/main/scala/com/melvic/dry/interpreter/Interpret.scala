@@ -84,6 +84,7 @@ object Interpret {
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))
 
+  // TODO: Automatically generate fields from error names
   private def errors: Env => DClass = DClass("Errors", Map.empty, _)
     .addField("DIVISION_BY_ZERO", Str(Keys.Errors.DivisionByZero))
     .addField("INVALID_OPERAND", Str(Keys.Errors.InvalidOperand))

@@ -11,6 +11,7 @@ import com.melvic.dry.parsers.Step._
 
 import scala.util.chaining.scalaUtilChainingOps
 
+//noinspection SpellCheckingInspection
 private[parsers] trait DeclParser extends StmtParser { _: Parser =>
 
   /**

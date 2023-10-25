@@ -15,6 +15,7 @@ import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.implicits._
 
+//noinspection ScalaWeakerAccess
 private[eval] trait EvalStmt {
   def stmt(implicit context: Context[Stmt]): Out = node match {
     case expr: ExprStmt         => Evaluate.exprStmt(expr)

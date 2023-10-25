@@ -17,15 +17,15 @@ object Failure {
   def line(line: Int, message: String): Failure =
     Line(line, "", message)
 
-  def showFullLine(line: Int, where: String, message: String): String =
+  private def showFullLine(line: Int, where: String, message: String): String =
     s"${showLine(line)} Error $where: $message"
 
-  def showLineAndMessage(line: Int, message: String): String =
+  private def showLineAndMessage(line: Int, message: String): String =
     showFullLine(line, "", message)
 
   object LexerError {
-    final case class InvalidCharacter(line: Int, char: Char) extends LexerError
-    final case class UnterminatedString(line: Int) extends LexerError
+    private final case class InvalidCharacter(line: Int, char: Char) extends LexerError
+    private final case class UnterminatedString(line: Int) extends LexerError
 
     def invalidCharacter(line: Int, char: Char): Failure =
       InvalidCharacter(line, char)
@@ -42,7 +42,7 @@ object Failure {
   sealed trait ParseError extends Failure
 
   object ParseError {
-    final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
+    private final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
 
     def expected(start: Token, end: String, after: String): ParseError =
@@ -140,11 +140,11 @@ object Failure {
   sealed trait ResolverError extends Failure
 
   object ResolverError {
-    final case class VariableAlreadyDefined(name: Token) extends ResolverError
-    final case class DeclaredButNotDefined(name: Token) extends ResolverError
-    final case class NotInsideAFunction(keyword: Token) extends ResolverError
-    final case class NotInsideAClass(keyword: Token) extends ResolverError
-    final case class ReturnFromInit(keyword: Token) extends ResolverError
+    private final case class VariableAlreadyDefined(name: Token) extends ResolverError
+    private final case class DeclaredButNotDefined(name: Token) extends ResolverError
+    private final case class NotInsideAFunction(keyword: Token) extends ResolverError
+    private final case class NotInsideAClass(keyword: Token) extends ResolverError
+    private final case class ReturnFromInit(keyword: Token) extends ResolverError
 
     def variableAlreadyDefined(name: Token): ResolverError =
       VariableAlreadyDefined(name)

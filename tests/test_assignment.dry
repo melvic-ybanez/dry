@@ -1,0 +1,13 @@
+def test_associativity() {
+    let a = "a";
+    let b = "b";
+    let c = "c";
+
+    // assignment is right-associative
+    a = b = c;
+    assert_equal("a is equal to c", a, c);
+    assert_equal("b is equal to c", b, c);
+    assert_equal("c is equal to c", c, c);
+}
+
+test_associativity();
