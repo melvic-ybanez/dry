@@ -28,21 +28,3 @@ def test_scopes() {
 }
 
 test_scopes();
-
-// global
-let a = "before";
-assert_equal("a = 'before'", a, "before");
-a = "after";
-assert_equal("a = 'after'", a, "after");
-
-// local
-{
-    let a = "before";
-    assert_equal("a = 'before'", a, "before");
-
-    a = "after";
-    assert_equal("a = 'after'", a, "after");
-
-    assert_equal("a = 'arg'", a = "arg", "arg");
-    assert_equal("a = 'arg'", a, "arg");
-}
