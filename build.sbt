@@ -1,11 +1,11 @@
-ThisBuild / version := "0.1.3-SNAPSHOT"
+ThisBuild / version := "0.1.3"
 
 ThisBuild / scalaVersion := "2.13.8"
 
 lazy val root = (project in file("."))
   .settings(
     name := "dry",
-    assembly / assemblyJarName := "dry-0.1.3-SNAPSHOT.jar",
+    assembly / assemblyJarName := "dry-0.1.3.jar",
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic" % "3.2.17",
       "org.scalatest" %% "scalatest" % "3.2.17" % "test",
