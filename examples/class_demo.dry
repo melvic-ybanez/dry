@@ -1,3 +1,4 @@
+
 class Pet {
   // default implementation
   def make_sound() {

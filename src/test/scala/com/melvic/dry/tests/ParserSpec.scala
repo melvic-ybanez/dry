@@ -30,7 +30,7 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropert
     error should matchPattern { case Left(One(InvalidAssignmentTarget(_))) => }
   }
 
-  it should "not be a expression with prefix operator" in {
+  it should "not be an expression with prefix operator" in {
     val error = interpret("""let a = "a"; !a = "value";""")
     error should matchPattern { case Left(One(InvalidAssignmentTarget(_))) => }
   }

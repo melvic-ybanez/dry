@@ -10,6 +10,13 @@ def test_associativity() {
     assert_equal("c is equal to c", c, c);
 }
 
+def test_rhs() {
+    let a = "before";
+    let c = a = "after";
+    assert_equal("a = 'after'", a, "after");
+    assert_equal("c = 'after'", c, "after");
+}
+
 test_associativity();
 
 // global

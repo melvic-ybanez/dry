@@ -1,0 +1,14 @@
+class DisplayFib {
+    def compute() {
+        for (let i = self.start; i <= self.end; i = i + 1) {
+            print(str(fib(i)) + " ");
+        }
+    }
+
+    def from(start) { self.start = start; return self; }
+
+    def to(end) { self.end = end; return self; }
+}
+
+DisplayFib().from(1).to(5).compute();
+
