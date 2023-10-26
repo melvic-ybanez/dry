@@ -11,7 +11,7 @@ import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 /**
- * Houses the test cases for the parsing phase that are difficult to implement using Dry's tests (because the
+ * Houses the test cases for the parsing phase that are difficult to implement in Dry (because the
  * parser would fail in the first place).
  *
  * Note: many of the test cases here are based on the lox test suite:
