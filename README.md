@@ -5,7 +5,7 @@ Dry is a dynamically-typed, high-level programming language currently being writ
 The image below shows an overview of Dry's syntax via examples. You can learn more about the 
 language [here](#contents).
 
-<img width="875" alt="Screen Shot 2022-11-06 at 11 16 42 PM" src="https://user-images.githubusercontent.com/4519785/200179103-f6b7b544-75ae-47ea-b429-3d25f3427ae6.png">
+<img width="875" alt="Sample Dry Program" src="https://github.com/melvic-ybanez/dry/assets/4519785/772dedf3-3ab6-4410-b82f-03ced48e5f44">
 
 ### Contents
 1. [Introduction](#introduction)
@@ -168,7 +168,7 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 46 tests. Successful: 46. Failed: 0.
+Ran 50 tests. Successful: 50. Failed: 0.
 ```
 The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 
