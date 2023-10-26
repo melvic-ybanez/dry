@@ -17,12 +17,23 @@ object Assertions {
   private[interpreter] def assertEqual(env: Env): Callable =
     Callable(3, env) { case description :: value1 :: value2 :: _ =>
       getTestData(env).foreach { case (testsCount, successCount, _) =>
-        if (value1 == value2) {
-          env.define(SuccessCount, Num(successCount.value + 1))
-          displaySuccess(description)
-        } else displayEqualError(description, value1, value2)
+        if (value1 == value2)
+          addSuccess(env, description, successCount)
+        else displayEqualError(description, value1, value2)
 
-        env.define(TestCount, Num(testsCount.value + 1))
+        updateTestsCount(env, testsCount)
+      }
+      Value.unit.ok
+    }
+
+  private[interpreter] def assertTrue(env: Env): Callable =
+    Callable(2, env) { case description :: condition :: _ =>
+      getTestData(env).foreach { case (testsCount, successCount, _) =>
+        condition match {
+          case Value.Bool(true) => addSuccess(env, description, successCount)
+          case _ => displayError(description, show"$condition is not true")
+        }
+        updateTestsCount(env, testsCount)
       }
       Value.unit.ok
     }
@@ -35,10 +46,9 @@ object Assertions {
         case description :: error :: Callable(0, _, call) :: _ =>
           getTestData(env).foreach { case (testsCount, successCount, _) =>
             def check(errorResult: Str): Unit =
-              if (error == errorResult) {
-                env.define(SuccessCount, Num(successCount.value + 1))
-                displaySuccess(description)
-              } else displayEqualError(description, error, errorResult)
+              if (error == errorResult)
+                addSuccess(env, description, successCount)
+              else displayEqualError(description, error, errorResult)
 
             call(token)(Nil).fold(
               {
@@ -48,7 +58,7 @@ object Assertions {
               },
               _ => System.err.println(show"[Failure] $description. Expected error: $error.")
             )
-            env.define(TestCount, Num(testsCount.value + 1))
+            updateTestsCount(env, testsCount)
           }
           Value.unit.ok
         case _ :: _ :: Callable(n, _, _) :: _ => RuntimeError.incorrectArity(token, 0, n).fail
@@ -65,11 +75,22 @@ object Assertions {
     Value.unit.ok
   }
 
+  private def addSuccess(env: Env, description: Value, successCount: Num): Unit = {
+    env.define(SuccessCount, Num(successCount.value + 1))
+    displaySuccess(description)
+  }
+
   private def displaySuccess(description: Value): Unit =
     println(show"${Console.GREEN}[Success] $description${Console.RESET}")
 
-  private def displayEqualError(description: Value, value1: Value, value2: Value): Unit =
-    System.err.println(show"[Failure] $description. Expected: $value1. Got: $value2")
+  private def displayEqualError(description: Value, expected: Value, got: Value): Unit =
+    displayError(description, show"Expected: $expected. Got: $got")
+
+  private def displayError(description: Value, message: String): Unit =
+    System.err.println(show"${Console.RED}[Failure] $description. $message${Console.RESET}")
+
+  private def updateTestsCount(env: Env, testsCount: Num) =
+    env.define(TestCount, Num(testsCount.value + 1))
 
   private def errorKey(failure: RuntimeError): String =
     failure match {

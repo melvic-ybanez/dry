@@ -1,0 +1,14 @@
+def test_equality() {
+    assert_true("true == true", true == true);
+    assert_true("true != false", true != false);
+    assert_true("false != true", false != true);
+    assert_true("false == false", false == false);
+
+    assert_true("true != 1", true != 1);
+    assert_true("false != 0", false != 0);
+    assert_true("true != 'true'", true != "true");
+    assert_true("false != 'false'", false != "false");
+    assert_true("false != ''", false != "");
+}
+
+test_equality();

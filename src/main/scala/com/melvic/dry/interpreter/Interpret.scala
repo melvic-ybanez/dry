@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
+import com.melvic.dry.interpreter.Keys.{Errors, SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Varargs
@@ -77,6 +77,7 @@ object Interpret {
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
     .defineWith("assert_equal", Assertions.assertEqual)
+    .defineWith("assert_true", Assertions.assertTrue)
     .defineWith("assert_error", Assertions.assertError)
     .defineWith("show_test_results", Assertions.showTestResults)
     .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))
@@ -84,16 +85,9 @@ object Interpret {
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))
 
-  // TODO: Automatically generate fields from error names
-  private def errors: Env => DClass = DClass("Errors", Map.empty, _)
-    .addField("DIVISION_BY_ZERO", Str(Keys.Errors.DivisionByZero))
-    .addField("INVALID_OPERAND", Str(Keys.Errors.InvalidOperand))
-    .addField("INVALID_OPERANDS", Str(Keys.Errors.InvalidOperands))
-    .addField("UNDEFINED_VARIABLE", Str(Keys.Errors.UndefinedVariable))
-    .addField("NOT_CALLABLE", Str(Keys.Errors.NotCallable))
-    .addField("INCORRECT_ARITY", Str(Keys.Errors.IncorrectArity))
-    .addField("DOES_NOT_HAVE_PROPERTIES", Str(Keys.Errors.DoesNotHaveProperties))
-    .addField("UNDEFINED_PROPERTY", Str(Keys.Errors.UndefinedProperty))
-    .addField("INDEX_OUT_OF_BOUNDS", Str(Keys.Errors.IndexOutOfBounds))
-    .addField("INVALID_INDEX", Str(Keys.Errors.InvalidIndex))
+  private def errors(env: Env): DClass =
+    Errors.allErrors.foldLeft(DClass("Errors", Map.empty, env)) { (dClass, error) =>
+      val fieldName = error.drop(2).dropRight(2).toUpperCase
+      dClass.addField(fieldName, Str(error))
+    }
 }

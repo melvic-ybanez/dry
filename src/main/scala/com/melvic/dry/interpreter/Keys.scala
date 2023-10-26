@@ -19,7 +19,10 @@ object Keys {
     val InvalidIndex = "__invalid_index__"
     val InvalidArgument = "__invalid_argument__"
     val ModuleNotFound = "__module_not_found__"
-    // TODO: Replace this with more specific errors
-    val RuntimeError = "__runtime_error__"
+
+    def allErrors: List[String] =
+      DivisionByZero :: InvalidOperand :: InvalidOperands :: UndefinedVariable ::
+        NotCallable :: IncorrectArity :: DoesNotHaveProperties :: UndefinedProperty ::
+        IndexOutOfBounds :: InvalidIndex :: InvalidArgument :: ModuleNotFound :: Nil
   }
 }
