@@ -78,6 +78,7 @@ object Interpret {
     .define(SuccessCount, Num(0))
     .defineWith("assert_equal", Assertions.assertEqual)
     .defineWith("assert_true", Assertions.assertTrue)
+    .defineWith("assert_false", Assertions.assertFalse)
     .defineWith("assert_error", Assertions.assertError)
     .defineWith("show_test_results", Assertions.showTestResults)
     .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))

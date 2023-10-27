@@ -13,6 +13,7 @@ import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.Console._
 
+//noinspection NameBooleanParameters
 object Assertions {
   private[interpreter] def assertEqual(env: Env): Callable =
     Callable(3, env) { case description :: value1 :: value2 :: _ =>
@@ -27,11 +28,17 @@ object Assertions {
     }
 
   private[interpreter] def assertTrue(env: Env): Callable =
+    assertBool(true, env)
+
+  private[interpreter] def assertFalse(env: Env): Callable =
+    assertBool(false, env)
+
+  private[interpreter] def assertBool(bool: Boolean, env: Env): Callable =
     Callable(2, env) { case description :: condition :: _ =>
       getTestData(env).foreach { case (testsCount, successCount, _) =>
         condition match {
-          case Value.Bool(true) => addSuccess(env, description, successCount)
-          case _ => displayError(description, show"$condition is not true")
+          case Value.Bool(`bool`) => addSuccess(env, description, successCount)
+          case _ => displayError(description, show"$condition is not $bool")
         }
         updateTestsCount(env, testsCount)
       }

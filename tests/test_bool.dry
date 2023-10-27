@@ -1,14 +1,25 @@
 def test_equality() {
-    assert_true("true == true", true == true);
-    assert_true("true != false", true != false);
-    assert_true("false != true", false != true);
+    assert_true("true == true should be true", true == true);
+    assert_false("true == false should be false", true == false);
+    assert_false("false == true should b e false", false == true);
     assert_true("false == false", false == false);
 
-    assert_true("true != 1", true != 1);
-    assert_true("false != 0", false != 0);
-    assert_true("true != 'true'", true != "true");
-    assert_true("false != 'false'", false != "false");
-    assert_true("false != ''", false != "");
+    assert_false("true == 1 should be false", true == 1);
+    assert_false("false == 0 should be false", false == 0);
+    assert_false("true == 'true' should be false", true == "true");
+    assert_false("false == 'false' should be false", false == "false");
+    assert_false("false == '' should be false", false == "");
+
+    assert_false("true != true should be false", true != true);
+    assert_true("true != false should be true", true != false);
+    assert_true("false != true should be true", false != true);
+    assert_false("false != false should be false", false != false);
+
+    assert_true("true != 1 should be true", true != 1);
+    assert_true("false != 0 should be true", false != 0);
+    assert_true("true != 'true' should be true", true != "true");
+    assert_true("false != 'false' should be true", false != "false");
+    assert_true("false != '' should be true", false != "");
 }
 
 test_equality();
