@@ -19,5 +19,18 @@ def test_method_partial_application() {
     assert_equal("Supply second method arg only", HasMinus().minus(_, 4)(15), 11);
 }
 
+def test_non_callable() {
+    assert_error("true is not callable", Errors.NOT_CALLABLE, lambda() { true(); });
+    assert_error("none is not callable", Errors.NOT_CALLABLE, lambda() { none(); });
+    assert_error("A number is not callable", Errors.NOT_CALLABLE, lambda() { 123(); });
+    assert_error("A class instance is not callable", Errors.NOT_CALLABLE, lambda() {
+        class Foo {}
+        let foo = Foo();
+        foo();
+    });
+    assert_error("A string is not callable", Errors.NOT_CALLABLE, lambda() { "str"(); });
+}
+
 test_function_partial_application();
 test_method_partial_application();
+test_non_callable();
