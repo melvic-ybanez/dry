@@ -168,7 +168,7 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 71 tests. Successful: 71. Failed: 0.
+Ran 78 tests. Successful: 78. Failed: 0.
 ```
 The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 
@@ -210,7 +210,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <term>        ::= <factor> ("-" | "+" | "&" | "|" | "^" | "<<" | ">>"
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
-<unary>       ::= ("!" | "-" | "+") <expression> | <call>
+<unary>       ::= ("!" | "-" | "+" | "not") <expression> | <call>
 <primary>     ::= "false" | "true" | "none" | <number> | <string>
       | "self" | <identifier> | "(" <expression> ")"
 <number>      ::= <sign>?<nat>("."<nat>)?

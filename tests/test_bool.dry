@@ -22,4 +22,17 @@ def test_equality() {
     assert_true("false != '' should be true", false != "");
 }
 
+def test_not() {
+    assert_false("!true should be false", !true);
+    assert_true("!false should be true", !false);
+    assert_true("!!true should be true", !!true);
+
+    assert_false("not true should be false", not true);
+    assert_true("not false should be true", not false);
+    assert_true("not not true should be true", not not true);
+
+    assert_true("true should not be equal to 1", not (true == 1));
+}
+
 test_equality();
+test_not();
