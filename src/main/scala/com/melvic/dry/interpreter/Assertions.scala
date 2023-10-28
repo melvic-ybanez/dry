@@ -15,7 +15,7 @@ import scala.Console._
 
 //noinspection NameBooleanParameters
 object Assertions {
-  private[interpreter] def assertEqual(env: Env): Callable =
+  private[interpreter] def assertEquals(env: Env): Callable =
     Callable(3, env) { case description :: value1 :: value2 :: _ =>
       getTestData(env).foreach { case (testsCount, successCount, _) =>
         if (value1 == value2)

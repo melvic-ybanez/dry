@@ -76,7 +76,7 @@ object Interpret {
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
-    .defineWith("assert_equal", Assertions.assertEqual)
+    .defineWith("assert_equals", Assertions.assertEquals)
     .defineWith("assert_true", Assertions.assertTrue)
     .defineWith("assert_false", Assertions.assertFalse)
     .defineWith("assert_error", Assertions.assertError)

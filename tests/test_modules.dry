@@ -1,26 +1,26 @@
 def test_imported_top_level_modules() {
     import imported;
 
-    assert_equal("Access variable from imported module", imported.x, 10);
-    assert_equal("Access function from imported module", imported.five(), 5);
+    assert_equals("Access variable from imported module", imported.x, 10);
+    assert_equals("Access function from imported module", imported.five(), 5);
 
     imported.x = 15;
-    assert_equal("Modify values from imported module", imported.x, 15);
+    assert_equals("Modify values from imported module", imported.x, 15);
 }
 
 def test_imported_modules_from_another_dir() {
     import imports.nested;
 
-    assert_equal("Access variable from imported module", nested.x, 100);
+    assert_equals("Access variable from imported module", nested.x, 100);
 
     nested.x = 90;
-    assert_equal("Modify values from imported module", nested.x, 90);
+    assert_equals("Modify values from imported module", nested.x, 90);
 }
 
 def test_modules_found_via_dry_path() {
     import imported_utils;
 
-    assert_equal("Access method from module found via Dry Path", imported_utils.fib(3), 2);
+    assert_equals("Access method from module found via Dry Path", imported_utils.fib(3), 2);
 }
 
 test_imported_top_level_modules();

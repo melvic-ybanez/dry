@@ -3,8 +3,8 @@ def test_object_types() {
 
     let foo = Foo();
 
-    assert_equal("Type of class", typeof(Foo), "class");
-    assert_equal("Type of instance", typeof(foo), "instance");
+    assert_equals("Type of class", typeof(Foo), "class");
+    assert_equals("Type of instance", typeof(foo), "instance");
 }
 
 def test_instance_properties() {
@@ -15,21 +15,40 @@ def test_instance_properties() {
     }
 
     let duck = Pet();
-    assert_equal("Ducks should quack!", duck.sound(), "quack!");
+    assert_equals("Ducks should quack!", duck.sound(), "quack!");
 
     let denji = Pet();
     denji.sound = lambda() {
         return "Woof!";
     };
-    assert_equal("Denji should say 'Woof!'", denji.sound(), "Woof!");
+    assert_equals("Denji should say 'Woof!'", denji.sound(), "Woof!");
 }
 
 def test_class_properties() {
     class Foo {}
     Foo.bar = "bar value";
-    assert_equal("Class properties should be updated", Foo.bar, "bar value");
+    assert_equals("Class properties should be updated", Foo.bar, "bar value");
+}
+
+def test_class_string() {
+    class Foo {}
+    assert_equals("Class stringification", str(Foo), "Foo");
+}
+
+def test_local_reference_self() {
+    {
+        class Foo {
+            def returnSelf() {
+                return Foo;
+            }
+        }
+
+        assert_equals("Local reference to self", str(Foo().returnSelf()), "Foo");
+    }
 }
 
 test_object_types();
 test_instance_properties();
 test_class_properties();
+test_class_string();
+test_local_reference_self();

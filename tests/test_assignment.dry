@@ -5,17 +5,17 @@ def test_associativity() {
 
     // assignment is right-associative
     a = b = c;
-    assert_equal("a is equal to c", a, c);
-    assert_equal("b is equal to c", b, c);
-    assert_equal("c is equal to c", c, c);
+    assert_equals("a is equal to c", a, c);
+    assert_equals("b is equal to c", b, c);
+    assert_equals("c is equal to c", c, c);
 }
 
 def test_rhs() {
     let a = "before";
     let c = a = "after";
 
-    assert_equal("a = 'after'", a, "after");
-    assert_equal("c = 'after'", c, "after");
+    assert_equals("a = 'after'", a, "after");
+    assert_equals("c = 'after'", c, "after");
 }
 
 def test_lhs() {
@@ -29,18 +29,18 @@ test_lhs();
 
 // global
 let a = "before";
-assert_equal("a = 'before'", a, "before");
+assert_equals("a = 'before'", a, "before");
 a = "after";
-assert_equal("a = 'after'", a, "after");
+assert_equals("a = 'after'", a, "after");
 
 // local
 {
     let a = "before";
-    assert_equal("a = 'before'", a, "before");
+    assert_equals("a = 'before'", a, "before");
 
     a = "after";
-    assert_equal("a = 'after'", a, "after");
+    assert_equals("a = 'after'", a, "after");
 
-    assert_equal("a = 'arg'", a = "arg", "arg");
-    assert_equal("a = 'arg'", a, "arg");
+    assert_equals("a = 'arg'", a = "arg", "arg");
+    assert_equals("a = 'arg'", a, "arg");
 }

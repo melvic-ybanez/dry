@@ -1,22 +1,22 @@
 def test_list_str() {
     let xs = list(1, "two", 3);
-    assert_equal("Stringify lists", str(xs), "[1, two, 3]");
+    assert_equals("Stringify lists", str(xs), "[1, two, 3]");
 }
 
 def test_list_index() {
     let xs = list(1, "two", 3);
 
-    assert_equal("First element", xs._0, 1);
-    assert_equal("Second element", xs._1, "two");
-    assert_equal("Third element", xs._2, 3);
+    assert_equals("First element", xs._0, 1);
+    assert_equals("Second element", xs._1, "two");
+    assert_equals("Third element", xs._2, 3);
 
     xs._0 = 10;
-    assert_equal("Updated first element", xs._0, 10);
+    assert_equals("Updated first element", xs._0, 10);
 }
 
 def test_list_size() {
     let xs = list(1, 2, 3, 4, 5);
-    assert_equal("Size is the number of elements passed to the `list` function", xs.size(), 5);
+    assert_equals("Size is the number of elements passed to the `list` function", xs.size(), 5);
 }
 
 def test_list_at_method() {
@@ -28,13 +28,13 @@ def test_list_at_method() {
     if (xs._2 == xs.at(2)) success_count = success_count + 1;
 
     // This description is a lie though
-    assert_equal("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
+    assert_equals("For all list `xs` and integer `i`, `xs.at(i)` is equal to `xs._<i>`", success_count, 3);
 }
 
 def test_list_add_method() {
     let xs = list("one");
-    assert_equal("New element is added to the list", str(xs.add("two")), "[one, two]");
-    assert_equal("Size should increase after adding new item", xs.size(), 2);
+    assert_equals("New element is added to the list", str(xs.add("two")), "[one, two]");
+    assert_equals("Size should increase after adding new item", xs.size(), 2);
 }
 
 def test_out_of_bounds() {
@@ -45,7 +45,7 @@ def test_out_of_bounds() {
 }
 
 def test_list_type() {
-    assert_equal("List type", typeof(list(1, 2)), "list");
+    assert_equals("List type", typeof(list(1, 2)), "list");
 }
 
 test_list_str();

@@ -2,8 +2,8 @@ def test_function_partial_application() {
     let sum = lambda(x, y) { return x + y; };
     let onePlus = sum(1, _);
 
-    assert_equal("Supply first function arg only", onePlus(3), 4);
-    assert_equal("Supply second function arg only", sum(_, 3)(7), 10);
+    assert_equals("Supply first function arg only", onePlus(3), 4);
+    assert_equals("Supply second function arg only", sum(_, 3)(7), 10);
 }
 
 def test_method_partial_application() {
@@ -15,8 +15,8 @@ def test_method_partial_application() {
 
     let tenMinus = HasMinus().minus(10, _);
 
-    assert_equal("Supply first method arg only", tenMinus(6), 4);
-    assert_equal("Supply second method arg only", HasMinus().minus(_, 4)(15), 11);
+    assert_equals("Supply first method arg only", tenMinus(6), 4);
+    assert_equals("Supply second method arg only", HasMinus().minus(_, 4)(15), 11);
 }
 
 def test_non_callable() {

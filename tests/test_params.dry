@@ -1,8 +1,8 @@
 def test_params_binding_order() {
     def bind_vars(a, b, c) {
-        assert_equal("Binding first param", a, 1);
-        assert_equal("Binding second param", b, 2);
-        assert_equal("Binding third param", c, 3);
+        assert_equals("Binding first param", a, 1);
+        assert_equals("Binding second param", b, 2);
+        assert_equals("Binding third param", c, 3);
     }
 
     bind_vars(1, 2, 3);

@@ -10,21 +10,21 @@ def test_scopes() {
         let b = "outer b";
         {
             let a = "inner a";
-            assert_equal("inner 'a' should overshadow outer 'a'", a, "inner a");
-            assert_equal("access outer 'b'", b, "outer b");
-            assert_equal("access outer 'c'", c, "global c");
+            assert_equals("inner 'a' should overshadow outer 'a'", a, "inner a");
+            assert_equals("access outer 'b'", b, "outer b");
+            assert_equals("access outer 'c'", c, "global c");
         }
-        assert_equal("outer 'a' should overshadow global 'a'", a, "outer a");
-        assert_equal("outer 'b' should overshadow global 'b'", b, "outer b");
-        assert_equal("access global 'c'", c, "global c");
+        assert_equals("outer 'a' should overshadow global 'a'", a, "outer a");
+        assert_equals("outer 'b' should overshadow global 'b'", b, "outer b");
+        assert_equals("access global 'c'", c, "global c");
     }
-    assert_equal("access global 'a'", a, "global a");
-    assert_equal("access global 'b'", b, "global b");
-    assert_equal("access global 'c'", c, "global c");
+    assert_equals("access global 'a'", a, "global a");
+    assert_equals("access global 'b'", b, "global b");
+    assert_equals("access global 'c'", c, "global c");
     {
         a = "modified global a";
     }
-    assert_equal("global 'a' should be modifiable from inner scope", a, "modified global a");
+    assert_equals("global 'a' should be modifiable from inner scope", a, "modified global a");
 }
 
 test_scopes();
