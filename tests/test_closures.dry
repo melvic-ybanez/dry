@@ -96,9 +96,83 @@ def test_closed_closure_in_function() {
     f();
 }
 
+def test_nested_closure() {
+    let f;
+
+    def f1() {
+        let a = "a";
+        def f2() {
+            let b = "b";
+            def f3() {
+                let c = "c";
+                def f4() {
+                    assert_equals("Outermost var", a, "a");
+                    assert_equals("Outer-outer var", b, "b");
+                    assert_equals("Outer var", c, "c");
+                }
+                f = f4;
+            }
+            f3();
+        }
+        f2();
+    }
+    f1();
+
+    f();
+}
+
+def test_reference_closure_multiple_times() {
+    let f;
+
+    {
+        let a = "a";
+        def f_() {
+            assert_equals("First reference via closure", a, "a");
+            assert_equals("Second reference via closure", a, "a");
+        }
+        f = f_;
+    }
+
+    f();
+}
+
+def test_out_of_scope_captured_value() {
+    let f;
+
+    {
+        let a = "a";
+        def f_() {
+            assert_equals("Captured value that will be out of scope", a, "a");
+        }
+        f = f_;
+    }
+
+    {
+        let b = "b";
+        f();
+    }
+}
+
+def test_shadow_closure_with_local() {
+    let foo = "closure";
+    def f() {
+        {
+            assert_equals("Init captured value", foo, "closure");
+            let foo = "shadow";
+            assert_equals("Captured value is shadowed", foo, "shadow");
+        }
+        assert_equals("Captured value remains the same", foo, "closure");
+    }
+    f();
+}
+
 test_assign_to_closure();
 test_assign_to_shadowed_later();
 test_close_over_function_param();
 test_close_over_later_variable();
 test_close_over_method_param();
 test_closed_closure_in_function();
+test_nested_closure();
+test_reference_closure_multiple_times();
+test_out_of_scope_captured_value();
+test_shadow_closure_with_local();
