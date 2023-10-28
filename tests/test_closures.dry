@@ -5,16 +5,16 @@ def test_assign_to_closure() {
     {
         let local = "local";
         def f_() {
-            assert_equals("`local` should be 'local'", local, "local");
+            assert_equals("Capture var", local, "local");
             local = "after f";
-            assert_equals("`local` should be 'after f'", local, "after f");
+            assert_equals("Updated captured var ", local, "after f");
         }
         f = f_;
 
         def g_() {
-            assert_equals("`local` should be 'after f'", local, "after f");
+            assert_equals("Capture updated var", local, "after f");
             local = "after g";
-            assert_equals("`local` should be 'after g'", local, "after g");
+            assert_equals("Update updated var", local, "after g");
         }
         g = g_;
     }
@@ -33,10 +33,10 @@ def test_assign_to_shadowed_later() {
 
         let a = "inner";
         assign();
-        assert_equals("`a` should be 'inner'", a, "inner");
+        assert_equals("Var declared after closure", a, "inner");
     }
 
-    assert_equals("`a` should be 'assigned'", a, "assigned");
+    assert_equals("Var updated due to closure", a, "assigned");
 }
 
 def test_close_over_function_param() {
@@ -44,7 +44,7 @@ def test_close_over_function_param() {
 
     def foo(param) {
         def f_() {
-            assert_equals("Expected parameter value: 'param'", param, "param");
+            assert_equals("Close over function param", param, "param");
         }
         f = f_;
     }
@@ -52,6 +52,53 @@ def test_close_over_function_param() {
     f();
 }
 
+// see the comment in the following source file for the explanation:
+// https://github.com/munificent/craftinginterpreters/blob/master/test/closure/close_over_later_variable.lox
+def test_close_over_later_variable() {
+    let a = "a";
+    let b = "b";
+
+    def g() {
+        assert_equals("Close over later var", b, "b");
+        assert_equals("Close over earlier var", a, "a");
+    }
+
+    g();
+}
+
+def test_close_over_method_param() {
+    let f;
+
+    class Foo {
+        def method(param) {
+            def f_() {
+                assert_equals("Close over method param", param, "param");
+            }
+            f = f_;
+        }
+    }
+
+    Foo().method("param");
+    f();
+}
+
+def test_closed_closure_in_function() {
+    let f;
+
+    {
+        let local = "local";
+        def f_() {
+            assert_equals("Closed closure in function", local, "local");
+        }
+        f = f_;
+    }
+
+    f();
+}
+
 test_assign_to_closure();
 test_assign_to_shadowed_later();
 test_close_over_function_param();
+test_close_over_later_variable();
+test_close_over_method_param();
+test_closed_closure_in_function();

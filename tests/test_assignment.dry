@@ -5,21 +5,21 @@ def test_associativity() {
 
     // assignment is right-associative
     a = b = c;
-    assert_equals("a is equal to c", a, c);
-    assert_equals("b is equal to c", b, c);
-    assert_equals("c is equal to c", c, c);
+    assert_equals("Leftmost equals rightmost", a, c);
+    assert_equals("Middle equals rightmost", b, c);
+    assert_equals("Rightmost equals rightmost", c, c);
 }
 
 def test_rhs() {
     let a = "before";
     let c = a = "after";
 
-    assert_equals("a = 'after'", a, "after");
-    assert_equals("c = 'after'", c, "after");
+    assert_equals("Middle gets the RHS value", a, "after");
+    assert_equals("Leftmost gets the RHS value", c, "after");
 }
 
 def test_lhs() {
-    assert_error("rhs should not be an undefined variable", Errors.UNDEFINED_VARIABLE,
+    assert_error("RHS should not be an undefined variable", Errors.UNDEFINED_VARIABLE,
             lambda() { unknown = "what"; });
 }
 
@@ -29,18 +29,18 @@ test_lhs();
 
 // global
 let a = "before";
-assert_equals("a = 'before'", a, "before");
+assert_equals("Global init value", a, "before");
 a = "after";
-assert_equals("a = 'after'", a, "after");
+assert_equals("Global update value", a, "after");
 
 // local
 {
     let a = "before";
-    assert_equals("a = 'before'", a, "before");
+    assert_equals("Local init value", a, "before");
 
     a = "after";
-    assert_equals("a = 'after'", a, "after");
+    assert_equals("Local updated value", a, "after");
 
-    assert_equals("a = 'arg'", a = "arg", "arg");
-    assert_equals("a = 'arg'", a, "arg");
+    assert_equals("Assignment returned value", a = "arg", "arg");
+    assert_equals("Local updated via assignment", a, "arg");
 }
