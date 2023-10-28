@@ -1,0 +1,57 @@
+def test_assign_to_closure() {
+    let f;
+    let g;
+
+    {
+        let local = "local";
+        def f_() {
+            assert_equals("`local` should be 'local'", local, "local");
+            local = "after f";
+            assert_equals("`local` should be 'after f'", local, "after f");
+        }
+        f = f_;
+
+        def g_() {
+            assert_equals("`local` should be 'after f'", local, "after f");
+            local = "after g";
+            assert_equals("`local` should be 'after g'", local, "after g");
+        }
+        g = g_;
+    }
+
+    f();
+    g();
+}
+
+def test_assign_to_shadowed_later() {
+    let a = "outer";
+
+    {
+        def assign() {
+            a = "assigned";
+        }
+
+        let a = "inner";
+        assign();
+        assert_equals("`a` should be 'inner'", a, "inner");
+    }
+
+    assert_equals("`a` should be 'assigned'", a, "assigned");
+}
+
+def test_close_over_function_param() {
+    let f;
+
+    def foo(param) {
+        def f_() {
+            assert_equals("Expected parameter value: 'param'", param, "param");
+        }
+        f = f_;
+    }
+    foo("param");
+    f();
+}
+
+test_assign_to_closure();
+test_assign_to_shadowed_later();
+test_close_over_function_param();
