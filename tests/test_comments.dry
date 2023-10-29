@@ -1,0 +1,15 @@
+// examples from Crafting Interpreters
+def test_comments_with_unicode() {
+    // Unicode characters are allowed in comments.
+    //
+    // Latin 1 Supplement: £§¶ÜÞ
+    // Latin Extended-A: ĐĦŋœ
+    // Latin Extended-B: ƂƢƩǁ
+    // Other stuff: ឃᢆ᯽₪ℜ↩⊗┺░
+    // Emoji: ☃☺♣
+
+    // if we got here without issues, that means parsing was successful
+    assert_true("Comments with unicode characters", true);
+}
+
+test_comments_with_unicode();

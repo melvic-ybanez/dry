@@ -1,0 +1,79 @@
+class TestFields {
+    def test_class_fields_property() {
+        class Foo {}
+        Foo.int_field = 100;
+        Foo.str_field = "hello";
+        assert_equals("Class has fields property");
+    }
+
+    def test_call_function_field() {
+        class Foo {}
+
+        def bar(a, b) {
+            assert_equals("Function field first param", a, 1);
+            assert_equals("Function field second param", b, 2);
+        }
+
+        let foo = Foo();
+        foo.bar = bar;
+
+        foo.bar(1, 2);
+    }
+
+    def test_non_function_field() {
+        class Foo {}
+        let foo = Foo();
+        foo.bar = "not fn";
+
+        assert_error("Call non-function field", Errors.NOT_CALLABLE, lambda() {
+            foo.bar();
+        });
+    }
+
+    def test_get_and_set_method() {
+        class Foo {
+            def method(a) {
+                assert_equals("Original method", "method " + str(a), "method 2");
+            }
+
+            def other(a) {
+                assert_equals("Other method", "other " + str(a), "other 1");
+            }
+        }
+
+        let foo = Foo();
+        let method = foo.method;
+
+        foo.method = foo.other;
+        foo.method(1);
+        method(2);
+    }
+
+    def test_bool_properties() {
+        assert_error("Bool has no properties", Errors.DOES_NOT_HAVE_PROPERTIES, lambda() {
+            true.foo();
+        });
+    }
+
+    def test_class_properties() {
+        assert_error("Undefined class property", Errors.UNDEFINED_PROPERTY, lambda() {
+            class Foo {}
+            Foo.bar;
+        });
+    }
+
+    def test_get_on_function() {
+        assert_error("Function has no property", Errors.DOES_NOT_HAVE_PROPERTIES, lambda() {
+            def foo() {}
+            foo.bar;
+        });
+    }
+}
+
+let test_fields = TestFields();
+test_fields.test_call_function_field();
+test_fields.test_non_function_field();
+test_fields.test_get_and_set_method();
+test_fields.test_bool_properties();
+test_fields.test_class_properties();
+test_fields.test_get_on_function();
