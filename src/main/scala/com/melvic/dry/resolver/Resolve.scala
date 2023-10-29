@@ -78,6 +78,7 @@ object Resolve {
     case Get(obj, _)        => Resolve.expr(obj)
     case Set(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
     case self: Self         => Resolve.self(self)
+    case dict: Dictionary   => Resolve.dictionary(dict)
   }
 
   def variable: Variable => Resolve = { case expr @ Variable(name) =>
@@ -146,6 +147,8 @@ object Resolve {
       case context                          => Resolve.local(keyword)(expr)(context)
     }
   }
+
+  def dictionary: Dictionary => Resolve = ???
 
   private def exprWithDepth(depth: Int): Expr => Resolve = expr =>
     context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok

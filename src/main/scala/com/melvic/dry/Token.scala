@@ -23,6 +23,7 @@ object Token {
     case object Comma extends TokenType
     case object Dot extends TokenType
     case object Semicolon extends TokenType
+    case object Colon extends TokenType
     case object Eof extends TokenType
   }
 

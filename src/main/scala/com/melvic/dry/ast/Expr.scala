@@ -1,5 +1,6 @@
 package com.melvic.dry.ast
 
+import com.melvic.dry.ast.Expr.Literal.Str
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
@@ -42,6 +43,23 @@ object Expr {
 
   final case class Self(keyword: Token) extends Expr
 
+  final case class Dictionary(table: Map[Either[Str, Variable], Expr]) extends Expr
+
+  object Dictionary {
+    def show: Show[Dictionary] = { case Dictionary(table) =>
+      def fieldKeyToString(key: Either[Str, Variable]): String =
+        key match {
+          case Left(fieldName) => show""""$fieldName""""
+          case Right(variable) => Expr.show(variable)
+        }
+
+      def fieldToString(field: (Either[Str, Variable], Expr)): String =
+        show"${fieldKeyToString(field._1)}: ${Expr.show(field._2)}"
+
+      show"{ ${table.map(fieldToString).mkString(", ")} }"
+    }
+  }
+
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)
     case Grouping(expr)                 => show"($expr)"
@@ -53,8 +71,9 @@ object Expr {
     case Call(callee, arguments, _)     => show"$callee(${arguments.map(Expr.show).toCsv})"
     case Lambda(params, body) =>
       show"lambda(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
-    case Get(obj, name)        => show"$obj.$name"
-    case Self(_)               => "self"
-    case Set(obj, name, value) => show"$obj.$name = $value"
+    case Get(obj, name)         => show"$obj.$name"
+    case Self(_)                => "self"
+    case Set(obj, name, value)  => show"$obj.$name = $value"
+    case dictionary: Dictionary => Dictionary.show(dictionary)
   }
 }

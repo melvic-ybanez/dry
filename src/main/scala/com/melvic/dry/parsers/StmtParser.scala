@@ -32,7 +32,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def expressionStatement: ParseResult[Stmt] =
     for {
       expr      <- expression
-      semicolon <- expr.consume(TokenType.Semicolon, ";", "statement")
+      semicolon <- expr.consumeAfter(TokenType.Semicolon, ";", "statement")
     } yield Step(ExprStmt(expr.value), semicolon.next)
 
   /**
@@ -54,7 +54,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       }
 
     recurse(ParseResult.succeed(Nil, this)).flatMap { case Step(decls, parser) =>
-      parser.consume(TokenType.RightBrace, "}", "block").mapValue(_ => BlockStmt(decls))
+      parser.consumeAfter(TokenType.RightBrace, "}", "block").mapValue(_ => BlockStmt(decls))
     }
   }
 
@@ -63,9 +63,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
    */
   def ifStatement: ParseResult[Stmt] =
     for {
-      leftParen  <- consume(TokenType.LeftParen, "(", "if")
+      leftParen  <- consumeAfter(TokenType.LeftParen, "(", "if")
       cond       <- leftParen.expression
-      rightParen <- cond.consume(TokenType.RightParen, ")", "if condition")
+      rightParen <- cond.consumeAfter(TokenType.RightParen, ")", "if condition")
       thenBranch <- rightParen.statement
       ifStmt <- thenBranch
         .matchAny(TokenType.Else)
@@ -83,9 +83,9 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
    */
   def whileStatement: ParseResult[While] =
     for {
-      leftParen  <- consume(TokenType.LeftParen, "(", "while")
+      leftParen  <- consumeAfter(TokenType.LeftParen, "(", "while")
       condition  <- leftParen.expression
-      rightParen <- condition.consume(TokenType.RightParen, ")", "while condition")
+      rightParen <- condition.consumeAfter(TokenType.RightParen, ")", "while condition")
       body       <- rightParen.statement
     } yield Step(While(condition.value, body.value), body.next)
 
@@ -97,7 +97,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
    * }}}
    */
   def forStatement: ParseResult[Stmt] = {
-    val initializer = consume(TokenType.LeftParen, "(", "for").flatMap { case Step(_, next) =>
+    val initializer = consumeAfter(TokenType.LeftParen, "(", "for").flatMap { case Step(_, next) =>
       next
         .matchAny(TokenType.Semicolon)
         .fold(
@@ -112,7 +112,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
         if (parser.check(delimiter)) ParseResult.succeed(Literal.None, parser)
         else parser.expression
 
-      clauseExpr.flatMapParser(_.consume(delimiter, consume, after))
+      clauseExpr.flatMapParser(_.consumeAfter(delimiter, consume, after))
     }
 
     def condition(parser: Parser) = clause(parser, TokenType.Semicolon, ";", "for loop condition")
@@ -146,8 +146,8 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     val keyword = previousToken
     val expr =
       if (check(TokenType.Semicolon))
-        consume(TokenType.Semicolon, ";", "return value").mapValue(_ => Literal.None)
-      else expression.flatMapParser(_.consume(TokenType.Semicolon, ";", "return value"))
+        consumeAfter(TokenType.Semicolon, ";", "return value").mapValue(_ => Literal.None)
+      else expression.flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "return value"))
     expr.mapValue(ReturnStmt(keyword, _))
   }
 
@@ -157,15 +157,15 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def importStatement: ParseResult[Stmt] = {
     def parseComponents(parser: Parser, components: List[Token]): ParseResult[List[Token]] =
       parser.matchAny(TokenType.Dot).fold(ParseResult.succeed(components.reverse, parser)) { next =>
-        next.consume(TokenType.Identifier, "identifier", "import").flatMap { case Step(component, next) =>
+        next.consumeAfter(TokenType.Identifier, "identifier", "import").flatMap { case Step(component, next) =>
           parseComponents(next, component :: components)
         }
       }
 
     for {
-      firstComponent <- consume(TokenType.Identifier, "identifier", "import")
+      firstComponent <- consumeAfter(TokenType.Identifier, "identifier", "import")
       allComponents  <- parseComponents(firstComponent.next, firstComponent.value :: Nil)
-      semicolon      <- allComponents.consume(TokenType.Semicolon, ";", "import path")
+      semicolon      <- allComponents.consumeAfter(TokenType.Semicolon, ";", "import path")
     } yield Step(Import(allComponents.value), semicolon.next)
   }
 }

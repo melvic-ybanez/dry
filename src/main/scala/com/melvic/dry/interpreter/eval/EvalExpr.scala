@@ -33,6 +33,7 @@ private[eval] trait EvalExpr {
     case get: Get               => Evaluate.get(get)
     case set: Set               => Evaluate.set(set)
     case self: Self             => Evaluate.self(self)
+    case dictionary: Dictionary => Evaluate.dictionary(dictionary)
   }
 
   def lambda(implicit context: Context[Lambda]): Out =
@@ -202,6 +203,8 @@ private[eval] trait EvalExpr {
   }
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
+
+  def dictionary(implicit context: Context[Dictionary]): Out = ???
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
     locals

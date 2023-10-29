@@ -40,6 +40,7 @@ final case class Lexer(
       case '%' => lexer.addToken(TokenType.Modulo).ok
       case '-' => lexer.addToken(TokenType.Minus).ok
       case ';' => lexer.addToken(TokenType.Semicolon).ok
+      case ':' => lexer.addToken(TokenType.Colon).ok
       case '!' => lexer.addTokenOrElse('=', TokenType.NotEqual, TokenType.Not)
       case '=' => lexer.addTokenOrElse('=', TokenType.EqualEqual, TokenType.Equal)
       case '&' => lexer.addToken(TokenType.BAnd).ok

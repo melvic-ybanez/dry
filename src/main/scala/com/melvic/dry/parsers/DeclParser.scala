@@ -33,9 +33,9 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
    */
   def letDecl: ParseResult[Let] = {
     def consumeSemicolon(parser: Parser): ParseResult[Token] =
-      parser.consume(TokenType.Semicolon, ";", "let")
+      parser.consumeAfter(TokenType.Semicolon, ";", "let")
 
-    consume(TokenType.Identifier, "identifier", "let").flatMap { case Step(name, parser) =>
+    consumeAfter(TokenType.Identifier, "identifier", "let").flatMap { case Step(name, parser) =>
       parser
         .matchAny(TokenType.Equal)
         .fold[ParseResult[Let]](consumeSemicolon(parser).mapValue(_ => LetDecl(name))) { parser =>
@@ -51,14 +51,14 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
    */
   def defDecl(kind: String): ParseResult[Def] =
     for {
-      name   <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Def}' keyword")
+      name   <- consumeAfter(TokenType.Identifier, "identifier", s"'${Lexemes.Def}' keyword")
       params <- name.params
       body   <- params.functionBody(kind)
     } yield Step(Def(name.value, params.value, body.value.declarations), body.next)
 
   private[parsers] def functionBody(kind: String): ParseResult[BlockStmt] =
     for {
-      leftBrace <- consume(TokenType.LeftBrace, "{", kind + " signature")
+      leftBrace <- consumeAfter(TokenType.LeftBrace, "{", kind + " signature")
       body      <- leftBrace.block
     } yield body
 
@@ -67,10 +67,10 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
    */
   def classDecl: ParseResult[ClassDecl] =
     for {
-      name       <- consume(TokenType.Identifier, "identifier", s"'${Lexemes.Class}' keyword")
-      leftBrace  <- name.consume(TokenType.LeftBrace, "{", "class name")
+      name       <- consumeAfter(TokenType.Identifier, "identifier", s"'${Lexemes.Class}' keyword")
+      leftBrace  <- name.consumeAfter(TokenType.LeftBrace, "{", "class name")
       methods    <- leftBrace.methods
-      rightBrace <- methods.consume(TokenType.RightBrace, "}", "class body")
+      rightBrace <- methods.consumeAfter(TokenType.RightBrace, "}", "class body")
     } yield Step(ClassDecl(name.value, methods.value), rightBrace.next)
 
   protected def methods: ParseResult[List[Def]] = {
@@ -78,7 +78,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
       if (parser.check(TokenType.RightBrace) || parser.isAtEnd) ParseResult.succeed(acc.reverse, parser)
       else
         for {
-          method   <- parser.consume(TokenType.Def, Lexemes.Def, "{ in class")
+          method   <- parser.consumeAfter(TokenType.Def, Lexemes.Def, "{ in class")
           function <- method.defDecl("method")
           result   <- recurse(function.next, function.value :: acc)
         } yield result

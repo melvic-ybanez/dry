@@ -42,19 +42,19 @@ object Failure {
   sealed trait ParseError extends Failure
 
   object ParseError {
-    final case class Expected(start: Token, expected: String, where: String, after: String) extends ParseError
+    final case class Expected(start: Token, expected: String, where: String, at: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
 
-    def expected(start: Token, end: String, after: String): ParseError =
-      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end", after)
-      else Expected(start, end, s"at '${start.lexeme}'", after)
+    def expected(start: Token, end: String, at: String): ParseError =
+      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end", at)
+      else Expected(start, end, s"at '${start.lexeme}'", at)
 
     def invalidAssignmentTarget(assignment: Token): ParseError =
       InvalidAssignmentTarget(assignment)
 
     def show: Show[ParseError] = {
-      case Expected(start, expected, where, after) =>
-        showFullLine(start.line, where, s"Expected '$expected' after $after.")
+      case Expected(start, expected, where, at) =>
+        showFullLine(start.line, where, s"Expected '$expected' $at.")
       case InvalidAssignmentTarget(assignment) =>
         showLineAndMessage(assignment.line, "Parser Error: Invalid assignment target")
     }

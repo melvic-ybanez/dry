@@ -212,7 +212,9 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
 <unary>       ::= ("!" | "-" | "+" | "not") <expression> | <call>
 <primary>     ::= "false" | "true" | "none" | <number> | <string>
-      | "self" | <identifier> | "(" <expression> ")"
+      | "self" | <identifier> | | <dictionary> | "(" <expression> ")"
+<dictionary>  ::= "{" (<key-value> ("," <key-value>)*)? "}"
+<key-value>   ::= (<string> | <identifier>) ":" <expression>
 <number>      ::= <sign>?<nat>("."<nat>)?
 <sign>        ::= "-" | "+"
 <string>      ::= '"'(.?"\n"?)*'"'

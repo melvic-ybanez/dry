@@ -118,6 +118,7 @@ private[parsers] trait ExprParser { _: Parser =>
    * {{{<call> ::= <primary> ("(" <expression>* ")" | "." <identifier>)}}}
    */
   def call: ParseResult[Expr] = {
+    // TODO: see if we can refactor this using the `sequence` utility from `Parser`
     def parenCall(callee: Expr, parser: Parser): ParseResult[Expr] = {
       def recurse(args: List[Expr], parser: Parser): ParseResult[List[Expr]] =
         parser
@@ -135,7 +136,7 @@ private[parsers] trait ExprParser { _: Parser =>
 
       resultForArgs.flatMap { case Step(_, next) =>
         next
-          .consume(TokenType.RightParen, ")", "function call arguments")
+          .consumeAfter(TokenType.RightParen, ")", "function call arguments")
           .flatMap(step =>
             resultForArgs.mapValue(callOrLambda(callee, _, step.value)).mapParser(_ => step.next)
           )
@@ -146,7 +147,7 @@ private[parsers] trait ExprParser { _: Parser =>
       // Recursively checks if the expression is being called, or a property access is being invoked
       def checkForCalls(step: Step[Expr]): ParseResult[Expr] = {
         def propAccess(expr: Expr, next: Parser) =
-          next.consume(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
+          next.consumeAfter(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
 
         def checkForPropAccess = step.next
           .matchAny(TokenType.Dot)
@@ -226,13 +227,46 @@ private[parsers] trait ExprParser { _: Parser =>
       .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previousToken), p)))
       .map(_.toParseResult)
       .getOrElse(
-        matchAny(TokenType.LeftParen)
-          .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
-            _.expression.flatMap { case Step(expr, newParser) =>
-              newParser.consume(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
+        dictionary.orElse(
+          matchAny(TokenType.LeftParen)
+            .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
+              _.expression.flatMap { case Step(expr, newParser) =>
+                newParser.consumeAfter(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
+              }
             }
-          }
+        )
       )
+
+  /**
+   * {{{
+   *   <dictionary> ::= "{" (<key-value> ("," <key-value>)*)? "}"
+   *   <key-value> ::= (<string> | <identifier>) ":" <expression>
+   * }}}
+   */
+  def dictionary: ParseResult[Expr] =
+    sequence[(Either[Literal.Str, Variable], Expr)](
+      TokenType.LeftBrace,
+      "{",
+      TokenType.RightBrace,
+      "}",
+      "at the start of dictionary",
+      "dictionary elements"
+    )(_.matchAnyWith {
+      case TokenType.Str(_)     => true
+      case TokenType.Identifier => true
+    }.flatMap { next =>
+      @nowarn
+      val key = next.previousToken match {
+        case Token(TokenType.Str(string), _, _)        => Left(Literal.Str(string))
+        case token @ Token(TokenType.Identifier, _, _) => Right(Variable(token))
+      }
+      next
+        .consumeAfter(TokenType.Colon, ":", "dictionary key")
+        .flatMap { case Step(_, next) =>
+          next.expression.map(_.map((key, _)))
+        }
+        .fold[Option[Step[(Either[Literal.Str, Variable], Expr)]]]((_, _) => None)(Some(_))
+    }).mapValue(elements => Dictionary(elements.toMap))
 
   /**
    * Like [[leftAssocBinaryWith]], but is specific to non-logical binary operators.

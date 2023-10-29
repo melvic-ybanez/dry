@@ -10,18 +10,18 @@ import scala.collection.mutable.ListBuffer
 import scala.util.chaining.scalaUtilChainingOps
 
 final case class DList(elems: ListBuffer[Value], env: Env) extends DObject {
-  type AddProperties = Map[String, Value] => Map[String, Value]
+  private type AddProperties = Map[String, Value] => Map[String, Value]
 
   override def klass: Metaclass = DClass("List", Map.empty, env)
 
   override val fields: mutable.Map[String, Value] =
-    addIndexFields
+    addIndexFields()
       .pipe(addAtMethod)
       .pipe(addSizeMethod)
       .pipe(addAddMethod)
       .to(mutable.Map)
 
-  private def addIndexFields =
+  private def addIndexFields() =
     elems.zipWithIndex
       .map { case (elem, i) => ("_" + i) -> elem }
       .to(Map)
