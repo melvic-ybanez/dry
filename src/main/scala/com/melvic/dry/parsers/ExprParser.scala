@@ -14,13 +14,13 @@ import scala.annotation.nowarn
 private[parsers] trait ExprParser { _: Parser =>
 
   /**
-   * {{{<expression> ::= <assignment>}}}
+   * {{{<expression> ::= <assignment> | <lambda>}}}
    */
   def expression: ParseResult[Expr] =
     assignment
 
   /**
-   * {{{<assignment> ::= (<call>".")?<identifier> "=" <assignment> | <lambda>}}}
+   * {{{<assignment> ::= ((<call> "." )?<identifier> | <get-by-key>) "=" <expression>}}}
    */
   def assignment: ParseResult[Expr] = {
     // parse the left value as a lambda to cover all possible expression (including chained `get`s)
@@ -28,7 +28,7 @@ private[parsers] trait ExprParser { _: Parser =>
       // if the resulting left value is not followed by an equal sign, return it
       parser.matchAny(TokenType.Equal).fold(ParseResult.succeed(lValue, parser)) { parser =>
         // otherwise, check if it's a valid assignment target
-        parser.assignment.flatMap { case Step(rValue, parser) =>
+        parser.expression.flatMap { case Step(rValue, parser) =>
           lValue match {
             case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
             case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, rValue), parser)
@@ -115,7 +115,7 @@ private[parsers] trait ExprParser { _: Parser =>
       .getOrElse(call)
 
   /**
-   * {{{<call> ::= <primary> ("(" <expression>* ")" | "." <identifier>)}}}
+   * {{{<call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)*}}}
    */
   def call: ParseResult[Expr] = {
     // TODO: see if we can refactor this using the `sequence` utility from `Parser`
@@ -202,7 +202,7 @@ private[parsers] trait ExprParser { _: Parser =>
   /**
    * {{{
    *   <primary> ::= "false" | "true" | "none" | <number> | <string>
-   *     | "self" | <identifier> | "(" <expression> ")"
+   *     | "self" | <identifier> | <dictionary> | "(" <expression> ")"
    * }}}
    */
   def primary: ParseResult[Expr] =

@@ -196,9 +196,10 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
       (<expression>? ";") <expression> ")" <statement>
 <return>      ::= "return" <expression>? ";"
 <import>      ::= "import" <identifier>("."<identifier>)* ";"
-<expression>  ::= <assignment>
-<assignment>  ::= (<call>".")?<identifier> "=" <assignment> | <lambda>
-<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)
+<expression>  ::= <assignment> | <lambda>
+<assignment>  ::= ((<call> "." )?<identifier> | <get-by-key>) "=" <expression>
+<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)*
+<get-by-key>  ::= (<call> | <identifier>) "[" (<string> | <identifier>) "]"
 <identifier>  ::= <alpha>(<alpha>?<digit>?)*
 <lambda>      ::= "lambda" <params> <block> | <or>
 <block>       ::= "{" <declaration>* "}"
@@ -212,7 +213,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
 <unary>       ::= ("!" | "-" | "+" | "not") <expression> | <call>
 <primary>     ::= "false" | "true" | "none" | <number> | <string>
-      | "self" | <identifier> | | <dictionary> | "(" <expression> ")"
+      | "self" | <identifier> | <dictionary> | "(" <expression> ")"
 <dictionary>  ::= "{" (<key-value> ("," <key-value>)*)? "}"
 <key-value>   ::= (<string> | <identifier>) ":" <expression>
 <number>      ::= <sign>?<nat>("."<nat>)?
