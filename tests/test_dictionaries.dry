@@ -1,0 +1,9 @@
+def test_init_dictionary() {
+    let empty_dict = {};
+    assert_equals("Empty dictionary string representation", str(empty_dict), "{}");
+    let map = { "one": 1, "two": 2 };
+    assert_equals("Non-empty dictionary string representation", str(map),
+        "{one: 1, two: 2}");
+}
+
+test_init_dictionary();

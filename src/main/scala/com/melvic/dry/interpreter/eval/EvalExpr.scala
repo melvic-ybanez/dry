@@ -2,14 +2,16 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
+import com.melvic.dry.Token.TokenType.Identifier
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
+import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.Interpret
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.values.Callable.Varargs
-import com.melvic.dry.interpreter.values.{Callable, DModule, DObject, Value}
+import com.melvic.dry.interpreter.values.{Callable, DDictionary, DModule, DObject, Value}
 import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -17,6 +19,7 @@ import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits._
 
 import scala.annotation.nowarn
+import scala.collection.mutable
 
 //noinspection ScalaWeakerAccess
 private[eval] trait EvalExpr {
@@ -204,7 +207,20 @@ private[eval] trait EvalExpr {
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
-  def dictionary(implicit context: Context[Dictionary]): Out = ???
+  def dictionary(implicit context: Context[Dictionary]): Out = node match {
+    case Dictionary(table) =>
+      @nowarn
+      val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Value, Value])) {
+        case (result, (Left(key), value)) =>
+          for {
+            evaluatedKey   <- Evaluate.literal(key)
+            evaluatedValue <- Evaluate.expr(value)
+          } yield result + (evaluatedKey -> evaluatedValue)
+        case (result, (Right(Variable(Identifier(lexeme, _))), value)) =>
+          Evaluate.expr(value).map(evaluatedValue => result + (Value.Str(lexeme) -> evaluatedValue))
+      }
+      dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
+  }
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
     locals

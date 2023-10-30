@@ -148,7 +148,12 @@ object Resolve {
     }
   }
 
-  def dictionary: Dictionary => Resolve = ???
+  def dictionary: Dictionary => Resolve = { case Dictionary(table) =>
+    context =>
+      table.toList.foldFailFast(context.ok) { case (context, (_, value)) =>
+        Resolve.expr(value)(context)
+      }
+  }
 
   private def exprWithDepth(depth: Int): Expr => Resolve = expr =>
     context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok

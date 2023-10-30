@@ -7,6 +7,7 @@ import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.Callable
 import com.melvic.dry.interpreter.values.Value.Num
 
+import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
 private[interpreter] trait Value {
@@ -39,20 +40,22 @@ object Value {
     val Instance = "instance"
     val List = "list"
     val Object = "object"
+    val Dictionary = "dictionary"
     val Callable = "callable"
   }
 
   def typeOf: Value => String = {
-    case Value.None   => Types.None
-    case Bool(_)      => Types.Boolean
-    case Num(_)       => Types.Number
-    case Str(_)       => Types.String
-    case Value.Unit   => Types.Unit
-    case _: DClass    => Types.Class
-    case _: DInstance => Types.Instance
-    case _: DList     => Types.List
-    case _: DObject   => Types.Object
-    case _: Callable  => Types.Callable
+    case Value.None     => Types.None
+    case Bool(_)        => Types.Boolean
+    case Num(_)         => Types.Number
+    case Str(_)         => Types.String
+    case Value.Unit     => Types.Unit
+    case _: DClass      => Types.Class
+    case _: DInstance   => Types.Instance
+    case _: DList       => Types.List
+    case _: DDictionary => Types.Dictionary
+    case _: DObject     => Types.Object
+    case _: Callable    => Types.Callable
   }
 
   def show: Show[Value] = {
@@ -70,6 +73,8 @@ object Value {
     case _: Callable                                    => "<callable>"
     case DInstance(klass, _)                            => show"$klass instance"
     case DList(elems, _)                                => show"[${elems.toList.map(Value.show).toCsv}]"
+    case DDictionary(table, _) =>
+      show"{${table.toList.map { case (key, value) => show"$key: $value" }.toCsv}}"
   }
 
   implicit class ToValue[A](value: A) {
