@@ -8,9 +8,9 @@ def test_init_dictionary() {
 
 def test_dict_size() {
     let empty_dict = {};
-    let non_empty_dict = {"number": 2, "str": "hello"};
+    let non_empty_dict = {"number": 2, "str": "hello", 3: 56};
     assert_equals("Count empty dict", empty_dict.size(), 0);
-    assert_equals("Count non-empty dict", non_empty_dict.size(), 2);
+    assert_equals("Count non-empty dict", non_empty_dict.size(), 3);
 }
 
 test_init_dictionary();

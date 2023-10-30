@@ -20,11 +20,15 @@ object Token {
     case object RightParen extends TokenType
     case object LeftBrace extends TokenType
     case object RightBrace extends TokenType
+    case object LeftBracket extends TokenType
+    case object RightBracket extends TokenType
     case object Comma extends TokenType
     case object Dot extends TokenType
     case object Semicolon extends TokenType
     case object Colon extends TokenType
     case object Eof extends TokenType
+
+    sealed trait Constant extends TokenType
   }
 
   trait Arithmetic {
@@ -55,8 +59,8 @@ object Token {
   }
 
   trait Literals {
-    case class Str private (value: String) extends TokenType
-    case class Number private (value: Double) extends TokenType
+    case class Str private (value: String) extends TokenType.Constant
+    case class Number private (value: Double) extends TokenType.Constant
   }
 
   trait Keywords {
@@ -65,14 +69,14 @@ object Token {
     case object Or extends TokenType
     case object Class extends TokenType
     case object Else extends TokenType
-    case object False extends TokenType
+    case object False extends TokenType.Constant
     case object Def extends TokenType
     case object For extends TokenType
     case object If extends TokenType
-    case object None extends TokenType
+    case object None extends TokenType.Constant
     case object Return extends TokenType
     case object Self extends TokenType
-    case object True extends TokenType
+    case object True extends TokenType.Constant
     case object Let extends TokenType
     case object While extends TokenType
     case object Lambda extends TokenType

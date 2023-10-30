@@ -2,7 +2,6 @@ package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
-import com.melvic.dry.Token.TokenType.Identifier
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.aux.implicits.ListOps
@@ -11,7 +10,7 @@ import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.values.Callable.Varargs
-import com.melvic.dry.interpreter.values.{Callable, DDictionary, DModule, DObject, Value}
+import com.melvic.dry.interpreter.values._
 import com.melvic.dry.resolver.LocalExprKey
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -211,13 +210,11 @@ private[eval] trait EvalExpr {
     case Dictionary(table) =>
       @nowarn
       val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Value, Value])) {
-        case (result, (Left(key), value)) =>
+        case (result, (key, value)) =>
           for {
             evaluatedKey   <- Evaluate.literal(key)
             evaluatedValue <- Evaluate.expr(value)
           } yield result + (evaluatedKey -> evaluatedValue)
-        case (result, (Right(Variable(Identifier(lexeme, _))), value)) =>
-          Evaluate.expr(value).map(evaluatedValue => result + (Value.Str(lexeme) -> evaluatedValue))
       }
       dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
   }

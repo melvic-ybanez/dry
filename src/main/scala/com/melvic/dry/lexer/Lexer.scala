@@ -33,6 +33,8 @@ final case class Lexer(
       case ')' => lexer.addToken(TokenType.RightParen).ok
       case '{' => lexer.addToken(TokenType.LeftBrace).ok
       case '}' => lexer.addToken(TokenType.RightBrace).ok
+      case '[' => lexer.addToken(TokenType.LeftBracket).ok
+      case ']' => lexer.addToken(TokenType.RightBracket).ok
       case ',' => lexer.addToken(TokenType.Comma).ok
       case '.' => lexer.addToken(TokenType.Dot).ok
       case '+' => lexer.addToken(TokenType.Plus).ok

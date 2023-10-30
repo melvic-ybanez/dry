@@ -144,7 +144,7 @@ private[parsers] trait ExprParser { _: Parser =>
     }
 
     primary.flatMap {
-      // Recursively checks if the expression is being called, or a property access is being invoked
+      // Recursively checks for function calls and property access
       def checkForCalls(step: Step[Expr]): ParseResult[Expr] = {
         def propAccess(expr: Expr, next: Parser) =
           next.consumeAfter(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
@@ -206,36 +206,35 @@ private[parsers] trait ExprParser { _: Parser =>
    * }}}
    */
   def primary: ParseResult[Expr] =
-    matchAny(TokenType.False)
-      .map(Step(Literal.False, _))
-      .orElse(matchAny(TokenType.True).map(Step(Literal.True, _)))
-      .orElse(matchAny(TokenType.None).map(Step(Literal.None, _)))
-      .orElse {
-        matchAnyWith {
-          case TokenType.Number(_) => true
-          case TokenType.Str(_)    => true
-        }.map { parser =>
-          @nowarn
-          val literal = parser.previousToken.tokenType match {
-            case TokenType.Number(number) => Literal.Number(number)
-            case TokenType.Str(string)    => Literal.Str(string)
-          }
-          Step(literal, parser)
-        }
-      }
+    literal
       .orElse(matchAny(TokenType.Self).map(p => Step(Self(p.previousToken), p)))
       .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previousToken), p)))
       .map(_.toParseResult)
       .getOrElse(
         dictionary.orElse(
           matchAny(TokenType.LeftParen)
-            .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "after ("), this)) {
+            .fold[ParseResult[Expr]](
+              ParseResult.fail(ParseError.expected(peek, "expression", "after ("), this)
+            ) {
               _.expression.flatMap { case Step(expr, newParser) =>
                 newParser.consumeAfter(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
               }
             }
         )
       )
+
+  private[parsers] def literal: Option[Step[Literal]] =
+    matchAnyWith { case _: TokenType.Constant => true }.map { next =>
+      @nowarn
+      val literal = next.previousToken.tokenType match {
+        case TokenType.True          => Literal.True
+        case TokenType.False         => Literal.False
+        case TokenType.Str(string)   => Literal.Str(string)
+        case TokenType.Number(value) => Literal.Number(value)
+        case TokenType.None          => Literal.None
+      }
+      Step(literal, next)
+    }
 
   /**
    * {{{
@@ -244,28 +243,20 @@ private[parsers] trait ExprParser { _: Parser =>
    * }}}
    */
   def dictionary: ParseResult[Expr] =
-    sequence[(Either[Literal.Str, Variable], Expr)](
+    sequence[(Literal, Expr)](
       TokenType.LeftBrace,
       "{",
       TokenType.RightBrace,
       "}",
       "at the start of dictionary",
       "dictionary elements"
-    )(_.matchAnyWith {
-      case TokenType.Str(_)     => true
-      case TokenType.Identifier => true
-    }.flatMap { next =>
-      @nowarn
-      val key = next.previousToken match {
-        case Token(TokenType.Str(string), _, _)        => Left(Literal.Str(string))
-        case token @ Token(TokenType.Identifier, _, _) => Right(Variable(token))
-      }
+    )(_.literal.flatMap { case Step(key, next) =>
       next
         .consumeAfter(TokenType.Colon, ":", "dictionary key")
         .flatMap { case Step(_, next) =>
           next.expression.map(_.map((key, _)))
         }
-        .fold[Option[Step[(Either[Literal.Str, Variable], Expr)]]]((_, _) => None)(Some(_))
+        .fold[Option[Step[(Literal, Expr)]]]((_, _) => None)(Some(_))
     }).mapValue(elements => Dictionary(elements.toMap))
 
   /**

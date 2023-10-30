@@ -43,18 +43,12 @@ object Expr {
 
   final case class Self(keyword: Token) extends Expr
 
-  final case class Dictionary(table: Map[Either[Str, Variable], Expr]) extends Expr
+  final case class Dictionary(table: Map[Literal, Expr]) extends Expr
 
   object Dictionary {
     def show: Show[Dictionary] = { case Dictionary(table) =>
-      def fieldKeyToString(key: Either[Str, Variable]): String =
-        key match {
-          case Left(fieldName) => show""""$fieldName""""
-          case Right(variable) => Expr.show(variable)
-        }
-
-      def fieldToString(field: (Either[Str, Variable], Expr)): String =
-        show"${fieldKeyToString(field._1)}: ${Expr.show(field._2)}"
+      def fieldToString(field: (Literal, Expr)): String =
+        show"${field._1}: ${Expr.show(field._2)}"
 
       show"{ ${table.map(fieldToString).mkString(", ")} }"
     }
