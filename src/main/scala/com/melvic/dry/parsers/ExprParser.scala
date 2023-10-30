@@ -229,7 +229,7 @@ private[parsers] trait ExprParser { _: Parser =>
       .getOrElse(
         dictionary.orElse(
           matchAny(TokenType.LeftParen)
-            .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "("), this)) {
+            .fold[ParseResult[Expr]](ParseResult.fail(ParseError.expected(peek, "expression", "after ("), this)) {
               _.expression.flatMap { case Step(expr, newParser) =>
                 newParser.consumeAfter(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
               }

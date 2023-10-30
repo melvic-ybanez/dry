@@ -6,4 +6,12 @@ def test_init_dictionary() {
         "{one: 1, two: 2}");
 }
 
+def test_dict_size() {
+    let empty_dict = {};
+    let non_empty_dict = {"number": 2, "str": "hello"};
+    assert_equals("Count empty dict", empty_dict.size(), 0);
+    assert_equals("Count non-empty dict", non_empty_dict.size(), 2);
+}
+
 test_init_dictionary();
+test_dict_size();
