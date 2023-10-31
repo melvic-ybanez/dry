@@ -35,6 +35,7 @@ private[eval] trait EvalExpr {
     case get: Get               => Evaluate.get(get)
     case set: Set               => Evaluate.set(set)
     case indexGet: IndexGet     => Evaluate.indexGet(indexGet)
+    case indexSet: IndexSet     => Evaluate.indexSet(indexSet)
     case self: Self             => Evaluate.self(self)
     case dictionary: Dictionary => Evaluate.dictionary(dictionary)
   }
@@ -213,6 +214,16 @@ private[eval] trait EvalExpr {
       }
   }
 
+  def indexSet(implicit context: Context[IndexSet]): Out = node match {
+    case IndexSet(obj, name, value) =>
+      Evaluate
+        .expr(obj)
+        .flatMap {
+          case dict: DDictionary => Evaluate.expr(value).map(dict.setByKey(name, _))
+          case _                 => RuntimeError.canNotBeIndexedByKeys(obj, name).fail[Value]
+        }
+  }
+
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
   def dictionary(implicit context: Context[Dictionary]): Out = node match {
@@ -222,7 +233,11 @@ private[eval] trait EvalExpr {
         case (result, (key, value)) =>
           Evaluate.expr(value).map(evaluatedValue => result + (key -> evaluatedValue))
       }
-      dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
+
+      def removeLinesFromTable(table: Map[Token, Value]): Map[(TokenType, String), Value] =
+        table.map { case (Token(tokenType, lexeme, _), value) => ((tokenType, lexeme), value) }
+
+      dictFields.map(fields => DDictionary(removeLinesFromTable(fields).to(mutable.Map), env))
   }
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =

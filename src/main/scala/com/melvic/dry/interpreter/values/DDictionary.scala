@@ -1,15 +1,15 @@
 package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
+import com.melvic.dry.Token.TokenType
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.Collections.Sizeable
-import com.melvic.dry.interpreter.values.Value.{Str, Types}
-import com.melvic.dry.result.Failure.RuntimeError
-import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.collection.mutable
 
-final case class DDictionary(table: mutable.Map[Token, Value], env: Env) extends DObject with Sizeable {
+final case class DDictionary(table: mutable.Map[(TokenType, String), Value], env: Env)
+    extends DObject
+    with Sizeable {
   override def klass: Metaclass = DClass("Dictionary", Map.empty, env)
 
   override def fields: mutable.Map[String, Value] =
@@ -18,12 +18,11 @@ final case class DDictionary(table: mutable.Map[Token, Value], env: Env) extends
 
   override def size = table.size
 
-  def getByKey(key: Token): Option[Value] =
-    table
-      .find {
-        case (Token(tokenType, lexeme, _), _) if tokenType == key.tokenType && lexeme == key.lexeme =>
-          true
-        case _ => false
-      }
-      .map(_._2)
+  def getByKey(key: Token): Option[Value] = table.get(key.tokenType, key.lexeme)
+
+  def setByKey(key: Token, value: Value): Value.Bool = {
+    val oldSize = table.size
+    table += (key.tokenType, key.lexeme) -> value
+    Value.Bool(oldSize != table.size)
+  }
 }

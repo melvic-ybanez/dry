@@ -7,7 +7,6 @@ import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.Callable
 import com.melvic.dry.interpreter.values.Value.Num
 
-import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
 private[interpreter] trait Value {
@@ -74,7 +73,7 @@ object Value {
     case DInstance(klass, _)                            => show"$klass instance"
     case DList(elems, _)                                => show"[${elems.toList.map(Value.show).toCsv}]"
     case DDictionary(table, _) =>
-      show"{${table.toList.map { case (key, value) => show"$key: $value" }.toCsv}}"
+      show"{${table.toList.map { case ((_, lexeme), value) => show"$lexeme: $value" }.toCsv}}"
   }
 
   implicit class ToValue[A](value: A) {

@@ -30,8 +30,9 @@ private[parsers] trait ExprParser { _: Parser =>
         // otherwise, check if it's a valid assignment target
         parser.expression.flatMap { case Step(rValue, parser) =>
           lValue match {
-            case Variable(name) => ParseResult.succeed(Assignment(name, rValue), parser)
-            case Get(obj, name) => ParseResult.succeed(Expr.Set(obj, name, rValue), parser)
+            case Variable(name)      => ParseResult.succeed(Assignment(name, rValue), parser)
+            case Get(obj, name)      => ParseResult.succeed(Set(obj, name, rValue), parser)
+            case IndexGet(obj, name) => ParseResult.succeed(IndexSet(obj, name, rValue), parser)
             case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previousToken), parser)
           }
         }

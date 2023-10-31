@@ -30,6 +30,25 @@ def test_dict_get() {
     });
 }
 
+def test_dict_set() {
+    let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
+
+    let new_field_added = dict["number"] = 3;
+    assert_false("Dictionary is updated", new_field_added);
+    assert_equals("Updated dictionary", {"number": 3, 1: "one", true: 11, false: 10, none: "none"}, dict);
+
+    new_field_added = dict["food"] = "burger";
+    assert_true("New field is added to dictionary", new_field_added);
+    assert_equals("Updated dictionary with new fields",
+        {"number": 3, 1: "one", true: 11, false: 10, none: "none", "food": "burger"}, dict);
+
+    assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+        let foo = lambda() {};
+        foo["numbers"] = 30;
+    });
+}
+
 test_init_dictionary();
 test_dict_size();
 test_dict_get();
+test_dict_set();
