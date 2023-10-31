@@ -3,7 +3,7 @@ def test_init_dictionary() {
     assert_equals("Empty dictionary string representation", str(empty_dict), "{}");
     let map = { "one": 1, "two": 2 };
     assert_equals("Non-empty dictionary string representation", str(map),
-        "{one: 1, two: 2}");
+        "{\"one\": 1, \"two\": 2}");
 }
 
 def test_dict_size() {
@@ -13,5 +13,23 @@ def test_dict_size() {
     assert_equals("Count non-empty dict", non_empty_dict.size(), 3);
 }
 
+def test_dict_get() {
+    let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
+    assert_equals("Get dictionary field value by string key", dict["number"], 1);
+    assert_equals("Get dictionary field value by number key", dict[1], "one");
+    assert_equals("Get dictionary field value by true key", dict[true], 11);
+    assert_equals("Get dictionary field value by false key", dict[false], 10);
+    assert_equals("Get dictionary field value by none key", dict[none], "none");
+
+    assert_error("Accessing undefined dictionary key", Errors.UNDEFINED_KEY, lambda() {
+        dict["foo"];
+    });
+    assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+        let foo = lambda() {};
+        foo["numbers"];
+    });
+}
+
 test_init_dictionary();
 test_dict_size();
+test_dict_get();

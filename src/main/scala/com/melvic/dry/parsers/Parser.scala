@@ -64,7 +64,10 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
     consume(tokenType, expected, "after " + after)
 
   def consume(tokenType: TokenType, expected: String, at: String): ParseResult[Token] =
-    if (check(tokenType)) advance.toParseResult
+    consumeWith(expected, at)(_ == tokenType)
+
+  def consumeWith(expected: String, at: String)(predicate: PartialFunction[TokenType, Boolean]): ParseResult[Token] =
+    if (checkWith(predicate)) advance.toParseResult
     else ParseResult.fail(ParseError.expected(peek, expected, at), this)
 
   def isAtEnd: Boolean =

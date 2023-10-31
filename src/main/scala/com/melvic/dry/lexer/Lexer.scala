@@ -122,7 +122,7 @@ final case class Lexer(
   private def scanString: Result[Lexer] = {
     @tailrec
     def loop(lexer: Lexer): Lexer =
-      if (lexer.peek == '"' || lexer.isAtEnd) lexer
+      if ((lexer.peek == '"' || lexer.isAtEnd) && lexer.source(lexer.current - 1) != '\\') lexer
       else if (lexer.peek == '\n') loop(lexer.nextLine.advance)
       else loop(lexer.advance)
 

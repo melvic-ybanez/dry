@@ -71,6 +71,8 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
+    final case class UndefinedKey(key: Token) extends RuntimeError
+    final case class CanNotBeIndexedByKeys(obj: Expr, key: Token) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
     final case class InvalidIndex(value: String, line: Int) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
@@ -100,6 +102,12 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
+    def undefinedKey(key: Token): RuntimeError =
+      UndefinedKey(key)
+
+    def canNotBeIndexedByKeys(obj: Expr, key: Token): RuntimeError =
+      CanNotBeIndexedByKeys(obj, key)
+
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       IndexOutOfBounds(index, line)
 
@@ -125,6 +133,8 @@ object Failure {
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
       case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
+      case UndefinedKey(key)      => errorMsg(key, show"Undefined key: $key")
+      case CanNotBeIndexedByKeys(obj, key) => errorMsg(key, show"$obj can not be indexed by keys.")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
       case InvalidIndex(value, line) => show"Runtime Error. Invalid index: $value\n${showLine(line)}."

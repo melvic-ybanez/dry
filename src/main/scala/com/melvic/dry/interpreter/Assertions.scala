@@ -38,7 +38,7 @@ object Assertions {
       getTestData(env).foreach { case (testsCount, successCount, _) =>
         condition match {
           case Value.Bool(`bool`) => addSuccess(env, description, successCount)
-          case _ => displayError(description, show"$condition is not $bool")
+          case _                  => displayError(description, show"$condition is not $bool")
         }
         updateTestsCount(env, testsCount)
       }
@@ -108,10 +108,12 @@ object Assertions {
       case NotCallable(_)              => Keys.Errors.NotCallable
       case IncorrectArity(_, _, _)     => Keys.Errors.IncorrectArity
       case DoesNotHaveProperties(_, _) => Keys.Errors.DoesNotHaveProperties
+      case CanNotBeIndexedByKeys(_, _) => Keys.Errors.CanNotBeIndexedByKeys
       case IndexOutOfBounds(_, _)      => Keys.Errors.IndexOutOfBounds
       case InvalidIndex(_, _)          => Keys.Errors.InvalidIndex
       case InvalidArgument(_, _, _)    => Keys.Errors.InvalidArgument
       case UndefinedProperty(_)        => Keys.Errors.UndefinedProperty
+      case UndefinedKey(_)             => Keys.Errors.UndefinedKey
       case ModuleNotFound(_, _)        => Keys.Errors.ModuleNotFound
     }
 

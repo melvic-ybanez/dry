@@ -20,7 +20,7 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   /**
-   * {{{<assignment> ::= ((<call> "." )?<identifier> | <get-by-key>) "=" <expression>}}}
+   * {{{<assignment> ::= (<call> | <identifier>) "=" <expression>}}}
    */
   def assignment: ParseResult[Expr] = {
     // parse the left value as a lambda to cover all possible expression (including chained `get`s)
@@ -115,7 +115,10 @@ private[parsers] trait ExprParser { _: Parser =>
       .getOrElse(call)
 
   /**
-   * {{{<call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)*}}}
+   * {{{
+   *   <call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>
+   *       | "[" <constant> "]")*
+   * }}}
    */
   def call: ParseResult[Expr] = {
     // TODO: see if we can refactor this using the `sequence` utility from `Parser`
@@ -149,9 +152,19 @@ private[parsers] trait ExprParser { _: Parser =>
         def propAccess(expr: Expr, next: Parser) =
           next.consumeAfter(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
 
+        def indexAccess(expr: Expr, next: Parser) =
+          next
+            .consumeWith("key name", "after [") { case _: TokenType.Constant => true }
+            .mapValue(IndexGet(expr, _))
+            .flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
+
         def checkForPropAccess = step.next
           .matchAny(TokenType.Dot)
-          .fold(ParseResult.fromStep(step))(propAccess(step.value, _).flatMap(checkForCalls))
+          .fold(checkForIndexAccess)(propAccess(step.value, _).flatMap(checkForCalls))
+
+        def checkForIndexAccess = step.next
+          .matchAny(TokenType.LeftBracket)
+          .fold(ParseResult.fromStep(step))(indexAccess(step.value, _).flatMap(checkForCalls))
 
         step.next
           .matchAny(TokenType.LeftParen)
@@ -201,8 +214,7 @@ private[parsers] trait ExprParser { _: Parser =>
 
   /**
    * {{{
-   *   <primary> ::= "false" | "true" | "none" | <number> | <string>
-   *     | "self" | <identifier> | <dictionary> | "(" <expression> ")"
+   *   <primary> ::= <constant> | "self" | <identifier> | <dictionary> | "(" <expression> ")""
    * }}}
    */
   def primary: ParseResult[Expr] =
@@ -223,8 +235,32 @@ private[parsers] trait ExprParser { _: Parser =>
         )
       )
 
+  /**
+   * {{{
+   *    <dictionary> ::= "{" (<key-value> ("," <key-value>)*)? "}"
+   *    <key-value>  ::= <constant> ":" <expression>
+   * }}}
+   */
+  def dictionary: ParseResult[Expr] =
+    sequence[(Token, Expr)](
+      TokenType.LeftBrace,
+      "{",
+      TokenType.RightBrace,
+      "}",
+      "at the start of dictionary",
+      "dictionary elements"
+    )(_.matchWithAnyConstant.flatMap { next =>
+      val key = next.previousToken
+      next
+        .consumeAfter(TokenType.Colon, ":", "dictionary key")
+        .flatMap { case Step(_, next) =>
+          next.expression.map(_.map((key, _)))
+        }
+        .fold[Option[Step[(Token, Expr)]]]((_, _) => None)(Some(_))
+    }).mapValue(elements => Dictionary(elements.toMap))
+
   private[parsers] def literal: Option[Step[Literal]] =
-    matchAnyWith { case _: TokenType.Constant => true }.map { next =>
+    matchWithAnyConstant.map { next =>
       @nowarn
       val literal = next.previousToken.tokenType match {
         case TokenType.True          => Literal.True
@@ -236,28 +272,8 @@ private[parsers] trait ExprParser { _: Parser =>
       Step(literal, next)
     }
 
-  /**
-   * {{{
-   *   <dictionary> ::= "{" (<key-value> ("," <key-value>)*)? "}"
-   *   <key-value> ::= (<string> | <identifier>) ":" <expression>
-   * }}}
-   */
-  def dictionary: ParseResult[Expr] =
-    sequence[(Literal, Expr)](
-      TokenType.LeftBrace,
-      "{",
-      TokenType.RightBrace,
-      "}",
-      "at the start of dictionary",
-      "dictionary elements"
-    )(_.literal.flatMap { case Step(key, next) =>
-      next
-        .consumeAfter(TokenType.Colon, ":", "dictionary key")
-        .flatMap { case Step(_, next) =>
-          next.expression.map(_.map((key, _)))
-        }
-        .fold[Option[Step[(Literal, Expr)]]]((_, _) => None)(Some(_))
-    }).mapValue(elements => Dictionary(elements.toMap))
+  private[parsers] def matchWithAnyConstant: Option[Parser] =
+    matchAnyWith { case _: TokenType.Constant => true }
 
   /**
    * Like [[leftAssocBinaryWith]], but is specific to non-logical binary operators.

@@ -77,6 +77,7 @@ object Resolve {
     case lambda: Lambda     => enterFunction(Resolve.lambda(_)(lambda))
     case Get(obj, _)        => Resolve.expr(obj)
     case Set(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
+    case IndexGet(obj, _)   => Resolve.expr(obj)
     case self: Self         => Resolve.self(self)
     case dict: Dictionary   => Resolve.dictionary(dict)
   }

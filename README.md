@@ -168,7 +168,7 @@ If everything works correctly, your console should print a bunch of assertion re
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 118 tests. Successful: 105. Failed: 0.
+Ran 125 tests. Successful: 105. Failed: 0.
 ```
 The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory containing them here: https://github.com/melvic-ybanez/dry/tree/main/tests. All the files in that directory that start with `test_` and have the Dry extension will be picked up by the `testDry` command.
 
@@ -197,9 +197,9 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <return>      ::= "return" <expression>? ";"
 <import>      ::= "import" <identifier>("."<identifier>)* ";"
 <expression>  ::= <assignment> | <lambda>
-<assignment>  ::= ((<call> "." )?<identifier> | <get-by-key>) "=" <expression>
-<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>)*
-<get-by-key>  ::= (<call> | <identifier>) "[" (<string> | <identifier>) "]"
+<assignment>  ::= (<call> | <identifier>) "=" <expression>
+<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  
+      | "[" <constant> "]")*
 <identifier>  ::= <alpha>(<alpha>?<digit>?)*
 <lambda>      ::= "lambda" <params> <block> | <or>
 <block>       ::= "{" <declaration>* "}"
@@ -212,10 +212,10 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
 <unary>       ::= ("!" | "-" | "+" | "not") <expression> | <call>
-<primary>     ::= "false" | "true" | "none" | <number> | <string>
-      | "self" | <identifier> | <dictionary> | "(" <expression> ")"
+<primary>     ::= <constant> | "self" | <identifier> | <dictionary> | "(" <expression> ")"
+<constant>    ::= "false" | "true" | "none" | <number> | <string>
 <dictionary>  ::= "{" (<key-value> ("," <key-value>)*)? "}"
-<key-value>   ::= (<string> | <identifier>) ":" <expression>
+<key-value>   ::= <constant> ":" <expression>
 <number>      ::= <sign>?<nat>("."<nat>)?
 <sign>        ::= "-" | "+"
 <string>      ::= '"'(.?"\n"?)*'"'

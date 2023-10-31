@@ -34,6 +34,7 @@ private[eval] trait EvalExpr {
     case call: Call             => Evaluate.call(call)
     case get: Get               => Evaluate.get(get)
     case set: Set               => Evaluate.set(set)
+    case indexGet: IndexGet     => Evaluate.indexGet(indexGet)
     case self: Self             => Evaluate.self(self)
     case dictionary: Dictionary => Evaluate.dictionary(dictionary)
   }
@@ -204,17 +205,22 @@ private[eval] trait EvalExpr {
         }
   }
 
+  def indexGet(implicit context: Context[IndexGet]): Out = node match {
+    case IndexGet(obj, name) =>
+      Evaluate.expr(obj).flatMap {
+        case dict: DDictionary => Result.fromOption(dict.getByKey(name), RuntimeError.undefinedKey(name))
+        case _                 => RuntimeError.canNotBeIndexedByKeys(obj, name).fail[Value]
+      }
+  }
+
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
   def dictionary(implicit context: Context[Dictionary]): Out = node match {
     case Dictionary(table) =>
       @nowarn
-      val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Value, Value])) {
+      val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Token, Value])) {
         case (result, (key, value)) =>
-          for {
-            evaluatedKey   <- Evaluate.literal(key)
-            evaluatedValue <- Evaluate.expr(value)
-          } yield result + (evaluatedKey -> evaluatedValue)
+          Evaluate.expr(value).map(evaluatedValue => result + (key -> evaluatedValue))
       }
       dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
   }
