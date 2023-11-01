@@ -3,10 +3,10 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl.StmtDecl
-import com.melvic.dry.ast.Expr.Literal
+import com.melvic.dry.ast.Expr.{IndexGet, Literal}
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, Import, ReturnStmt}
+import com.melvic.dry.ast.Stmt._
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 
 //noinspection ScalaWeakerAccess
@@ -23,6 +23,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       TokenType.While     -> { _.whileStatement },
       TokenType.For       -> { _.forStatement },
       TokenType.Return    -> { _.returnStatement },
+      TokenType.Delete    -> { _.deleteStatement },
       TokenType.Import    -> { _.importStatement }
     )
 
@@ -152,13 +153,29 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   }
 
   /**
+   * {{{<delete> ::= "del" <call><index> ";"}}}
+   */
+  // noinspection MutatorLikeMethodIsParameterless
+  def deleteStatement: ParseResult[Stmt] =
+    call
+      .flatMap {
+        case Step(IndexGet(obj, key), next) => ParseResult.succeed(DeleteStmt(obj, key), next)
+        case Step(expr, next) =>
+          next
+            .consumeAfter(TokenType.LeftBracket, "[", "call expression")
+            .flatMap(_.indexAccess(DeleteStmt(expr, _)))
+      }
+      .flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "]"))
+
+  /**
    * {{{<import> ::= "import" <identifier>("."<identifier>)* ";"}}}
    */
   def importStatement: ParseResult[Stmt] = {
     def parseComponents(parser: Parser, components: List[Token]): ParseResult[List[Token]] =
       parser.matchAny(TokenType.Dot).fold(ParseResult.succeed(components.reverse, parser)) { next =>
-        next.consumeAfter(TokenType.Identifier, "identifier", "import").flatMap { case Step(component, next) =>
-          parseComponents(next, component :: components)
+        next.consumeAfter(TokenType.Identifier, "identifier", "import").flatMap {
+          case Step(component, next) =>
+            parseComponents(next, component :: components)
         }
       }
 

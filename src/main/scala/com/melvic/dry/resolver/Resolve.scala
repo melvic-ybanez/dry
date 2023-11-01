@@ -6,7 +6,7 @@ import com.melvic.dry.ast.Decl.{ClassDecl, Def, StmtDecl}
 import com.melvic.dry.ast.Expr._
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
-import com.melvic.dry.ast.Stmt.{BlockStmt, ExprStmt, Import, ReturnStmt}
+import com.melvic.dry.ast.Stmt._
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
@@ -57,6 +57,7 @@ object Resolve {
     case IfThenElse(condition, thenBranch, elseBranch) =>
       Resolve.expr(condition) >=> Resolve.stmt(thenBranch) >=> Resolve.stmt(elseBranch)
     case returnStmt: ReturnStmt => Resolve.returnStmt(returnStmt)
+    case DeleteStmt(obj, _)     => Resolve.expr(obj)
     case While(condition, body) => Resolve.expr(condition) >=> Resolve.stmt(body)
     case blockStmt: BlockStmt   => Resolve.blockStmt(blockStmt)
     case importStmt: Import     => Scopes.declare(importStmt.name).ok >=> Scopes.define(importStmt.name).ok

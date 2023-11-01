@@ -197,31 +197,23 @@ private[eval] trait EvalExpr {
 
   def set(implicit context: Context[Set]): Out = node match {
     case Set(obj, name, value) =>
-      Evaluate
-        .expr(obj)
-        .flatMap {
-          case instance: DObject => Evaluate.expr(value).map(instance.set(name, _))
-          case module: DModule   => Evaluate.expr(value).map(module.set(name, _))
-          case _                 => RuntimeError.doesNotHaveProperties(obj, name).fail[Value]
-        }
+      Evaluate.expr(obj).flatMap {
+        case instance: DObject => Evaluate.expr(value).map(instance.set(name, _))
+        case module: DModule   => Evaluate.expr(value).map(module.set(name, _))
+        case _                 => RuntimeError.doesNotHaveProperties(obj, name).fail[Value]
+      }
   }
 
   def indexGet(implicit context: Context[IndexGet]): Out = node match {
-    case IndexGet(obj, name) =>
-      Evaluate.expr(obj).flatMap {
-        case dict: DDictionary => Result.fromOption(dict.getByKey(name), RuntimeError.undefinedKey(name))
-        case _                 => RuntimeError.canNotBeIndexedByKeys(obj, name).fail[Value]
+    case IndexGet(obj, key) =>
+      Evaluate.index(obj, key) { dict =>
+        Result.fromOption(dict.getByKey(key), RuntimeError.undefinedKey(key))
       }
   }
 
   def indexSet(implicit context: Context[IndexSet]): Out = node match {
-    case IndexSet(obj, name, value) =>
-      Evaluate
-        .expr(obj)
-        .flatMap {
-          case dict: DDictionary => Evaluate.expr(value).map(dict.setByKey(name, _))
-          case _                 => RuntimeError.canNotBeIndexedByKeys(obj, name).fail[Value]
-        }
+    case IndexSet(obj, key, value) =>
+      Evaluate.index(obj, key)(dict => Evaluate.expr(value).map(dict.setByKey(key, _)))
   }
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
@@ -239,6 +231,14 @@ private[eval] trait EvalExpr {
 
       dictFields.map(fields => DDictionary(removeLinesFromTable(fields).to(mutable.Map), env))
   }
+
+  private[eval] def index[A](obj: Expr, key: Token)(
+      ifCanBeIndexed: DDictionary => Out
+  )(implicit context: Context[A]): Out =
+    Evaluate.expr(obj).flatMap {
+      case dict: DDictionary => ifCanBeIndexed(dict)
+      case _                 => RuntimeError.canNotBeIndexedByKeys(obj, key).fail[Value]
+    }
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
     locals

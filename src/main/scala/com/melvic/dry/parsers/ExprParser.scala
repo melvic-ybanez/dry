@@ -152,19 +152,13 @@ private[parsers] trait ExprParser { _: Parser =>
         def propAccess(expr: Expr, next: Parser) =
           next.consumeAfter(TokenType.Identifier, "property name", ".").mapValue(Get(expr, _))
 
-        def indexAccess(expr: Expr, next: Parser) =
-          next
-            .consumeWith("key name", "after [") { case _: TokenType.Constant => true }
-            .mapValue(IndexGet(expr, _))
-            .flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
-
         def checkForPropAccess = step.next
           .matchAny(TokenType.Dot)
           .fold(checkForIndexAccess)(propAccess(step.value, _).flatMap(checkForCalls))
 
         def checkForIndexAccess = step.next
           .matchAny(TokenType.LeftBracket)
-          .fold(ParseResult.fromStep(step))(indexAccess(step.value, _).flatMap(checkForCalls))
+          .fold(ParseResult.fromStep(step))(_.indexAccess(IndexGet(step.value, _)).flatMap(checkForCalls))
 
         step.next
           .matchAny(TokenType.LeftParen)
@@ -174,6 +168,11 @@ private[parsers] trait ExprParser { _: Parser =>
       checkForCalls
     }
   }
+
+  private[parsers] def indexAccess[A](keyF: Token => A): ParseResult[A] =
+    consumeWith("key name", "after [") { case _: TokenType.Constant => true }
+      .mapValue(keyF)
+      .flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
 
   /**
    * Decides whether to construct a Call or a Lambda node. This is useful for partial application.

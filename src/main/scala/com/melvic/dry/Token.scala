@@ -2,7 +2,9 @@ package com.melvic.dry
 
 import com.melvic.dry.Token.TokenType
 
-final case class Token(tokenType: TokenType, lexeme: String, line: Int)
+final case class Token(tokenType: TokenType, lexeme: String, line: Int) {
+  def withoutLine: (TokenType, String) = (tokenType, lexeme)
+}
 
 object Token {
   sealed trait TokenType { self =>
@@ -81,6 +83,7 @@ object Token {
     case object While extends TokenType
     case object Lambda extends TokenType
     case object Import extends TokenType
+    case object Delete extends TokenType
   }
 
   def show: Show[Token] = _.lexeme

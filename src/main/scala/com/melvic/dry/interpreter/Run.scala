@@ -14,7 +14,8 @@ object Run {
   def mainModule(path: String): Unit = {
     val result = Run.path(path, ModuleManager.getSourcePaths(Paths.get(path)))
     Result.foreachFailure(result)(error =>
-      System.err.println(s"${Console.RED}${Failure.show(error)}${Console.RESET}"))
+      System.err.println(s"${Console.RED}${Failure.show(error)}${Console.RESET}")
+    )
     System.exit(if (result.isLeft) -1 else 0)
   }
 

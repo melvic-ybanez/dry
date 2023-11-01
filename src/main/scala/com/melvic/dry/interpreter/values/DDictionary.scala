@@ -18,11 +18,14 @@ final case class DDictionary(table: mutable.Map[(TokenType, String), Value], env
 
   override def size = table.size
 
-  def getByKey(key: Token): Option[Value] = table.get(key.tokenType, key.lexeme)
+  def getByKey(key: Token): Option[Value] = table.get(key.withoutLine)
 
   def setByKey(key: Token, value: Value): Value.Bool = {
     val oldSize = table.size
-    table += (key.tokenType, key.lexeme) -> value
+    table += key.withoutLine -> value
     Value.Bool(oldSize != table.size)
   }
+
+  def deleteByKey(key: Token): Option[Value] =
+    table.remove(key.withoutLine)
 }

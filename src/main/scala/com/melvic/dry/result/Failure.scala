@@ -132,8 +132,8 @@ object Failure {
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
-      case UndefinedKey(key)      => errorMsg(key, show"Undefined key: $key")
+      case UndefinedProperty(token)        => errorMsg(token, show"Undefined property: $token")
+      case UndefinedKey(key)               => errorMsg(key, show"Undefined key: $key")
       case CanNotBeIndexedByKeys(obj, key) => errorMsg(key, show"$obj can not be indexed by keys.")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."

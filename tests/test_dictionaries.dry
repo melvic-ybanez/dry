@@ -1,54 +1,80 @@
-def test_init_dictionary() {
-    let empty_dict = {};
-    assert_equals("Empty dictionary string representation", str(empty_dict), "{}");
-    let map = { "one": 1, "two": 2 };
-    assert_equals("Non-empty dictionary string representation", str(map),
-        "{\"one\": 1, \"two\": 2}");
+class TestDictionary {
+    def test_init() {
+        let empty_dict = {};
+        assert_equals("Empty dictionary string representation", str(empty_dict), "{}");
+        let map = { "one": 1, "two": 2 };
+        assert_equals("Non-empty dictionary string representation", str(map),
+            "{\"one\": 1, \"two\": 2}");
+    }
+
+    def test_size() {
+        let empty_dict = {};
+        let non_empty_dict = {"number": 2, "str": "hello", 3: 56};
+        assert_equals("Count empty dict", empty_dict.size(), 0);
+        assert_equals("Count non-empty dict", non_empty_dict.size(), 3);
+    }
+
+    def test_get() {
+        let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
+        assert_equals("Get dictionary field value by string key", dict["number"], 1);
+        assert_equals("Get dictionary field value by number key", dict[1], "one");
+        assert_equals("Get dictionary field value by true key", dict[true], 11);
+        assert_equals("Get dictionary field value by false key", dict[false], 10);
+        assert_equals("Get dictionary field value by none key", dict[none], "none");
+
+        assert_error("Accessing undefined dictionary key", Errors.UNDEFINED_KEY, lambda() {
+            dict["foo"];
+        });
+        assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+            let foo = lambda() {};
+            foo["numbers"];
+        });
+    }
+
+    def test_set() {
+        let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
+
+        let new_field_added = dict["number"] = 3;
+        assert_false("Dictionary is updated", new_field_added);
+        assert_equals("Updated dictionary", {"number": 3, 1: "one", true: 11, false: 10, none: "none"}, dict);
+
+        new_field_added = dict["food"] = "burger";
+        assert_true("New field is added to dictionary", new_field_added);
+        assert_equals("Updated dictionary with new fields",
+            {"number": 3, 1: "one", true: 11, false: 10, none: "none", "food": "burger"}, dict);
+
+        assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+            let foo = lambda() {};
+            foo["numbers"] = 30;
+        });
+    }
+
+    def test_delete() {
+        let dict = {"first": 1, "second": 2};
+
+        del dict["first"];
+        assert_equals("Delete existing field from a dictionary", {"second": 2}, dict);
+
+        assert_error("Delete non-existing field from a dictionary", Errors.UNDEFINED_KEY, lambda() {
+            del dict["third"];
+        });
+    }
+
+    def test_nested() {
+        let nested_dict = {"outer": 1, "inner": { "inner_field": 3 }};
+        assert_equals("Access field from a nested dictionary", 3, nested_dict["inner"]["inner_field"]);
+        nested_dict["inner"]["inner_field"] = 10;
+        assert_equals("Update field in a nested dictionary",
+                {"outer": 1, "inner": { "inner_field": 10 }}, nested_dict);
+        del nested_dict["inner"]["inner_field"];
+        assert_equals("Delete field from a nested dictionary", {"outer": 1, "inner": {}}, nested_dict);
+    }
 }
 
-def test_dict_size() {
-    let empty_dict = {};
-    let non_empty_dict = {"number": 2, "str": "hello", 3: 56};
-    assert_equals("Count empty dict", empty_dict.size(), 0);
-    assert_equals("Count non-empty dict", non_empty_dict.size(), 3);
-}
-
-def test_dict_get() {
-    let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
-    assert_equals("Get dictionary field value by string key", dict["number"], 1);
-    assert_equals("Get dictionary field value by number key", dict[1], "one");
-    assert_equals("Get dictionary field value by true key", dict[true], 11);
-    assert_equals("Get dictionary field value by false key", dict[false], 10);
-    assert_equals("Get dictionary field value by none key", dict[none], "none");
-
-    assert_error("Accessing undefined dictionary key", Errors.UNDEFINED_KEY, lambda() {
-        dict["foo"];
-    });
-    assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
-        let foo = lambda() {};
-        foo["numbers"];
-    });
-}
-
-def test_dict_set() {
-    let dict = {"number": 1, 1: "one", true: 11, false: 10, none: "none"};
-
-    let new_field_added = dict["number"] = 3;
-    assert_false("Dictionary is updated", new_field_added);
-    assert_equals("Updated dictionary", {"number": 3, 1: "one", true: 11, false: 10, none: "none"}, dict);
-
-    new_field_added = dict["food"] = "burger";
-    assert_true("New field is added to dictionary", new_field_added);
-    assert_equals("Updated dictionary with new fields",
-        {"number": 3, 1: "one", true: 11, false: 10, none: "none", "food": "burger"}, dict);
-
-    assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
-        let foo = lambda() {};
-        foo["numbers"] = 30;
-    });
-}
-
-test_init_dictionary();
-test_dict_size();
-test_dict_get();
-test_dict_set();
+let test_dict = TestDictionary();
+test_dict.test_init();
+test_dict.test_size();
+test_dict.test_get();
+test_dict.test_set();
+test_dict.test_delete();
+test_dict.test_nested();

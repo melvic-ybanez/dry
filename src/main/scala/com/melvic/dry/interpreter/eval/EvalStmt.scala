@@ -22,6 +22,7 @@ private[eval] trait EvalStmt {
     case block: BlockStmt       => Evaluate.blockStmt(block)
     case ifStmt: IfStmt         => Evaluate.ifStmt(ifStmt)
     case whileStmt: While       => Evaluate.whileStmt(whileStmt)
+    case deleteStmt: DeleteStmt => Evaluate.deleteStmt(deleteStmt)
     case returnStmt: ReturnStmt => Evaluate.returnStmt(returnStmt)
     case importStmt: Import     => Evaluate.importStmt(importStmt)
   }
@@ -75,6 +76,13 @@ private[eval] trait EvalStmt {
 
   def returnStmt(implicit context: Context[ReturnStmt]): Out =
     Evaluate.expr(node.value).map(Returned)
+
+  def deleteStmt(implicit context: Context[DeleteStmt]): Out = node match {
+    case DeleteStmt(obj, key) =>
+      Evaluate.index(obj, key) { dict =>
+        Result.fromOption(dict.deleteByKey(key), RuntimeError.undefinedKey(key))
+      }
+  }
 
   def importStmt(implicit context: Context[Import]): Out = {
     val moduleComponents = node.path.map(Token.show)
