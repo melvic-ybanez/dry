@@ -20,7 +20,7 @@ private[parsers] trait ExprParser { _: Parser =>
     assignment
 
   /**
-   * {{{<assignment> ::= (<call> | <identifier>) "=" <expression>}}}
+   * {{{<assignment> ::= <call> "=" <expression>}}}
    */
   def assignment: ParseResult[Expr] = {
     // parse the left value as a lambda to cover all possible expression (including chained `get`s)
@@ -105,7 +105,7 @@ private[parsers] trait ExprParser { _: Parser =>
     leftAssocBinary(_.unary, TokenType.Slash, TokenType.Star, TokenType.Modulo)
 
   /**
-   * {{{<unary> ::= ("!" | "-" | "+") <expression> | <call>}}}
+   * {{{<unary> ::= ("!" | "-" | "+" | "not")* <call>}}}
    */
   def unary: ParseResult[Expr] =
     matchAny(TokenType.Not, TokenType.Minus, TokenType.Plus)
@@ -117,8 +117,7 @@ private[parsers] trait ExprParser { _: Parser =>
 
   /**
    * {{{
-   *   <call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>
-   *       | "[" <constant> "]")*
+   *   <call> ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  | <index>)*
    * }}}
    */
   def call: ParseResult[Expr] = {

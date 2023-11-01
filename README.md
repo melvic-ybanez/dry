@@ -197,9 +197,9 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <return>      ::= "return" <expression>? ";"
 <import>      ::= "import" <identifier>("."<identifier>)* ";"
 <expression>  ::= <assignment> | <lambda>
-<assignment>  ::= (<call> | <identifier>) "=" <expression>
-<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  
-      | "[" <constant> "]")+
+<assignment>  ::= <call> "=" <expression>
+<call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  | <index>)*
+<index>       ::= "[" <constant> "]"   
 <identifier>  ::= <alpha>(<alpha>?<digit>?)*
 <lambda>      ::= "lambda" <params> <block> | <or>
 <block>       ::= "{" <declaration>* "}"
@@ -211,7 +211,7 @@ The syntax of Dry should be familiar to Python and Scala developers. Here's the 
 <term>        ::= <factor> ("-" | "+" | "&" | "|" | "^" | "<<" | ">>"
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
-<unary>       ::= ("!" | "-" | "+" | "not") <expression> | <call>
+<unary>       ::= ("!" | "-" | "+" | "not")* <call>
 <primary>     ::= <constant> | "self" | <identifier> | <dictionary> | "(" <expression> ")"
 <constant>    ::= "false" | "true" | "none" | <number> | <string>
 <dictionary>  ::= "{" (<key-value> ("," <key-value>)*)? "}"
