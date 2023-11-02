@@ -7,9 +7,7 @@ import com.melvic.dry.interpreter.values.Collections.Countable
 
 import scala.collection.mutable
 
-final case class DDictionary(table: mutable.Map[(TokenType, String), Value], env: Env)
-    extends DObject
-    with Countable {
+final case class DDictionary(table: mutable.Map[Value, Value], env: Env) extends DObject with Countable {
   override def klass: Metaclass = DClass("Dictionary", Map.empty, env)
 
   override def fields: mutable.Map[String, Value] =
@@ -18,14 +16,14 @@ final case class DDictionary(table: mutable.Map[(TokenType, String), Value], env
 
   override def size = table.size
 
-  def getByKey(key: Token): Option[Value] = table.get(key.withoutLine)
+  def getByKey(key: Value): Option[Value] = table.get(key)
 
-  def setByKey(key: Token, value: Value): Value.Bool = {
+  def setByKey(key: Value, value: Value): Value.Bool = {
     val oldSize = table.size
-    table += key.withoutLine -> value
+    table += key -> value
     Value.Bool(oldSize != table.size)
   }
 
-  def deleteByKey(key: Token): Option[Value] =
-    table.remove(key.withoutLine)
+  def deleteByKey(key: Value): Option[Value] =
+    table.remove(key)
 }

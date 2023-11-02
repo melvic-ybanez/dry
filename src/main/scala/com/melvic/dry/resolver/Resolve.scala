@@ -57,7 +57,7 @@ object Resolve {
     case IfThenElse(condition, thenBranch, elseBranch) =>
       Resolve.expr(condition) >=> Resolve.stmt(thenBranch) >=> Resolve.stmt(elseBranch)
     case returnStmt: ReturnStmt => Resolve.returnStmt(returnStmt)
-    case DeleteStmt(obj, _)     => Resolve.expr(obj)
+    case DeleteStmt(obj, _, _)  => Resolve.expr(obj)
     case While(condition, body) => Resolve.expr(condition) >=> Resolve.stmt(body)
     case blockStmt: BlockStmt   => Resolve.blockStmt(blockStmt)
     case importStmt: Import     => Scopes.declare(importStmt.name).ok >=> Scopes.define(importStmt.name).ok
@@ -75,14 +75,14 @@ object Resolve {
       Resolve.expr(callee) >=> { scopes =>
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
-    case lambda: Lambda          => enterFunction(Resolve.lambda(_)(lambda))
-    case Get(obj, _)             => Resolve.expr(obj)
-    case Set(obj, _, value)      => Resolve.expr(value) >=> Resolve.expr(obj)
-    case IndexGet(obj, _)        => Resolve.expr(obj)
-    case IndexSet(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
-    case self: Self              => Resolve.self(self)
-    case tuple: Tuple            => Resolve.tuple(tuple)
-    case dict: Dictionary        => Resolve.dictionary(dict)
+    case lambda: Lambda             => enterFunction(Resolve.lambda(_)(lambda))
+    case Get(obj, _)                => Resolve.expr(obj)
+    case Set(obj, _, value)         => Resolve.expr(value) >=> Resolve.expr(obj)
+    case IndexGet(obj, _, _)        => Resolve.expr(obj)
+    case IndexSet(obj, _, value, _) => Resolve.expr(value) >=> Resolve.expr(obj)
+    case self: Self                 => Resolve.self(self)
+    case tuple: Tuple               => Resolve.tuple(tuple)
+    case dict: Dictionary           => Resolve.dictionary(dict)
   }
 
   def variable: Variable => Resolve = { case expr @ Variable(name) =>

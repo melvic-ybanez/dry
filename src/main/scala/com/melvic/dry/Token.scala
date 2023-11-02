@@ -2,9 +2,7 @@ package com.melvic.dry
 
 import com.melvic.dry.Token.TokenType
 
-final case class Token(tokenType: TokenType, lexeme: String, line: Int) {
-  def withoutLine: (TokenType, String) = (tokenType, lexeme)
-}
+final case class Token(tokenType: TokenType, lexeme: String, line: Int)
 
 object Token {
   sealed trait TokenType { self =>
@@ -29,8 +27,6 @@ object Token {
     case object Semicolon extends TokenType
     case object Colon extends TokenType
     case object Eof extends TokenType
-
-    sealed trait Constant extends TokenType
   }
 
   trait Arithmetic {
@@ -61,8 +57,8 @@ object Token {
   }
 
   trait Literals {
-    case class Str private (value: String) extends TokenType.Constant
-    case class Number private (value: Double) extends TokenType.Constant
+    case class Str private (value: String) extends TokenType
+    case class Number private (value: Double) extends TokenType
   }
 
   trait Keywords {
@@ -71,14 +67,14 @@ object Token {
     case object Or extends TokenType
     case object Class extends TokenType
     case object Else extends TokenType
-    case object False extends TokenType.Constant
+    case object False extends TokenType
     case object Def extends TokenType
     case object For extends TokenType
     case object If extends TokenType
-    case object None extends TokenType.Constant
+    case object None extends TokenType
     case object Return extends TokenType
     case object Self extends TokenType
-    case object True extends TokenType.Constant
+    case object True extends TokenType
     case object Let extends TokenType
     case object While extends TokenType
     case object Lambda extends TokenType

@@ -206,15 +206,27 @@ private[eval] trait EvalExpr {
   }
 
   def indexGet(implicit context: Context[IndexGet]): Out = node match {
-    case IndexGet(obj, key) =>
-      Evaluate.index(obj, key) { dict =>
-        Result.fromOption(dict.getByKey(key), RuntimeError.undefinedKey(key))
+    case IndexGet(obj, key, token) =>
+      Evaluate.index(obj, key, token) {
+        case (dict: DDictionary, evaluatedKey) =>
+          Result.fromOption(dict.getByKey(evaluatedKey), RuntimeError.undefinedKey(key, token))
+        case (tuple: DTuple, evaluatedKey) =>
+          evaluatedKey match {
+            case Value.Num(index) if index % 1 == 0 =>
+              val intIndex = index.toInt
+              if (index < 0 || index >= tuple.elems.size)
+                RuntimeError.indexOutOfBounds(intIndex, token.line).fail[Value]
+              else tuple.getByIndex(intIndex).ok
+            case _ => RuntimeError.invalidIndex(key, token).fail[Value]
+          }
       }
   }
 
   def indexSet(implicit context: Context[IndexSet]): Out = node match {
-    case IndexSet(obj, key, value) =>
-      Evaluate.index(obj, key)(dict => Evaluate.expr(value).map(dict.setByKey(key, _)))
+    case IndexSet(obj, key, value, token) =>
+      Evaluate.index(obj, key, token) { case (dict: DDictionary, evaluatedKey) =>
+        Evaluate.expr(value).map(dict.setByKey(evaluatedKey, _))
+      }
   }
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
@@ -229,24 +241,29 @@ private[eval] trait EvalExpr {
 
   def dictionary(implicit context: Context[Dictionary]): Out = node match {
     case Dictionary(table) =>
-      val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Token, Value])) {
+      val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Value, Value])) {
         case (result, (key, value)) =>
-          Evaluate.expr(value).map(evaluatedValue => result + (key -> evaluatedValue))
+          for {
+            evaluatedKey   <- key.fold(Evaluate.literal(_), Evaluate.unary(_))
+            evaluatedValue <- Evaluate.expr(value)
+          } yield result + (evaluatedKey -> evaluatedValue)
       }
 
-      def removeLinesFromTable(table: Map[Token, Value]): Map[(TokenType, String), Value] =
-        table.map { case (Token(tokenType, lexeme, _), value) => ((tokenType, lexeme), value) }
-
-      dictFields.map(fields => DDictionary(removeLinesFromTable(fields).to(mutable.Map), env))
+      dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
   }
 
-  private[eval] def index[A](obj: Expr, key: Token)(
-      ifCanBeIndexed: DDictionary => Out
-  )(implicit context: Context[A]): Out =
-    Evaluate.expr(obj).flatMap {
-      case dict: DDictionary => ifCanBeIndexed(dict)
-      case _                 => RuntimeError.canNotBeIndexedByKeys(obj, key).fail[Value]
-    }
+  private[eval] def index[A](obj: Expr, key: Expr.IndexKey, token: Token)(
+      ifCanBeIndexed: PartialFunction[(Value, Value), Out]
+  )(implicit context: Context[A]): Out = {
+    for {
+      evaluatedObj <- Evaluate.expr(obj)
+      evaluatedKey <- key.fold(Evaluate.literal(_), Evaluate.unary(_))
+      orElse: PartialFunction[(Value, Value), Out] = { case (_: Value, _: Value) =>
+        RuntimeError.canNotApplyIndexOperator(obj, token).fail[Value]
+      }
+      result <- ifCanBeIndexed.orElse(orElse)(evaluatedObj, evaluatedKey)
+    } yield result
+  }
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
     locals

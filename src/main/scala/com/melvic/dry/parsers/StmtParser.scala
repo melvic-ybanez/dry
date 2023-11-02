@@ -159,11 +159,12 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def deleteStatement: ParseResult[Stmt] =
     call
       .flatMap {
-        case Step(IndexGet(obj, key), next) => ParseResult.succeed(DeleteStmt(obj, key), next)
+        case Step(IndexGet(obj, key, token), next) =>
+          ParseResult.succeed(DeleteStmt(obj, key, token), next)
         case Step(expr, next) =>
           next
             .consumeAfter(TokenType.LeftBracket, "[", "call expression")
-            .flatMap(_.indexAccess(DeleteStmt(expr, _)))
+            .flatMap(next => next.indexAccess(DeleteStmt(expr, _, next.previousToken)))
       }
       .flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "]"))
 

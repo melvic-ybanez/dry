@@ -56,7 +56,7 @@ object Stmt {
   }
 
   final case class ReturnStmt(keyword: Token, value: Expr) extends Stmt
-  final case class DeleteStmt(obj: Expr, key: Token) extends Stmt
+  final case class DeleteStmt(obj: Expr, key: Expr.IndexKey, token: Token) extends Stmt
 
   final case class Import(path: List[Token]) extends Stmt {
     def name: Token = path.last
@@ -67,9 +67,9 @@ object Stmt {
     case blockStmt: BlockStmt => BlockStmt.show(blockStmt)
     case ifStmt: IfStmt       => IfStmt.show(ifStmt)
     // Note: For loops desugar to while loops, so printing a stringified for loop invokes this
-    case While(condition, body) => show"${Lexemes.While} ($condition) $body"
-    case ReturnStmt(_, value)   => show"${Lexemes.Return} $value;"
-    case DeleteStmt(obj, key)   => show"${Lexemes.Delete} $obj[$key]"
-    case Import(path)           => show"${Lexemes.Import} ${path.map(Token.show).mkString(".")};"
+    case While(condition, body)  => show"${Lexemes.While} ($condition) $body"
+    case ReturnStmt(_, value)    => show"${Lexemes.Return} $value;"
+    case DeleteStmt(obj, key, _) => show"${Lexemes.Delete} $obj[$key]"
+    case Import(path)            => show"${Lexemes.Import} ${path.map(Token.show).mkString(".")};"
   }
 }

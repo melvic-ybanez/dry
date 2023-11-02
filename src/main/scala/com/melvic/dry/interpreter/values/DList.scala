@@ -1,5 +1,8 @@
 package com.melvic.dry.interpreter.values
 
+import com.melvic.dry.Token
+import com.melvic.dry.Token.TokenType
+import com.melvic.dry.ast.Expr
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -27,8 +30,20 @@ final case class DList(elems: ListBuffer[Value], env: Env) extends DObject with 
   // TODO: Replace with bracket-notation
   private def addAtMethod: AddProperty =
     _ + ("at" -> Callable.withLineNo(1, env)(line => { case indexValue :: _ =>
+      // This is temporary. We are going to replace this whole function
+      // with the [] operator anyway
+      val valueString = Value.show(indexValue)
+
       indexValue.toNum
-        .fold(RuntimeError.invalidIndex(Value.show(indexValue), line).fail[Value]) { num =>
+        .fold(
+          RuntimeError
+            .invalidIndex(
+              // again, these values are temporary and should be removed
+              Left(Expr.Literal.Str(valueString)),
+              Token(TokenType.Str(valueString), valueString, line)
+            )
+            .fail[Value]
+        ) { num =>
           val index = num.value.toInt
           Result.fromOption(elems.lift(index), RuntimeError.indexOutOfBounds(index, line))
         }

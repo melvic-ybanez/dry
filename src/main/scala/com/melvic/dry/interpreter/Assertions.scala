@@ -101,20 +101,20 @@ object Assertions {
 
   private def errorKey(failure: RuntimeError): String =
     failure match {
-      case DivisionByZero(_)           => Keys.Errors.DivisionByZero
-      case InvalidOperand(_, _)        => Keys.Errors.InvalidOperand
-      case InvalidOperands(_, _)       => Keys.Errors.InvalidOperands
-      case UndefinedVariable(_)        => Keys.Errors.UndefinedVariable
-      case NotCallable(_)              => Keys.Errors.NotCallable
-      case IncorrectArity(_, _, _)     => Keys.Errors.IncorrectArity
-      case DoesNotHaveProperties(_, _) => Keys.Errors.DoesNotHaveProperties
-      case CanNotBeIndexedByKeys(_, _) => Keys.Errors.CanNotBeIndexedByKeys
-      case IndexOutOfBounds(_, _)      => Keys.Errors.IndexOutOfBounds
-      case InvalidIndex(_, _)          => Keys.Errors.InvalidIndex
-      case InvalidArgument(_, _, _)    => Keys.Errors.InvalidArgument
-      case UndefinedProperty(_)        => Keys.Errors.UndefinedProperty
-      case UndefinedKey(_)             => Keys.Errors.UndefinedKey
-      case ModuleNotFound(_, _)        => Keys.Errors.ModuleNotFound
+      case DivisionByZero(_)              => Keys.Errors.DivisionByZero
+      case InvalidOperand(_, _)           => Keys.Errors.InvalidOperand
+      case InvalidOperands(_, _)          => Keys.Errors.InvalidOperands
+      case UndefinedVariable(_)           => Keys.Errors.UndefinedVariable
+      case NotCallable(_)                 => Keys.Errors.NotCallable
+      case IncorrectArity(_, _, _)        => Keys.Errors.IncorrectArity
+      case DoesNotHaveProperties(_, _)    => Keys.Errors.DoesNotHaveProperties
+      case CanNotApplyIndexOperator(_, _) => Keys.Errors.CanNotApplyIndexOperator
+      case IndexOutOfBounds(_, _)         => Keys.Errors.IndexOutOfBounds
+      case InvalidIndex(_, _)             => Keys.Errors.InvalidIndex
+      case InvalidArgument(_, _, _)       => Keys.Errors.InvalidArgument
+      case UndefinedProperty(_)           => Keys.Errors.UndefinedProperty
+      case UndefinedKey(_, _)             => Keys.Errors.UndefinedKey
+      case ModuleNotFound(_, _)           => Keys.Errors.ModuleNotFound
     }
 
   private def getTestData(env: Env): Option[(Num, Num, Num)] =

@@ -12,5 +12,8 @@ final case class DTuple(elems: List[Value], env: Env) extends DObject with Count
       .to(mutable.Map)
 
   override def size: Int = elems.size
+
+  def getByIndex(index: Int): Value =
+    elems(index)
 }
 

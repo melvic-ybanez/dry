@@ -14,7 +14,7 @@ object Keys {
     val NotCallable = "__not_callable__"
     val IncorrectArity = "__incorrect_arity__"
     val DoesNotHaveProperties = "__does_not_have_properties__"
-    val CanNotBeIndexedByKeys = "__can_not_be_indexed_by_keys__"
+    val CanNotApplyIndexOperator = "__can_not_apply_index_operator__"
     val UndefinedProperty = "__undefined_property__"
     val UndefinedKey = "__undefined_key__"
     val IndexOutOfBounds = "__index_out_of_bounds__"
@@ -25,7 +25,7 @@ object Keys {
     def allErrors: List[String] =
       DivisionByZero :: InvalidOperand :: InvalidOperands :: UndefinedVariable ::
         NotCallable :: IncorrectArity :: DoesNotHaveProperties :: UndefinedProperty ::
-        UndefinedKey :: CanNotBeIndexedByKeys :: IndexOutOfBounds :: InvalidIndex ::
+        UndefinedKey :: CanNotApplyIndexOperator :: IndexOutOfBounds :: InvalidIndex ::
         InvalidArgument :: ModuleNotFound :: Nil
   }
 }

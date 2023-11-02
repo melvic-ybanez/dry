@@ -80,7 +80,7 @@ object Value {
     case DTuple(elem :: Nil, _)                         => show"($elem,)"
     case DTuple(elems, _)                               => show"(${Show.list(elems)})"
     case DDictionary(table, _) =>
-      show"{${table.toList.map { case ((_, lexeme), value) => show"$lexeme: $value" }.toCsv}}"
+      show"{${table.toList.map { case (key, value) => show"$key: $value" }.toCsv}}"
   }
 
   implicit class ToValue[A](value: A) {

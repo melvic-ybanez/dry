@@ -4,7 +4,7 @@ class TestDictionary {
         assert_equals("Empty dictionary string representation", str(empty_dict), "{}");
         let map = { "one": 1, "two": 2 };
         assert_equals("Non-empty dictionary string representation", str(map),
-            "{\"one\": 1, \"two\": 2}");
+            "{one: 1, two: 2}");
     }
 
     def test_size() {
@@ -25,7 +25,7 @@ class TestDictionary {
         assert_error("Accessing undefined dictionary key", Errors.UNDEFINED_KEY, lambda() {
             dict["foo"];
         });
-        assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+        assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_APPLY_INDEX_OPERATOR, lambda() {
             let foo = lambda() {};
             foo["numbers"];
         });
@@ -43,7 +43,7 @@ class TestDictionary {
         assert_equals("Updated dictionary with new fields",
             {"number": 3, 1: "one", true: 11, false: 10, none: "none", "food": "burger"}, dict);
 
-        assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_BE_INDEXED_BY_KEYS, lambda() {
+        assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_APPLY_INDEX_OPERATOR, lambda() {
             let foo = lambda() {};
             foo["numbers"] = 30;
         });

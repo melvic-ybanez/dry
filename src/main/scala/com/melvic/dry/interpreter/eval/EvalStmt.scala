@@ -9,7 +9,7 @@ import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.values.Value.ToValue
-import com.melvic.dry.interpreter.values.{DModule, Value}
+import com.melvic.dry.interpreter.values.{DDictionary, DModule, Value}
 import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
@@ -78,9 +78,9 @@ private[eval] trait EvalStmt {
     Evaluate.expr(node.value).map(Returned)
 
   def deleteStmt(implicit context: Context[DeleteStmt]): Out = node match {
-    case DeleteStmt(obj, key) =>
-      Evaluate.index(obj, key) { dict =>
-        Result.fromOption(dict.deleteByKey(key), RuntimeError.undefinedKey(key))
+    case DeleteStmt(obj, key, token) =>
+      Evaluate.index(obj, key, token) { case (dict: DDictionary, evaluatedKey) =>
+        Result.fromOption(dict.deleteByKey(evaluatedKey), RuntimeError.undefinedKey(key, token))
       }
   }
 

@@ -3,7 +3,7 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
-import com.melvic.dry.ast.Expr._
+import com.melvic.dry.ast.Expr.{Unary, _}
 import com.melvic.dry.ast.Stmt.ReturnStmt
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Failure.ParseError
@@ -30,9 +30,9 @@ private[parsers] trait ExprParser { _: Parser =>
         // otherwise, check if it's a valid assignment target
         parser.expression.flatMap { case Step(rValue, parser) =>
           lValue match {
-            case Variable(name)      => ParseResult.succeed(Assignment(name, rValue), parser)
-            case Get(obj, name)      => ParseResult.succeed(Set(obj, name, rValue), parser)
-            case IndexGet(obj, name) => ParseResult.succeed(IndexSet(obj, name, rValue), parser)
+            case Variable(name)            => ParseResult.succeed(Assignment(name, rValue), parser)
+            case Get(obj, name)            => ParseResult.succeed(Set(obj, name, rValue), parser)
+            case IndexGet(obj, key, token) => ParseResult.succeed(IndexSet(obj, key, rValue, token), parser)
             case _ => ParseResult.fail(ParseError.invalidAssignmentTarget(parser.previousToken), parser)
           }
         }
@@ -158,7 +158,9 @@ private[parsers] trait ExprParser { _: Parser =>
 
         def checkForIndexAccess = step.next
           .matchAny(TokenType.LeftBracket)
-          .fold(ParseResult.fromStep(step))(_.indexAccess(IndexGet(step.value, _)).flatMap(checkForCalls))
+          .fold(ParseResult.fromStep(step))(next =>
+            next.indexAccess(IndexGet(step.value, _, next.previousToken)).flatMap(checkForCalls)
+          )
 
         step.next
           .matchAny(TokenType.LeftParen)
@@ -169,10 +171,19 @@ private[parsers] trait ExprParser { _: Parser =>
     }
   }
 
-  private[parsers] def indexAccess[A](keyF: Token => A): ParseResult[A] =
-    consumeWith("key name", "after [") { case _: TokenType.Constant => true }
-      .mapValue(keyF)
-      .flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
+  private[parsers] def indexAccess[A](keyF: IndexKey => A): ParseResult[A] =
+    indexKey(keyF).flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
+
+  private[parsers] def indexKey[A](keyF: IndexKey => A): ParseResult[A] =
+    expression
+      .flatMap {
+        case Step(literal: Literal, next) => ParseResult.succeed(keyF(Left(literal)), next)
+        case Step(unary @ Unary(Token(TokenType.Plus, _, _), Literal.Number(_)), next) =>
+          ParseResult.succeed(keyF(Right(unary)), next)
+        case Step(unary @ Unary(Token(TokenType.Minus, _, _), Literal.Number(_)), next) =>
+          ParseResult.succeed(keyF(Right(unary)), next)
+        case Step(_, next) => ParseResult.fail(ParseError.expected(peek, "key name", "after ["), next)
+      }
 
   /**
    * Decides whether to construct a Call or a Lambda node. This is useful for partial application.
@@ -265,25 +276,29 @@ private[parsers] trait ExprParser { _: Parser =>
    * }}}
    */
   def dictionary: ParseResult[Expr] =
-    sequence[(Token, Expr)](
+    sequence[(IndexKey, Expr)](
       TokenType.LeftBrace,
       "{",
       TokenType.RightBrace,
       "}",
       "at the start of dictionary",
       "dictionary elements"
-    )(_.matchWithAnyConstant.flatMap { next =>
-      val key = next.previousToken
-      next
-        .consumeAfter(TokenType.Colon, ":", "dictionary key")
-        .flatMap { case Step(_, next) =>
-          next.expression.map(_.map((key, _)))
+    )(
+      _.indexKey(identity)
+        .flatMap { case Step(key, next) =>
+          next
+            .consumeAfter(TokenType.Colon, ":", "dictionary key")
+            .flatMap { case Step(_, next) =>
+              next.expression.map(_.map((key, _)))
+            }
         }
-        .fold[Option[Step[(Token, Expr)]]]((_, _) => None)(Some(_))
-    }).mapValue(elements => Dictionary(elements.toMap))
+        .fold[Option[Step[(IndexKey, Expr)]]]((_, _) => None)(Some(_))
+    ).mapValue(elements => Dictionary(elements.toMap))
 
   private[parsers] def literal: Option[Step[Literal]] =
-    matchWithAnyConstant.map { next =>
+    matchAnyWith {
+      case TokenType.True | TokenType.False | TokenType.None | TokenType.Str(_) | TokenType.Number(_) => true
+    }.map { next =>
       @nowarn
       val literal = next.previousToken.tokenType match {
         case TokenType.True          => Literal.True
@@ -294,9 +309,6 @@ private[parsers] trait ExprParser { _: Parser =>
       }
       Step(literal, next)
     }
-
-  private[parsers] def matchWithAnyConstant: Option[Parser] =
-    matchAnyWith { case _: TokenType.Constant => true }
 
   /**
    * Like [[leftAssocBinaryWith]], but is specific to non-logical binary operators.

@@ -15,7 +15,29 @@ class TestTuple {
         assert_equals("Multiple-element tuple type", typeof(many), "tuple");
         assert_equals("Multiple-element tuple size", many.size(), 3);
     }
+
+    def test_get() {
+        let empty = ();
+        assert_error("Reading tuple elements with string index", Errors.INVALID_INDEX, lambda() {
+            empty[""];
+        });
+        assert_error("Reading tuple elements with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            empty[-1];
+        });
+
+        let singleton = (1,);
+        assert_error("Reading tuple elements with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            singleton[1];
+        });
+        assert_error("Reading tuple elements with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            singleton[2];
+        });
+
+        let many = (1, "two", none);
+        assert_equals("Reading tuple elements correctly", "two", many[1]);
+    }
 }
 
 let test_tuple = TestTuple();
 test_tuple.test_init();
+test_tuple.test_get();

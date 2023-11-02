@@ -45,9 +45,9 @@ object Failure {
     final case class Expected(start: Token, expected: String, where: String, at: String) extends ParseError
     final case class InvalidAssignmentTarget(assignment: Token) extends ParseError
 
-    def expected(start: Token, end: String, at: String): ParseError =
-      if (start.tokenType == TokenType.Eof) Expected(start, end, "at end", at)
-      else Expected(start, end, s"at '${start.lexeme}'", at)
+    def expected(start: Token, expected: String, at: String): ParseError =
+      if (start.tokenType == TokenType.Eof) Expected(start, expected, "at end", at)
+      else Expected(start, expected, s"at '${start.lexeme}'", at)
 
     def invalidAssignmentTarget(assignment: Token): ParseError =
       InvalidAssignmentTarget(assignment)
@@ -71,10 +71,10 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
-    final case class UndefinedKey(key: Token) extends RuntimeError
-    final case class CanNotBeIndexedByKeys(obj: Expr, key: Token) extends RuntimeError
+    final case class UndefinedKey(key: Expr.IndexKey, token: Token) extends RuntimeError
+    final case class CanNotApplyIndexOperator(obj: Expr, token: Token) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
-    final case class InvalidIndex(value: String, line: Int) extends RuntimeError
+    final case class InvalidIndex(index: Expr.IndexKey, token: Token) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
     final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
 
@@ -102,17 +102,17 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
-    def undefinedKey(key: Token): RuntimeError =
-      UndefinedKey(key)
+    def undefinedKey(key: Expr.IndexKey, token: Token): RuntimeError =
+      UndefinedKey(key, token)
 
-    def canNotBeIndexedByKeys(obj: Expr, key: Token): RuntimeError =
-      CanNotBeIndexedByKeys(obj, key)
+    def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
+      CanNotApplyIndexOperator(obj, token)
 
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       IndexOutOfBounds(index, line)
 
-    def invalidIndex(value: String, line: Int): RuntimeError =
-      InvalidIndex(value, line)
+    def invalidIndex(index: Expr.IndexKey, token: Token): RuntimeError =
+      InvalidIndex(index, token)
 
     def invalidArgument(expected: String, got: String, line: Int): RuntimeError =
       InvalidArgument(expected, got, line)
@@ -132,12 +132,12 @@ object Failure {
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token)        => errorMsg(token, show"Undefined property: $token")
-      case UndefinedKey(key)               => errorMsg(key, show"Undefined key: $key")
-      case CanNotBeIndexedByKeys(obj, key) => errorMsg(key, show"$obj can not be indexed by keys.")
+      case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
+      case UndefinedKey(key, token) => errorMsg(token, show"Undefined key: ${Expr.showIndexKey(key)}")
+      case CanNotApplyIndexOperator(obj, token) => errorMsg(token, show"Can not apply [] operator to $obj")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
-      case InvalidIndex(value, line) => show"Runtime Error. Invalid index: $value\n${showLine(line)}."
+      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: ${Expr.showIndexKey(index)}")
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
       case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")
