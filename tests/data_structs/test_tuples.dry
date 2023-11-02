@@ -3,14 +3,17 @@ class TestTuple {
         let empty = ();
         assert_equals("Empty tuple string representation", str(empty), "()");
         assert_equals("Empty tuple type", typeof(empty), "tuple");
+        assert_equals("Empty tuple size", empty.size(), 0);
 
         let singleton = (1,);
         assert_equals("Singleton tuple string representation", str(singleton), "(1,)");
-        assert_equals("Single tuple type", typeof(singleton), "tuple");
+        assert_equals("Singleton tuple type", typeof(singleton), "tuple");
+        assert_equals("Singleton tuple size", singleton.size(), 1);
 
         let many = (1, "two", none);
-        assert_equals("Tuple with multiple elements string representation", str(many), "(1, two, none)");
-        assert_equals("Tuple with multiple elements type", typeof(many), "tuple");
+        assert_equals("Multiple-element string representation", str(many), "(1, two, none)");
+        assert_equals("Multiple-element tuple type", typeof(many), "tuple");
+        assert_equals("Multiple-element tuple size", many.size(), 3);
     }
 }
 
