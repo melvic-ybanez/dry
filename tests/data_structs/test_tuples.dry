@@ -1,0 +1,18 @@
+class TestTuple {
+    def test_init() {
+        let empty = ();
+        assert_equals("Empty tuple string representation", str(empty), "()");
+        assert_equals("Empty tuple type", typeof(empty), "tuple");
+
+        let singleton = (1,);
+        assert_equals("Singleton tuple string representation", str(singleton), "(1,)");
+        assert_equals("Single tuple type", typeof(singleton), "tuple");
+
+        let many = (1, "two", none);
+        assert_equals("Tuple with multiple elements string representation", str(many), "(1, two, none)");
+        assert_equals("Tuple with multiple elements type", typeof(many), "tuple");
+    }
+}
+
+let test_tuple = TestTuple();
+test_tuple.test_init();

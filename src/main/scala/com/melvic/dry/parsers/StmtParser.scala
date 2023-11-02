@@ -55,7 +55,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       }
 
     recurse(ParseResult.succeed(Nil, this)).flatMap { case Step(decls, parser) =>
-      parser.consumeAfter(TokenType.RightBrace, "}", "block").mapValue(_ => BlockStmt(decls))
+      parser.consumeAfter(TokenType.RightBrace, "}", "block").as(BlockStmt(decls))
     }
   }
 
@@ -147,7 +147,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     val keyword = previousToken
     val expr =
       if (check(TokenType.Semicolon))
-        consumeAfter(TokenType.Semicolon, ";", "return value").mapValue(_ => Literal.None)
+        consumeAfter(TokenType.Semicolon, ";", "return value").as(Literal.None)
       else expression.flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "return value"))
     expr.mapValue(ReturnStmt(keyword, _))
   }

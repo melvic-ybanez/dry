@@ -125,21 +125,28 @@ final case class Parser(tokens: List[Token], current: Int) extends ExprParser wi
   )(parseElement: Parser => Option[Step[A]]): ParseResult[List[A]] =
     for {
       afterOpening <- consume(openingTokenType, openingLexeme, openingErrorLabel)
-      params <- {
-        def parseWhileThereIsComma(elements: List[A], parser: Parser): ParseResult[List[A]] =
-          parseElement(parser)
-            .fold(ParseResult.succeed(elements, parser)) { case Step(element, next) =>
-              val newElements = element :: elements
-              next
-                .matchAny(TokenType.Comma)
-                .fold(ParseResult.succeed(newElements, next))(parseWhileThereIsComma(newElements, _))
-            }
-
-        parseWhileThereIsComma(Nil, afterOpening)
-          .mapValue(_.reverse)
-          .flatMapParser(_.consumeAfter(closingTokenType, closingLexeme, elementsLabel))
-      }
+      params <- afterOpening.restOfSequence(closingTokenType, closingLexeme, elementsLabel)(parseElement)
     } yield params
+
+  private[parsers] def restOfSequence[A](
+      closingTokenType: TokenType,
+      closingLexeme: String,
+      // e.g. parameters, list elements, dict elements
+      elementsLabel: String
+  )(parseElement: Parser => Option[Step[A]]) = {
+    def parseWhileThereIsComma(elements: List[A], parser: Parser): ParseResult[List[A]] =
+      parseElement(parser)
+        .fold(ParseResult.succeed(elements, parser)) { case Step(element, next) =>
+          val newElements = element :: elements
+          next
+            .matchAny(TokenType.Comma)
+            .fold(ParseResult.succeed(newElements, next))(parseWhileThereIsComma(newElements, _))
+        }
+
+    parseWhileThereIsComma(Nil, this)
+      .mapValue(_.reverse)
+      .flatMapParser(_.consumeAfter(closingTokenType, closingLexeme, elementsLabel))
+  }
 }
 
 object Parser {

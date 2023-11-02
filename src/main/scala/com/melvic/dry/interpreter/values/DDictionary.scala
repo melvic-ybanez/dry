@@ -3,13 +3,13 @@ package com.melvic.dry.interpreter.values
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.values.Collections.Sizeable
+import com.melvic.dry.interpreter.values.Collections.Countable
 
 import scala.collection.mutable
 
 final case class DDictionary(table: mutable.Map[(TokenType, String), Value], env: Env)
     extends DObject
-    with Sizeable {
+    with Countable {
   override def klass: Metaclass = DClass("Dictionary", Map.empty, env)
 
   override def fields: mutable.Map[String, Value] =

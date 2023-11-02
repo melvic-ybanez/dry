@@ -213,7 +213,7 @@ private[parsers] trait ExprParser { _: Parser =>
 
   /**
    * {{{
-   *   <primary> ::= <constant> | "self" | <identifier> | <dictionary> | "(" <expression> ")""
+   *   <primary> ::= <constant> | "self" | <identifier> | <tuple> | <dictionary> | "(" <expression> ")"
    * }}}
    */
   def primary: ParseResult[Expr] =
@@ -222,17 +222,41 @@ private[parsers] trait ExprParser { _: Parser =>
       .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previousToken), p)))
       .map(_.toParseResult)
       .getOrElse(
-        dictionary.orElse(
-          matchAny(TokenType.LeftParen)
-            .fold[ParseResult[Expr]](
-              ParseResult.fail(ParseError.expected(peek, "expression", "after ("), this)
-            ) {
-              _.expression.flatMap { case Step(expr, newParser) =>
-                newParser.consumeAfter(TokenType.RightParen, ")", "expression").mapValue(_ => Grouping(expr))
+        tuple
+          .orElse(dictionary)
+          .orElse(
+            matchAny(TokenType.LeftParen)
+              .fold[ParseResult[Expr]](
+                ParseResult.fail(ParseError.expected(peek, "expression", "after ("), this)
+              ) {
+                _.expression.flatMap { case Step(expr, newParser) =>
+                  newParser
+                    .consumeAfter(TokenType.RightParen, ")", "expression")
+                    .as(Grouping(expr))
+                }
               }
-            }
-        )
+          )
       )
+
+  /**
+   * {{{<tuple> ::= "(" (<expression> ("," | ("," <expression>)*))? ")"}}}
+   */
+  def tuple: ParseResult[Expr] =
+    for {
+      afterOpening <- consume(TokenType.LeftParen, "(", "at the start of tuple")
+      tupleElements <- afterOpening.expression.fold((_, _) =>
+        afterOpening.consumeAfter(TokenType.RightParen, ")", "left paren").as(Expr.Tuple(Nil))
+      ) { afterFirstExpr =>
+        for {
+          afterFirstComma <- afterFirstExpr.consumeAfter(TokenType.Comma, ",", "first tuple element")
+          resetOfTuple <- afterFirstComma.restOfSequence[Expr](
+            TokenType.RightParen,
+            ")",
+            "tuple elements"
+          )(_.expression.fold[Option[Step[Expr]]]((_, _) => None)(Some(_)))
+        } yield resetOfTuple.map(elems => Expr.Tuple(afterFirstExpr.value :: elems))
+      }
+    } yield tupleElements
 
   /**
    * {{{

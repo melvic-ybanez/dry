@@ -2,6 +2,7 @@ package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Show
 import com.melvic.dry.ast.Decl.Def
+import com.melvic.dry.aux.Show
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.Callable
@@ -41,6 +42,7 @@ object Value {
     val Object = "object"
     val Dictionary = "dictionary"
     val Callable = "callable"
+    val Tuple = "tuple"
   }
 
   def typeOf: Value => String = {
@@ -52,10 +54,13 @@ object Value {
     case _: DClass      => Types.Class
     case _: DInstance   => Types.Instance
     case _: DList       => Types.List
+    case _: DTuple      => Types.Tuple
     case _: DDictionary => Types.Dictionary
     case _: DObject     => Types.Object
     case _: Callable    => Types.Callable
   }
+
+  implicit def implicitShow: Show[Value] = show
 
   def show: Show[Value] = {
     case None        => "none"
@@ -71,7 +76,9 @@ object Value {
     case DClass(name, _, _)                             => name
     case _: Callable                                    => "<callable>"
     case DInstance(klass, _)                            => show"$klass instance"
-    case DList(elems, _)                                => show"[${elems.toList.map(Value.show).toCsv}]"
+    case DList(elems, _)                                => show"[${Show.list(elems.toList)}]"
+    case DTuple(elem :: Nil, _)                         => show"($elem,)"
+    case DTuple(elems, _)                               => show"(${Show.list(elems)})"
     case DDictionary(table, _) =>
       show"{${table.toList.map { case ((_, lexeme), value) => show"$lexeme: $value" }.toCsv}}"
   }

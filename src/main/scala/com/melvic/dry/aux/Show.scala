@@ -2,6 +2,7 @@ package com.melvic.dry.aux
 
 import com.melvic.dry.Token
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
+import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.{Env, Value}
 
 object Show {
@@ -21,4 +22,7 @@ object Show {
       sc.s(newArgs: _*)
     }
   }
+
+  def list[A](elems: List[A])(implicit show: Show[A]): String =
+    elems.map(show).toCsv
 }

@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.chaining.scalaUtilChainingOps
 
-final case class DList(elems: ListBuffer[Value], env: Env) extends DObject with Collections.Sizeable {
+final case class DList(elems: ListBuffer[Value], env: Env) extends DObject with Collections.Countable {
   override def klass: Metaclass = DClass("List", Map.empty, env)
 
   override val fields: mutable.Map[String, Value] =

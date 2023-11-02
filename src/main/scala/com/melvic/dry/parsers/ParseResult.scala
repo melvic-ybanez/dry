@@ -47,6 +47,9 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 
   def orElse[B >: A](alternative: => ParseResult[B]): ParseResult[B] =
     fold((_, _) => alternative)(_ => this)
+
+  def as[B](newValue: => B): ParseResult[B] =
+    mapValue(_ => newValue)
 }
 
 object ParseResult {

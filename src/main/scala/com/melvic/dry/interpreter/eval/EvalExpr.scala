@@ -37,6 +37,7 @@ private[eval] trait EvalExpr {
     case indexGet: IndexGet     => Evaluate.indexGet(indexGet)
     case indexSet: IndexSet     => Evaluate.indexSet(indexSet)
     case self: Self             => Evaluate.self(self)
+    case tuple: Tuple           => Evaluate.tuple(tuple)
     case dictionary: Dictionary => Evaluate.dictionary(dictionary)
   }
 
@@ -218,9 +219,16 @@ private[eval] trait EvalExpr {
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
+  def tuple(implicit context: Context[Tuple]): Out = node match {
+    case Tuple(elems) =>
+      val evaluatedElems = elems.foldFailFast(Result.succeed(List.empty[Value])) { (result, elem) =>
+        Evaluate.expr(elem).map(_ :: result)
+      }
+      evaluatedElems.map(elems => DTuple(elems.reverse, env))
+  }
+
   def dictionary(implicit context: Context[Dictionary]): Out = node match {
     case Dictionary(table) =>
-      @nowarn
       val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Token, Value])) {
         case (result, (key, value)) =>
           Evaluate.expr(value).map(evaluatedValue => result + (key -> evaluatedValue))

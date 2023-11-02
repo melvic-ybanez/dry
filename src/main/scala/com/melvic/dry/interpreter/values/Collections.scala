@@ -4,7 +4,7 @@ import com.melvic.dry.interpreter.Env
 import com.melvic.dry.result.Result.implicits.ToResult
 
 object Collections {
-  trait Sizeable {
+  trait Countable {
     def size: Int
 
     def addSizeMethod(env: Env): AddProperty =

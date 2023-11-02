@@ -81,6 +81,7 @@ object Resolve {
     case IndexGet(obj, _)        => Resolve.expr(obj)
     case IndexSet(obj, _, value) => Resolve.expr(value) >=> Resolve.expr(obj)
     case self: Self              => Resolve.self(self)
+    case tuple: Tuple            => Resolve.tuple(tuple)
     case dict: Dictionary        => Resolve.dictionary(dict)
   }
 
@@ -151,15 +152,19 @@ object Resolve {
     }
   }
 
+  def tuple: Tuple => Resolve = { case Tuple(elems) =>
+    context =>
+      elems.foldFailFast(context.ok) { case (context, elem) =>
+        Resolve.expr(elem)(context)
+      }
+  }
+
   def dictionary: Dictionary => Resolve = { case Dictionary(table) =>
     context =>
       table.toList.foldFailFast(context.ok) { case (context, (_, value)) =>
         Resolve.expr(value)(context)
       }
   }
-
-  private def exprWithDepth(depth: Int): Expr => Resolve = expr =>
-    context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok
 
   def local(name: Token): Expr => Resolve = { expr => context =>
     val maybeFound = context.scopes.zipWithIndex.find { case (scope, _) =>
@@ -172,6 +177,9 @@ object Resolve {
 
   def fail(failure: Failure): Resolve =
     _ => Result.fail(failure)
+
+  private def exprWithDepth(depth: Int): Expr => Resolve = expr =>
+    context => context.copy(locals = context.locals + (LocalExprKey(expr) -> depth)).ok
 
   private def enterFunction(toResolve: FunctionType => Resolve): Resolve = context =>
     toResolve(context.functionType)(context.withFunctionType(FunctionType.Function))

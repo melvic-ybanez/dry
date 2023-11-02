@@ -8,7 +8,7 @@ object DryTests {
 
   def createMainTestFile(): Unit = {
     val maxSepLen = 40
-    val contents = listTestFiles
+    val contents = listTestFiles(new File(Root))
       .map { file =>
         val filename = file.getName
 
@@ -26,10 +26,11 @@ object DryTests {
     Path(Root + "/" + TestFilename).createFile().writeAll(note + contents + "\n\n" + "show_test_results();")
   }
 
-  lazy val listTestFiles: List[File] = {
-    val file = new File(Root)
-    if (file.exists && file.isDirectory)
-      file.listFiles.filter(file => file.getName.startsWith("test_") && file.getName.endsWith(".dry")).toList
+  def listTestFiles(file: File): List[File] =
+    if (file.exists)
+      if (file.isDirectory)
+        file.listFiles.flatMap(listTestFiles).toList
+      else if (file.getName.startsWith("test_") && file.getName.endsWith(".dry")) List(file)
+      else Nil
     else Nil
-  }
 }

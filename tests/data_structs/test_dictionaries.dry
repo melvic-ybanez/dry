@@ -69,6 +69,11 @@ class TestDictionary {
         del nested_dict["inner"]["inner_field"];
         assert_equals("Delete field from a nested dictionary", {"outer": 1, "inner": {}}, nested_dict);
     }
+
+    def test_type() {
+        let dict = {1: 2};
+        assert_equals("Dictionary type", typeof(dict), "dictionary");
+    }
 }
 
 let test_dict = TestDictionary();
@@ -78,3 +83,4 @@ test_dict.test_get();
 test_dict.test_set();
 test_dict.test_delete();
 test_dict.test_nested();
+test_dict.test_type();

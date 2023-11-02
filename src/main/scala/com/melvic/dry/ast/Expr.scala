@@ -1,6 +1,7 @@
 package com.melvic.dry.ast
 
 import com.melvic.dry.ast.Stmt.BlockStmt
+import com.melvic.dry.aux.Show
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
@@ -44,6 +45,8 @@ object Expr {
 
   final case class Self(keyword: Token) extends Expr
 
+  final case class Tuple(elems: List[Expr]) extends Expr
+
   final case class Dictionary(table: Map[Token, Expr]) extends Expr
 
   object Dictionary {
@@ -55,6 +58,8 @@ object Expr {
     }
   }
 
+  implicit def implicitShow: Show[Expr] = show
+
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)
     case Grouping(expr)                 => show"($expr)"
@@ -63,7 +68,7 @@ object Expr {
     case Variable(token)                => Token.show(token)
     case Assignment(name, value)        => show"$name = $value"
     case Logical(left, operator, right) => Expr.show(Binary(left, operator, right))
-    case Call(callee, arguments, _)     => show"$callee(${arguments.map(Expr.show).toCsv})"
+    case Call(callee, arguments, _)     => show"$callee(${Show.list(arguments)})"
     case Lambda(params, body) =>
       show"lambda(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
     case Get(obj, name)             => show"$obj.$name"
@@ -71,6 +76,7 @@ object Expr {
     case IndexGet(obj, name)        => show"$obj[$name]"
     case IndexSet(obj, name, value) => show"$obj[$name] = $value"
     case Self(_)                    => "self"
+    case Tuple(elems)               => show"(${Show.list(elems)})"
     case dictionary: Dictionary     => Dictionary.show(dictionary)
   }
 }
