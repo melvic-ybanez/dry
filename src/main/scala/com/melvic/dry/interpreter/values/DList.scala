@@ -23,4 +23,7 @@ final case class DList(elems: ListBuffer[Value], env: Env) extends DSequence {
 
   def setByIndex(index: Int, value: Value): Value =
     (elems(index) = value).unit
+
+  def deleteByIndex(index: Int): Value =
+    elems.remove(index).unit
 }

@@ -35,19 +35,38 @@ class TestList {
             xs[""] = 20;
         });
         assert_error("Updating list with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
-            xs[-1];
+            xs[-1] = 0;
         });
 
         assert_error("Updating list with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
-            xs[3];
+            xs[3] = 19;
         });
         assert_error("Updating list with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
-            xs[4];
+            xs[4] = 1;
         });
 
         xs[0] = 10;
         xs[1] = 2;
         assert_equals("Updating list successfully", xs, [10, 2, 3]);
+    }
+
+    def test_delete() {
+        let xs = ["apple", "banana", "orange"];
+        assert_error("Deleting a list element with string index", Errors.INVALID_INDEX, lambda() {
+            del xs[""];
+        });
+        assert_error("Deleting a list element with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            del xs[-1];
+        });
+
+        assert_error("Deleting a list element with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            del xs[3];
+        });
+        assert_error("Deleting a list element with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            del xs[4];
+        });
+        del xs[1];
+        assert_equals("Deleting a list element successfully", xs, ["apple", "orange"]);
     }
 
     def test_size() {
@@ -74,3 +93,4 @@ test_list.test_size();
 test_list.test_type();
 test_list.test_add_method();
 test_list.test_set();
+test_list.test_delete();
