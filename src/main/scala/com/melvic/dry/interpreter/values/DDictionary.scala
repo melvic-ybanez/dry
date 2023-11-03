@@ -1,9 +1,6 @@
 package com.melvic.dry.interpreter.values
 
-import com.melvic.dry.Token
-import com.melvic.dry.Token.TokenType
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.values.Collections.Countable
 
 import scala.collection.mutable
 

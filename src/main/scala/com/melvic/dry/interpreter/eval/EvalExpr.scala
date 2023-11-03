@@ -212,13 +212,13 @@ private[eval] trait EvalExpr {
       Evaluate.index(obj, key, token) {
         case (dict: DDictionary, evaluatedKey) =>
           Result.fromOption(dict.getByKey(evaluatedKey), RuntimeError.undefinedKey(key, token))
-        case (tuple: DTuple, evaluatedKey) =>
+        case (sequence: DSequence, evaluatedKey) =>
           evaluatedKey match {
             case Value.Num(index) if index % 1 == 0 =>
               val intIndex = index.toInt
-              if (index < 0 || index >= tuple.elems.size)
+              if (index < 0 || index >= sequence.size)
                 RuntimeError.indexOutOfBounds(intIndex, token.line).fail[Value]
-              else tuple.getByIndex(intIndex).ok
+              else sequence.getByIndex(intIndex).ok
             case _ => RuntimeError.invalidIndex(key, token).fail[Value]
           }
       }
