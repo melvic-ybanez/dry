@@ -3,7 +3,7 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
-import com.melvic.dry.ast.Expr.{Unary, _}
+import com.melvic.dry.ast.Expr.{List => _, _}
 import com.melvic.dry.ast.Stmt.ReturnStmt
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Failure.ParseError
@@ -233,7 +233,8 @@ private[parsers] trait ExprParser { _: Parser =>
       .orElse(matchAny(TokenType.Identifier).map(p => Step(Variable(p.previousToken), p)))
       .map(_.toParseResult)
       .getOrElse(
-        tuple
+        list
+          .orElse(tuple)
           .orElse(dictionary)
           .orElse(
             matchAny(TokenType.LeftParen)
@@ -250,9 +251,22 @@ private[parsers] trait ExprParser { _: Parser =>
       )
 
   /**
+   * {{{<list> ::= "[" (<expression> ("," <expression>*))? "]"}}}
+   */
+  def list: ParseResult[Expr.List] =
+    sequence[Expr](
+      TokenType.LeftBracket,
+      "[",
+      TokenType.RightBracket,
+      "]",
+      "at the start of lists",
+      "list elements"
+    )(_.expression.toOption).mapValue(Expr.List)
+
+  /**
    * {{{<tuple> ::= "(" (<expression> ("," | ("," <expression>)*))? ")"}}}
    */
-  def tuple: ParseResult[Expr] =
+  def tuple: ParseResult[Expr.Tuple] =
     for {
       afterOpening <- consume(TokenType.LeftParen, "(", "at the start of tuple")
       tupleElements <- afterOpening.expression.fold((_, _) =>
@@ -264,7 +278,7 @@ private[parsers] trait ExprParser { _: Parser =>
             TokenType.RightParen,
             ")",
             "tuple elements"
-          )(_.expression.fold[Option[Step[Expr]]]((_, _) => None)(Some(_)))
+          )(_.expression.toOption)
         } yield resetOfTuple.map(elems => Expr.Tuple(afterFirstExpr.value :: elems))
       }
     } yield tupleElements
@@ -275,7 +289,7 @@ private[parsers] trait ExprParser { _: Parser =>
    *    <key-value>  ::= <constant> ":" <expression>
    * }}}
    */
-  def dictionary: ParseResult[Expr] =
+  def dictionary: ParseResult[Dictionary] =
     sequence[(IndexKey, Expr)](
       TokenType.LeftBrace,
       "{",
@@ -292,7 +306,7 @@ private[parsers] trait ExprParser { _: Parser =>
               next.expression.map(_.map((key, _)))
             }
         }
-        .fold[Option[Step[(IndexKey, Expr)]]]((_, _) => None)(Some(_))
+        .toOption
     ).mapValue(elements => Dictionary(elements.toMap))
 
   private[parsers] def literal: Option[Step[Literal]] =

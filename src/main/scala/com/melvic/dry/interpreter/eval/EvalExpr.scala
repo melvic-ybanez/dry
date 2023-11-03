@@ -3,7 +3,7 @@ package com.melvic.dry.interpreter.eval
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
-import com.melvic.dry.ast.Expr._
+import com.melvic.dry.ast.Expr.{List => _, _}
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.interpreter.Interpret
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
@@ -19,6 +19,7 @@ import com.melvic.dry.result.Result.implicits._
 
 import scala.annotation.nowarn
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 //noinspection ScalaWeakerAccess
 private[eval] trait EvalExpr {
@@ -37,6 +38,7 @@ private[eval] trait EvalExpr {
     case indexGet: IndexGet     => Evaluate.indexGet(indexGet)
     case indexSet: IndexSet     => Evaluate.indexSet(indexSet)
     case self: Self             => Evaluate.self(self)
+    case list: Expr.List        => Evaluate.list(list)
     case tuple: Tuple           => Evaluate.tuple(tuple)
     case dictionary: Dictionary => Evaluate.dictionary(dictionary)
   }
@@ -231,12 +233,13 @@ private[eval] trait EvalExpr {
 
   def self(implicit context: Context[Self]): Out = varLookup(node.keyword, node)
 
+  def list(implicit context: Context[Expr.List]): Out = node match {
+    case Expr.List(elems) =>
+      Evaluate.exprList(elems).map(elems => DList(elems.reverse.to(ListBuffer), env))
+  }
+
   def tuple(implicit context: Context[Tuple]): Out = node match {
-    case Tuple(elems) =>
-      val evaluatedElems = elems.foldFailFast(Result.succeed(List.empty[Value])) { (result, elem) =>
-        Evaluate.expr(elem).map(_ :: result)
-      }
-      evaluatedElems.map(elems => DTuple(elems.reverse, env))
+    case Tuple(elems) => exprList(elems).map(elems => DTuple(elems.reverse, env))
   }
 
   def dictionary(implicit context: Context[Dictionary]): Out = node match {
@@ -251,6 +254,11 @@ private[eval] trait EvalExpr {
 
       dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
   }
+
+  private[eval] def exprList(elems: List[Expr])(implicit context: Context[Expr]): Result[List[Value]] =
+    elems.foldFailFast(Result.succeed(List.empty[Value])) { (result, elem) =>
+      Evaluate.expr(elem).map(_ :: result)
+    }
 
   private[eval] def index[A](obj: Expr, key: Expr.IndexKey, token: Token)(
       ifCanBeIndexed: PartialFunction[(Value, Value), Out]

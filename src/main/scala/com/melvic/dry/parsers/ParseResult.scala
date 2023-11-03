@@ -50,6 +50,9 @@ final case class ParseResult[+A](result: Result[A], parser: Parser) {
 
   def as[B](newValue: => B): ParseResult[B] =
     mapValue(_ => newValue)
+
+  def toOption: Option[Step[A]] =
+    fold[Option[Step[A]]]((_, _) => None)(Some(_))
 }
 
 object ParseResult {

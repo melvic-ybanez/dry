@@ -5,6 +5,7 @@ import com.melvic.dry.aux.Show
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
 import com.melvic.dry.{Show, Token}
+import scala.{List => SList}
 
 sealed trait Expr
 
@@ -37,8 +38,8 @@ object Expr {
 
   final case class Logical(left: Expr, operator: Token, right: Expr) extends Expr
 
-  final case class Call(callee: Expr, arguments: List[Expr], paren: Token) extends Expr
-  final case class Lambda(params: List[Token], body: List[Decl]) extends Expr
+  final case class Call(callee: Expr, arguments: SList[Expr], paren: Token) extends Expr
+  final case class Lambda(params: SList[Token], body: SList[Decl]) extends Expr
 
   final case class Get(obj: Expr, name: Token) extends Expr
   final case class Set(obj: Expr, name: Token, value: Expr) extends Expr
@@ -47,7 +48,8 @@ object Expr {
 
   final case class Self(keyword: Token) extends Expr
 
-  final case class Tuple(elems: List[Expr]) extends Expr
+  final case class List(elems: SList[Expr]) extends Expr
+  final case class Tuple(elems: SList[Expr]) extends Expr
 
   final case class Dictionary(table: Map[Expr.IndexKey, Expr]) extends Expr
 
@@ -78,6 +80,7 @@ object Expr {
     case IndexGet(obj, name, _)        => show"$obj[${showIndexKey(name)}]"
     case IndexSet(obj, name, value, _) => show"$obj[${showIndexKey(name)}] = $value"
     case Self(_)                       => "self"
+    case List(elems)                   => show"[${Show.list(elems)}]"
     case Tuple(elems)                  => show"(${Show.list(elems)})"
     case dictionary: Dictionary        => Dictionary.show(dictionary)
   }

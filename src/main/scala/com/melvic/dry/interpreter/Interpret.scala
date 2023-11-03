@@ -81,7 +81,6 @@ object Interpret {
     .defineWith("assert_false", Assertions.assertFalse)
     .defineWith("assert_error", Assertions.assertError)
     .defineWith("show_test_results", Assertions.showTestResults)
-    .defineWith("list", env => Varargs(env, elems => DList(elems.to(ListBuffer), env).ok))
     .defineWith("Errors", errors)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))

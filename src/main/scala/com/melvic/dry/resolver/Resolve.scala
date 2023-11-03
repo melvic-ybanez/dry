@@ -3,7 +3,7 @@ package com.melvic.dry.resolver
 import com.melvic.dry.Token
 import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl.{ClassDecl, Def, StmtDecl}
-import com.melvic.dry.ast.Expr._
+import com.melvic.dry.ast.Expr.{List => _, _}
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
@@ -81,6 +81,7 @@ object Resolve {
     case IndexGet(obj, _, _)        => Resolve.expr(obj)
     case IndexSet(obj, _, value, _) => Resolve.expr(value) >=> Resolve.expr(obj)
     case self: Self                 => Resolve.self(self)
+    case list: Expr.List            => Resolve.list(list)
     case tuple: Tuple               => Resolve.tuple(tuple)
     case dict: Dictionary           => Resolve.dictionary(dict)
   }
@@ -152,19 +153,20 @@ object Resolve {
     }
   }
 
+  def list: Expr.List => Resolve = { case Expr.List(elems) =>
+    sequence(elems)(identity)
+  }
+
   def tuple: Tuple => Resolve = { case Tuple(elems) =>
-    context =>
-      elems.foldFailFast(context.ok) { case (context, elem) =>
-        Resolve.expr(elem)(context)
-      }
+    sequence(elems)(identity)
   }
 
   def dictionary: Dictionary => Resolve = { case Dictionary(table) =>
-    context =>
-      table.toList.foldFailFast(context.ok) { case (context, (_, value)) =>
-        Resolve.expr(value)(context)
-      }
+    sequence(table.toList)(_._2)
   }
+
+  private def sequence[A](elems: List[A])(f: A => Expr): Resolve = context =>
+    elems.foldFailFast(context.ok) { case (context, elem) => Resolve.expr(f(elem))(context) }
 
   def local(name: Token): Expr => Resolve = { expr => context =>
     val maybeFound = context.scopes.zipWithIndex.find { case (scope, _) =>
