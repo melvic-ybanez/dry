@@ -22,8 +22,8 @@ language [here](#contents).
     - [General](https://github.com/melvic-ybanez/dry/blob/main/examples/demo.dry)
     - [Classes](https://github.com/melvic-ybanez/dry/blob/main/tests/test_class.dry)
       and [Constructors](https://github.com/melvic-ybanez/dry/blob/main/tests/test_init.dry)
-    - [Lists](https://github.com/melvic-ybanez/dry/blob/main/tests/test_lists.dry)
-    - [Modules](https://github.com/melvic-ybanez/dry/blob/main/tests/test_imports.dry)
+    - [Lists](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_lists.dry), [Tuples](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_tuples.dry), and [Dictionaries](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_dictionaries.dry)
+    - [Modules](https://github.com/melvic-ybanez/dry/blob/main/tests/test_modules.dry)
     - More [here](https://github.com/melvic-ybanez/dry/blob/main/tests/)
       and [here](https://github.com/melvic-ybanez/dry/blob/main/examples/)
 1. [Grammar](#grammar)
@@ -197,7 +197,7 @@ that module in the list of available paths. You do that by adding a _.dry_paths_
 as your main Dry script and write all the paths there, each on its own line.
 
 See the _.dry_paths_ file within the [tests](https://github.com/melvic-ybanez/dry/tree/main/tests) directory as an example. You
-might notice it includes the _stdlib_. That's because I needed the assertion functions for the tests.
+might notice it includes the [stdlib](https://github.com/melvic-ybanez/dry/tree/main/stdlib). That's because I needed the assertion functions for the tests.
 
 # Grammar
 

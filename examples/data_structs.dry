@@ -35,4 +35,4 @@ assert_true("New item added", dict[true] = 10);
 assert_equals("Size after adding new item", 3, dict.size());
 
 del dict["two"];
-assert_equals("Size after deleting a item", 2, dict.size());
+assert_equals("Size after deleting an item", 2, dict.size());
