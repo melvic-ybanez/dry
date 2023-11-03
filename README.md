@@ -16,6 +16,7 @@ language [here](#contents).
 1. [Getting Started](#getting-started)
     - [Starting the REPL](#starting-the-repl)
     - [Running a Dry Script](#running-a-dry-script)
+    - [Dry Paths](#dry-paths)
 1. [Running the tests](#running-the-tests)
 1. Examples and Tests
     - [General](https://github.com/melvic-ybanez/dry/blob/main/examples/demo.dry)
@@ -188,6 +189,15 @@ Scala tests:
 ```shell
 $ sbt test
 ```
+
+# Dry Paths
+
+If you want to `import` a specific module into your Dry program, you need to include the directory containing
+that module in the list of available paths. You do that by adding a _.dry_paths_ file in the same directory
+as your main Dry script and write all the paths there, each on its own line.
+
+See the _.dry_paths_ file within the [tests](https://github.com/melvic-ybanez/dry/tree/main/tests) directory as an example. You
+might notice it includes the _stdlib_. That's because I needed the assertion functions for the tests.
 
 # Grammar
 

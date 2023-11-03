@@ -6,7 +6,7 @@ import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.values.Callable
-import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue}
+import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types, typeOf}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Failure.RuntimeError._
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -15,35 +15,30 @@ import scala.Console._
 
 //noinspection NameBooleanParameters
 object Assertions {
-  private[interpreter] def assertEquals(env: Env): Callable =
-    Callable(3, env) { case description :: expected :: got :: _ =>
-      getTestData(env).foreach { case (testsCount, successCount, _) =>
-        if (expected == got)
-          addSuccess(env, description, successCount)
-        else displayEqualError(description, expected, got)
 
-        updateTestsCount(env, testsCount)
-      }
-      Value.unit.ok
-    }
-
-  private[interpreter] def assertTrue(env: Env): Callable =
-    assertBool(true, env)
-
-  private[interpreter] def assertFalse(env: Env): Callable =
-    assertBool(false, env)
-
-  private[interpreter] def assertBool(bool: Boolean, env: Env): Callable =
-    Callable(2, env) { case description :: condition :: _ =>
-      getTestData(env).foreach { case (testsCount, successCount, _) =>
-        condition match {
-          case Value.Bool(`bool`) => addSuccess(env, description, successCount)
-          case _                  => displayError(description, show"$condition is not $bool")
+  /**
+   * The most general assert statement for code that do not throw runtime errors.
+   *
+   * Note: `assert_equals`, `assert_true`, and `assert_false` are all defined in terms of this function.
+   */
+  private[interpreter] def assertTrueWithMessage(env: Env): Callable =
+    Callable.withLineNo(3, env)(line => {
+      case (description @ Value.Str(_)) :: Value.Bool(condition) :: Value.Str(errorMessage) :: _ =>
+        getTestData(env).foreach { case (testsCount, successCount, _) =>
+          if (condition) addSuccess(env, description, successCount)
+          else displayError(description, errorMessage)
+          updateTestsCount(env, testsCount)
         }
-        updateTestsCount(env, testsCount)
-      }
-      Value.unit.ok
-    }
+        Value.unit.ok
+      case d :: c :: m :: _ =>
+        RuntimeError
+          .invalidArgument(
+            s"(${Types.String}, ${Types.Boolean}, ${Types.String})",
+            s"(${typeOf(d)}, ${typeOf(c)}, ${typeOf(m)})",
+            line
+          )
+          .fail
+    })
 
   private[interpreter] def assertError(env: Env): Callable =
     Callable.withLineNo(3, env) { lineNo =>

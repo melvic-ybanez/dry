@@ -37,3 +37,5 @@ tests/tests.dry
 .metals
 
 .bsp
+
+/.dry_paths

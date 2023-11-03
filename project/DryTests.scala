@@ -22,8 +22,20 @@ object DryTests {
         finally source.close()
       }
       .mkString("\n\n")
+
+    // We manually give aliases because we can only import functions for now.
+    // We can't do from-imports yet.
+    val contentImports = """import assert;
+                        |
+                        |let assert_equals = assert.assert_equals;
+                        |let assert_true = assert.assert_true;
+                        |let assert_false = assert.assert_false;
+                        |""".stripMargin
+
     val note = "// Note: This is an auto-generated script\n\n\n"
-    Path(Root + "/" + TestFilename).createFile().writeAll(note + contents + "\n\n" + "show_test_results();")
+    Path(Root + "/" + TestFilename)
+      .createFile()
+      .writeAll(note + contentImports + "\n" + contents + "\n\n" + "show_test_results();")
   }
 
   def listTestFiles(file: File): List[File] =

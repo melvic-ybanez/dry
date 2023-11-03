@@ -1,0 +1,13 @@
+def assert_true(description, condition) {
+    assert_true_with_message(description, condition, str(condition) + " is not true");
+}
+
+def assert_false(description, condition) {
+    assert_true_with_message(description, !condition, str(condition) + " is not false");
+}
+
+def assert_equals(description, expected, got) {
+    assert_true_with_message(description,
+            expected == got,
+            "Expected: " + str(expected) + ". Got: " + str(got));
+}
