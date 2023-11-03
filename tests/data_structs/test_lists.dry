@@ -2,7 +2,7 @@ class TestList {
     def test_str() {
         let xs = [1, "two", 3];
         assert_equals("Stringify lists", "[1, two, 3]", str(xs));
-        assert_equals("Empty list string representation", "[]", str([]));
+        assert_equals("Stringify empty lists", "[]", str([]));
     }
 
     def test_get() {
@@ -77,7 +77,7 @@ class TestList {
 
     def test_add_method() {
         let xs = ["one"];
-        assert_equals("New element is added to the list", "[one, two]", str(xs.add("two")));
+        assert_equals("New element is added to the list", ["one", "two"], xs.add("two"));
         assert_equals("Size should increase after adding new item", 2, xs.size());
     }
 

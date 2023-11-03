@@ -1,0 +1,38 @@
+import assert;
+
+// from-imports aren't supported yet
+let assert_equals = assert.assert_equals;
+let assert_true = assert.assert_true;
+
+// ========== list demo ==========
+let xs = [1, "two", 3];
+
+assert_equals("Stringify lists", "[1, two, 3]", str(xs));
+assert_equals("Second element", "two", xs[1]);
+
+xs[0] = 10;
+assert_equals("Update list", [10, "two", 3], xs);
+
+let ys = ["apple", "banana", "orange"];
+del ys[1];
+assert_equals("Delete a list element", ["apple", "orange"], ys);
+assert_equals("List size", 2, ys.size());
+
+assert_equals("Add new element to the list", ["one", "two"], ["one"].add("two"));
+
+// ========== tuple demo ==========
+let tup = (1, true, "three", false);
+assert_equals("Stringify tuple", "(1, true, three, false)", str(tup));
+assert_equals("Third element", "three", tup[2]);
+
+
+// ========== dictionary demo ==========
+let dict = {1: "one", "two": true};
+
+dict["two"] = false;
+assert_equals("Update dictionary", false, dict["two"]);
+assert_true("New item added", dict[true] = 10);
+assert_equals("Size after adding new item", 3, dict.size());
+
+del dict["two"];
+assert_equals("Size after deleting a item", 2, dict.size());
