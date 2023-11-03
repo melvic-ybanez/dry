@@ -16,11 +16,11 @@ import scala.Console._
 //noinspection NameBooleanParameters
 object Assertions {
   private[interpreter] def assertEquals(env: Env): Callable =
-    Callable(3, env) { case description :: value1 :: value2 :: _ =>
+    Callable(3, env) { case description :: expected :: got :: _ =>
       getTestData(env).foreach { case (testsCount, successCount, _) =>
-        if (value1 == value2)
+        if (expected == got)
           addSuccess(env, description, successCount)
-        else displayEqualError(description, value1, value2)
+        else displayEqualError(description, expected, got)
 
         updateTestsCount(env, testsCount)
       }

@@ -1,16 +1,16 @@
 class TestList {
     def test_str() {
         let xs = [1, "two", 3];
-        assert_equals("Stringify lists", str(xs), "[1, two, 3]");
-        assert_equals("Empty list string representation", str([]), "[]");
+        assert_equals("Stringify lists", "[1, two, 3]", str(xs));
+        assert_equals("Empty list string representation", "[]", str([]));
     }
 
     def test_get() {
         let xs = [1, "two", 3];
 
-        assert_equals("First element", xs[0], 1);
-        assert_equals("Second element", xs[1], "two");
-        assert_equals("Third element", xs[2], 3);
+        assert_equals("First element", 1, xs[0]);
+        assert_equals("Second element", "two", xs[1]);
+        assert_equals("Third element", 3, xs[2]);
 
         let empty = [];
         assert_error("Reading list elements with string index", Errors.INVALID_INDEX, lambda() {
@@ -47,7 +47,7 @@ class TestList {
 
         xs[0] = 10;
         xs[1] = 2;
-        assert_equals("Updating list successfully", xs, [10, 2, 3]);
+        assert_equals("Updating list successfully", [10, 2, 3], xs);
     }
 
     def test_delete() {
@@ -66,23 +66,23 @@ class TestList {
             del xs[4];
         });
         del xs[1];
-        assert_equals("Deleting a list element successfully", xs, ["apple", "orange"]);
+        assert_equals("Deleting a list element successfully", ["apple", "orange"], xs);
     }
 
     def test_size() {
         let xs = [1, 2, 3, 4, 5];
-        assert_equals("Non-empty list size", xs.size(), 5);
-        assert_equals("Empty list size", [].size(), 0);
+        assert_equals("Non-empty list size", 5, xs.size());
+        assert_equals("Empty list size", 0, [].size());
     }
 
     def test_add_method() {
         let xs = ["one"];
-        assert_equals("New element is added to the list", str(xs.add("two")), "[one, two]");
-        assert_equals("Size should increase after adding new item", xs.size(), 2);
+        assert_equals("New element is added to the list", "[one, two]", str(xs.add("two")));
+        assert_equals("Size should increase after adding new item", 2, xs.size());
     }
 
     def test_type() {
-        assert_equals("List type", typeof([1, 2]), "list");
+        assert_equals("List type", "list", typeof([1, 2]));
     }
 }
 

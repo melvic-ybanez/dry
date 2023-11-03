@@ -72,7 +72,22 @@ class TestDictionary {
 
     def test_type() {
         let dict = {1: 2};
-        assert_equals("Dictionary type", typeof(dict), "dictionary");
+        assert_equals("Dictionary type", "dictionary", typeof(dict));
+    }
+
+    def test_fields_retrieval() {
+        // let's stick to one element for checking field values for now,
+        // because a dictionary is not an ordered collection so a multi-element one
+        // might produce a list with a different order from what we expect.
+        // We can improve this test case later on once we have an unordered collection
+        let dict = {1: 2};
+
+        assert_equals("Retrieving fields from a dictionary", [(1, 2)], dict.fields());
+        assert_equals("Retrieving keys from a dictionary", [1], dict.keys());
+        assert_equals("Retrieving values from a dictionary", [2], dict.values());
+
+        // this will at least check if it works on a non-singleton, non-empty dictionary
+        assert_equals("Size of retrieved fields", 2, {1: 2, 3: 4}.fields().size());
     }
 }
 
@@ -84,3 +99,4 @@ test_dict.test_set();
 test_dict.test_delete();
 test_dict.test_nested();
 test_dict.test_type();
+test_dict.test_fields_retrieval();
