@@ -175,7 +175,7 @@ like this:
 [Success] Ducks should quack!
 [Success] Denji should say 'Woof!'
 [Success] Class properties should be updated
-Ran 153 tests. Successful: 153. Failed: 0.
+Ran 158 tests. Successful: 158. Failed: 0.
 ```
 
 The tests themselves are written in Dry (while the `testDry` command is written in Scala). You can see the directory

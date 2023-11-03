@@ -213,21 +213,19 @@ private[eval] trait EvalExpr {
         case (dict: DDictionary, evaluatedKey) =>
           Result.fromOption(dict.getByKey(evaluatedKey), RuntimeError.undefinedKey(key, token))
         case (sequence: DSequence, evaluatedKey) =>
-          evaluatedKey match {
-            case Value.Num(index) if index % 1 == 0 =>
-              val intIndex = index.toInt
-              if (index < 0 || index >= sequence.size)
-                RuntimeError.indexOutOfBounds(intIndex, token.line).fail[Value]
-              else sequence.getByIndex(intIndex).ok
-            case _ => RuntimeError.invalidIndex(key, token).fail[Value]
-          }
+          accessNumericIndex(evaluatedKey, key, sequence.size, token)(sequence.getByIndex(_).ok)
       }
   }
 
   def indexSet(implicit context: Context[IndexSet]): Out = node match {
     case IndexSet(obj, key, value, token) =>
-      Evaluate.index(obj, key, token) { case (dict: DDictionary, evaluatedKey) =>
-        Evaluate.expr(value).map(dict.setByKey(evaluatedKey, _))
+      Evaluate.index(obj, key, token) {
+        case (dict: DDictionary, evaluatedKey) =>
+          Evaluate.expr(value).map(dict.setByKey(evaluatedKey, _))
+        case (list: DList, evaluatedKey) =>
+          accessNumericIndex(evaluatedKey, key, list.size, token) { index =>
+            Evaluate.expr(value).map(list.setByIndex(index, _))
+          }
       }
   }
 
@@ -254,6 +252,18 @@ private[eval] trait EvalExpr {
 
       dictFields.map(fields => DDictionary(fields.to(mutable.Map), env))
   }
+
+  private[eval] def accessNumericIndex(evaluatedKey: Value, key: IndexKey, limit: Int, token: Token)(
+      access: Int => Out
+  ): Out =
+    evaluatedKey match {
+      case Value.Num(index) if index % 1 == 0 =>
+        val intIndex = index.toInt
+        if (index < 0 || index >= limit)
+          RuntimeError.indexOutOfBounds(intIndex, token.line).fail[Value]
+        else access(intIndex)
+      case _ => RuntimeError.invalidIndex(key, token).fail[Value]
+    }
 
   private[eval] def exprList(elems: List[Expr])(implicit context: Context[Expr]): Result[List[Value]] =
     elems.foldFailFast(Result.succeed(List.empty[Value])) { (result, elem) =>

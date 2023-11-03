@@ -28,6 +28,28 @@ class TestList {
         });
     }
 
+    def test_set() {
+        let xs = [1, "two", 3];
+
+        assert_error("Updating list with string index", Errors.INVALID_INDEX, lambda() {
+            xs[""] = 20;
+        });
+        assert_error("Updating list with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            xs[-1];
+        });
+
+        assert_error("Updating list with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            xs[3];
+        });
+        assert_error("Updating list with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+            xs[4];
+        });
+
+        xs[0] = 10;
+        xs[1] = 2;
+        assert_equals("Updating list successfully", xs, [10, 2, 3]);
+    }
+
     def test_size() {
         let xs = [1, 2, 3, 4, 5];
         assert_equals("Non-empty list size", xs.size(), 5);
@@ -51,3 +73,4 @@ test_list.test_get();
 test_list.test_size();
 test_list.test_type();
 test_list.test_add_method();
+test_list.test_set();

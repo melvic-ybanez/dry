@@ -1,6 +1,7 @@
 package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.values.Value.ToValue
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -19,4 +20,7 @@ final case class DList(elems: ListBuffer[Value], env: Env) extends DSequence {
   override def size: Int = elems.size
 
   override def getByIndex(index: Int): Value = elems(index)
+
+  def setByIndex(index: Int, value: Value): Value =
+    (elems(index) = value).unit
 }
