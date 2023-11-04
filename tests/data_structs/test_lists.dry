@@ -86,11 +86,11 @@ class TestList {
     }
 }
 
-let test_list = TestList();
-test_list.test_str();
-test_list.test_get();
-test_list.test_size();
-test_list.test_type();
-test_list.test_add_method();
-test_list.test_set();
-test_list.test_delete();
+let lists = TestList();
+lists.test_str();
+lists.test_get();
+lists.test_size();
+lists.test_type();
+lists.test_add_method();
+lists.test_set();
+lists.test_delete();

@@ -5,7 +5,7 @@ import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{List => _, _}
 import com.melvic.dry.aux.implicits.ListOps
-import com.melvic.dry.interpreter.Interpret
+import com.melvic.dry.interpreter.{Env, Interpret}
 import com.melvic.dry.interpreter.Value.{Bool, Num, Str, None => VNone}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
@@ -260,7 +260,7 @@ private[eval] trait EvalExpr {
 
   private[eval] def index[A](obj: Expr, key: Expr, token: Token)(
       ifCanBeIndexed: PartialFunction[(Value, Value), Out]
-  )(implicit context: Context[A]): Out = {
+  )(implicit context: Context[A]): Out =
     for {
       evaluatedObj <- Evaluate.expr(obj)
       evaluatedKey <- Evaluate.expr(key)
@@ -269,7 +269,6 @@ private[eval] trait EvalExpr {
       }
       result <- ifCanBeIndexed.orElse(orElse)(evaluatedObj, evaluatedKey)
     } yield result
-  }
 
   private def varLookup(name: Token, expr: Expr)(implicit context: Context[Expr]): Out =
     locals

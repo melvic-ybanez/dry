@@ -75,15 +75,15 @@ object Resolve {
       Resolve.expr(callee) >=> { scopes =>
         arguments.foldLeft(scopes.ok)((acc, arg) => acc.flatMap(Resolve.expr(arg)))
       }
-    case lambda: Lambda             => enterFunction(Resolve.lambda(_)(lambda))
-    case Get(obj, _)                => Resolve.expr(obj)
-    case Set(obj, _, value)         => Resolve.expr(value) >=> Resolve.expr(obj)
-    case IndexGet(obj, _, _)        => Resolve.expr(obj)
-    case IndexSet(obj, _, value, _) => Resolve.expr(value) >=> Resolve.expr(obj)
-    case self: Self                 => Resolve.self(self)
-    case list: Expr.List            => Resolve.list(list)
-    case tuple: Tuple               => Resolve.tuple(tuple)
-    case dict: Dictionary           => Resolve.dictionary(dict)
+    case lambda: Lambda               => enterFunction(Resolve.lambda(_)(lambda))
+    case Get(obj, _)                  => Resolve.expr(obj)
+    case Set(obj, _, value)           => Resolve.expr(value) >=> Resolve.expr(obj)
+    case IndexGet(obj, key, _)        => Resolve.expr(obj) >=> Resolve.expr(key)
+    case IndexSet(obj, key, value, _) => Resolve.expr(obj) >=> Resolve.expr(key) >=> Resolve.expr(value)
+    case self: Self                   => Resolve.self(self)
+    case list: Expr.List              => Resolve.list(list)
+    case tuple: Tuple                 => Resolve.tuple(tuple)
+    case dict: Dictionary             => Resolve.dictionary(dict)
   }
 
   def variable: Variable => Resolve = { case expr @ Variable(name) =>
@@ -154,19 +154,19 @@ object Resolve {
   }
 
   def list: Expr.List => Resolve = { case Expr.List(elems) =>
-    sequence(elems)(identity)
+    sequence(elems)(Resolve.expr)
   }
 
   def tuple: Tuple => Resolve = { case Tuple(elems) =>
-    sequence(elems)(identity)
+    sequence(elems)(Resolve.expr)
   }
 
   def dictionary: Dictionary => Resolve = { case Dictionary(table) =>
-    sequence(table.toList)(_._2)
+    sequence(table.toList) { case (key, value) => Resolve.expr(key) >=> Resolve.expr(value) }
   }
 
-  private def sequence[A](elems: List[A])(f: A => Expr): Resolve = context =>
-    elems.foldFailFast(context.ok) { case (context, elem) => Resolve.expr(f(elem))(context) }
+  private def sequence[A](elems: List[A])(f: A => Resolve): Resolve = context =>
+    elems.foldFailFast(context.ok) { case (context, elem) => f(elem)(context) }
 
   def local(name: Token): Expr => Resolve = { expr => context =>
     val maybeFound = context.scopes.zipWithIndex.find { case (scope, _) =>

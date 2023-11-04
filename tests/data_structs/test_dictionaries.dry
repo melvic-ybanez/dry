@@ -91,18 +91,23 @@ class TestDictionary {
     }
 
     def test_non_constant_keys() {
-        let dict = {1 + 1: 1};
-        assert_equals("Dictionary with a non-constant key", 1, dict[2]);
+        let dict_arith = {1 + 1: 1};
+        assert_equals("Dictionary with an arithmetic expression key", 1, dict_arith[2]);
+
+        def foo() { return "hello"; }
+
+        let dict_call = {foo(): 10};
+        assert_equals("Dictionary with a function call key", 10, dict_call[foo()]);
     }
 }
 
-let test_dict = TestDictionary();
-test_dict.test_init();
-test_dict.test_size();
-test_dict.test_get();
-test_dict.test_set();
-test_dict.test_delete();
-test_dict.test_nested();
-test_dict.test_type();
-test_dict.test_fields_retrieval();
-test_dict.test_non_constant_keys();
+let dictionaries = TestDictionary();
+dictionaries.test_init();
+dictionaries.test_size();
+dictionaries.test_get();
+dictionaries.test_set();
+dictionaries.test_delete();
+dictionaries.test_nested();
+dictionaries.test_type();
+dictionaries.test_fields_retrieval();
+dictionaries.test_non_constant_keys();
