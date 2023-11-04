@@ -1,0 +1,42 @@
+class TestConstructors {
+    def test_arguments() {
+        class Foo {
+            def init(a, b) {
+                self.a = a;
+                self.b = b;
+            }
+        }
+        let foo = Foo(1, 2);
+        assert_equals("Constructor arguments", (1, 2), (foo.a, foo.b));
+    }
+
+    def test_early_return() {
+        class Foo {
+            def init() {
+                self.value = "init";
+                return;
+                self.value = "new value";
+            }
+        }
+        let foo = Foo();
+        assert_equals("Constructor early return", "init", foo.value);
+    }
+
+    def test_call_init_explicitly() {
+        class Foo {
+            def init() {
+                self.field = "init";
+            }
+        }
+        let foo = Foo();
+        foo.field = "field";
+        let foo2 = foo.init();
+        assert_equals("Explicitly create an instance via init", "init", foo.field);
+        assert_equals("Explicitly calling init does not create a new instance", (), foo2);
+    }
+}
+
+let constructors = TestConstructors();
+constructors.test_arguments();
+constructors.test_early_return();
+constructors.test_call_init_explicitly();

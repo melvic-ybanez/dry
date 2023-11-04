@@ -237,6 +237,7 @@ private[eval] trait EvalExpr {
   }
 
   def tuple(implicit context: Context[Tuple]): Out = node match {
+    case Tuple(Nil)   => Value.Unit.ok
     case Tuple(elems) => exprList(elems).map(elems => DTuple(elems.reverse, env))
   }
 

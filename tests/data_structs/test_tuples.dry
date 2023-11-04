@@ -2,8 +2,7 @@ class TestTuple {
     def test_init() {
         let empty = ();
         assert_equals("Empty tuple string representation", str(empty), "()");
-        assert_equals("Empty tuple type", typeof(empty), "tuple");
-        assert_equals("Empty tuple size", empty.size(), 0);
+        assert_equals("An empty tuple is a unit", typeof(empty), "unit");
 
         let singleton = (1,);
         assert_equals("Singleton tuple string representation", str(singleton), "(1,)");
@@ -17,15 +16,13 @@ class TestTuple {
     }
 
     def test_get() {
-        let empty = ();
+        let singleton = (1,);
         assert_error("Reading tuple elements with string index", Errors.INVALID_INDEX, lambda() {
-            empty[""];
+            singleton[""];
         });
         assert_error("Reading tuple elements with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
-            empty[-1];
+            singleton[-1];
         });
-
-        let singleton = (1,);
         assert_error("Reading tuple elements with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
             singleton[1];
         });
