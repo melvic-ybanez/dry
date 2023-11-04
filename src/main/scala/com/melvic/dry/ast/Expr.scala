@@ -10,8 +10,6 @@ import scala.{List => SList}
 sealed trait Expr
 
 object Expr {
-  type IndexKey = Either[Literal, Unary]
-
   sealed trait Literal extends Expr
 
   object Literal {
@@ -43,20 +41,20 @@ object Expr {
 
   final case class Get(obj: Expr, name: Token) extends Expr
   final case class Set(obj: Expr, name: Token, value: Expr) extends Expr
-  final case class IndexGet(obj: Expr, key: Either[Literal, Unary], token: Token) extends Expr
-  final case class IndexSet(obj: Expr, key: Either[Literal, Unary], value: Expr, token: Token) extends Expr
+  final case class IndexGet(obj: Expr, key: Expr, token: Token) extends Expr
+  final case class IndexSet(obj: Expr, key: Expr, value: Expr, token: Token) extends Expr
 
   final case class Self(keyword: Token) extends Expr
 
   final case class List(elems: SList[Expr]) extends Expr
   final case class Tuple(elems: SList[Expr]) extends Expr
 
-  final case class Dictionary(table: Map[Expr.IndexKey, Expr]) extends Expr
+  final case class Dictionary(table: Map[Expr, Expr]) extends Expr
 
   object Dictionary {
     def show: Show[Dictionary] = { case Dictionary(table) =>
-      def fieldToString(field: (IndexKey, Expr)): String =
-        show"${Expr.showIndexKey(field._1)}: ${Expr.show(field._2)}"
+      def fieldToString(field: (Expr, Expr)): String =
+        show"${Expr.show(field._1)}: ${Expr.show(field._2)}"
 
       show"{ ${table.map(fieldToString).mkString(", ")} }"
     }
@@ -77,14 +75,11 @@ object Expr {
       show"lambda(${params.map(Token.show).toCsv}) ${BlockStmt.fromDecls(body: _*)}"
     case Get(obj, name)                => show"$obj.$name"
     case Set(obj, name, value)         => show"$obj.$name = $value"
-    case IndexGet(obj, name, _)        => show"$obj[${showIndexKey(name)}]"
-    case IndexSet(obj, name, value, _) => show"$obj[${showIndexKey(name)}] = $value"
+    case IndexGet(obj, name, _)        => show"$obj[$name]"
+    case IndexSet(obj, name, value, _) => show"$obj[$name}] = $value"
     case Self(_)                       => "self"
     case List(elems)                   => show"[${Show.list(elems)}]"
     case Tuple(elems)                  => show"(${Show.list(elems)})"
     case dictionary: Dictionary        => Dictionary.show(dictionary)
   }
-
-  def showIndexKey(key: Expr.IndexKey): String =
-    key.fold(literal => show"$literal", unary => show"$unary")
 }

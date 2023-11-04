@@ -1,7 +1,7 @@
 package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.Token
-import com.melvic.dry.ast.Expr.IndexKey
+import com.melvic.dry.ast.Expr
 import com.melvic.dry.interpreter.values.Value
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result.Result
@@ -9,7 +9,7 @@ import com.melvic.dry.result.Result.Result
 object Evaluate extends EvalExpr with EvalDecl {
   type Out = Result[Value]
 
-  private[eval] def accessNumericIndex(evaluatedKey: Value, key: IndexKey, limit: Int, token: Token)(
+  private[eval] def accessNumericIndex(evaluatedKey: Value, key: Expr, limit: Int, token: Token)(
       access: Int => Out
   ): Out =
     evaluatedKey match {

@@ -171,19 +171,8 @@ private[parsers] trait ExprParser { _: Parser =>
     }
   }
 
-  private[parsers] def indexAccess[A](keyF: IndexKey => A): ParseResult[A] =
-    indexKey(keyF).flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
-
-  private[parsers] def indexKey[A](keyF: IndexKey => A): ParseResult[A] =
-    expression
-      .flatMap {
-        case Step(literal: Literal, next) => ParseResult.succeed(keyF(Left(literal)), next)
-        case Step(unary @ Unary(Token(TokenType.Plus, _, _), Literal.Number(_)), next) =>
-          ParseResult.succeed(keyF(Right(unary)), next)
-        case Step(unary @ Unary(Token(TokenType.Minus, _, _), Literal.Number(_)), next) =>
-          ParseResult.succeed(keyF(Right(unary)), next)
-        case Step(_, next) => ParseResult.fail(ParseError.expected(peek, "key name", "after ["), next)
-      }
+  private[parsers] def indexAccess[A](keyF: Expr => A): ParseResult[A] =
+    expression.mapValue(keyF).flatMapParser(_.consumeAfter(TokenType.RightBracket, "]", "index access"))
 
   /**
    * Decides whether to construct a Call or a Lambda node. This is useful for partial application.
@@ -290,7 +279,7 @@ private[parsers] trait ExprParser { _: Parser =>
    * }}}
    */
   def dictionary: ParseResult[Dictionary] =
-    sequence[(IndexKey, Expr)](
+    sequence[(Expr, Expr)](
       TokenType.LeftBrace,
       "{",
       TokenType.RightBrace,
@@ -298,7 +287,7 @@ private[parsers] trait ExprParser { _: Parser =>
       "at the start of dictionary",
       "dictionary elements"
     )(
-      _.indexKey(identity)
+      _.expression
         .flatMap { case Step(key, next) =>
           next
             .consumeAfter(TokenType.Colon, ":", "dictionary key")

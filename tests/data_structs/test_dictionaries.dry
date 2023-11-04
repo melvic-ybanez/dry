@@ -89,6 +89,11 @@ class TestDictionary {
         // this will at least check if it works on a non-singleton, non-empty dictionary
         assert_equals("Size of retrieved fields", 2, {1: 2, 3: 4}.fields().size());
     }
+
+    def test_non_constant_keys() {
+        let dict = {1 + 1: 1};
+        assert_equals("Dictionary with a non-constant key", 1, dict[2]);
+    }
 }
 
 let test_dict = TestDictionary();
@@ -100,3 +105,4 @@ test_dict.test_delete();
 test_dict.test_nested();
 test_dict.test_type();
 test_dict.test_fields_retrieval();
+test_dict.test_non_constant_keys();

@@ -56,7 +56,7 @@ object Stmt {
   }
 
   final case class ReturnStmt(keyword: Token, value: Expr) extends Stmt
-  final case class DeleteStmt(obj: Expr, key: Expr.IndexKey, token: Token) extends Stmt
+  final case class DeleteStmt(obj: Expr, key: Expr, token: Token) extends Stmt
 
   final case class Import(path: List[Token]) extends Stmt {
     def name: Token = path.last

@@ -71,10 +71,10 @@ object Failure {
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
-    final case class UndefinedKey(key: Expr.IndexKey, token: Token) extends RuntimeError
+    final case class UndefinedKey(key: Expr, token: Token) extends RuntimeError
     final case class CanNotApplyIndexOperator(obj: Expr, token: Token) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
-    final case class InvalidIndex(index: Expr.IndexKey, token: Token) extends RuntimeError
+    final case class InvalidIndex(index: Expr, token: Token) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
     final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
 
@@ -102,7 +102,7 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       UndefinedProperty(token)
 
-    def undefinedKey(key: Expr.IndexKey, token: Token): RuntimeError =
+    def undefinedKey(key: Expr, token: Token): RuntimeError =
       UndefinedKey(key, token)
 
     def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
@@ -111,7 +111,7 @@ object Failure {
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       IndexOutOfBounds(index, line)
 
-    def invalidIndex(index: Expr.IndexKey, token: Token): RuntimeError =
+    def invalidIndex(index: Expr, token: Token): RuntimeError =
       InvalidIndex(index, token)
 
     def invalidArgument(expected: String, got: String, line: Int): RuntimeError =
@@ -132,12 +132,12 @@ object Failure {
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>
         errorMsg(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
-      case UndefinedKey(key, token) => errorMsg(token, show"Undefined key: ${Expr.showIndexKey(key)}")
+      case UndefinedProperty(token)             => errorMsg(token, show"Undefined property: $token")
+      case UndefinedKey(key, token)             => errorMsg(token, show"Undefined key: $key")
       case CanNotApplyIndexOperator(obj, token) => errorMsg(token, show"Can not apply [] operator to $obj")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
-      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: ${Expr.showIndexKey(index)}")
+      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: $index")
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
       case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")

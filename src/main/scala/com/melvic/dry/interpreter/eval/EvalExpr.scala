@@ -245,7 +245,7 @@ private[eval] trait EvalExpr {
       val dictFields = table.toList.foldFailFast(Result.succeed(Map.empty[Value, Value])) {
         case (result, (key, value)) =>
           for {
-            evaluatedKey   <- key.fold(Evaluate.literal(_), Evaluate.unary(_))
+            evaluatedKey   <- Evaluate.expr(key)
             evaluatedValue <- Evaluate.expr(value)
           } yield result + (evaluatedKey -> evaluatedValue)
       }
@@ -258,12 +258,12 @@ private[eval] trait EvalExpr {
       Evaluate.expr(elem).map(_ :: result)
     }
 
-  private[eval] def index[A](obj: Expr, key: Expr.IndexKey, token: Token)(
+  private[eval] def index[A](obj: Expr, key: Expr, token: Token)(
       ifCanBeIndexed: PartialFunction[(Value, Value), Out]
   )(implicit context: Context[A]): Out = {
     for {
       evaluatedObj <- Evaluate.expr(obj)
-      evaluatedKey <- key.fold(Evaluate.literal(_), Evaluate.unary(_))
+      evaluatedKey <- Evaluate.expr(key)
       orElse: PartialFunction[(Value, Value), Out] = { case (_: Value, _: Value) =>
         RuntimeError.canNotApplyIndexOperator(obj, token).fail[Value]
       }
