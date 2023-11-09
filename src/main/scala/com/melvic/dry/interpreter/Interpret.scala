@@ -2,9 +2,10 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.Keys.{Errors, SuccessCount, TestCount}
+import com.melvic.dry.interpreter.natives.Keys.{Errors, SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
+import com.melvic.dry.interpreter.natives.{Assertions, Exceptions}
 import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
@@ -20,6 +21,7 @@ import com.melvic.dry.result.Result.implicits.ToResult
 import java.nio.file.Path
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn.readLine
+import scala.util.chaining.scalaUtilChainingOps
 
 object Interpret {
   def declarations(declarations: List[Decl], enclosing: Env, locals: Locals, sourcePaths: List[Path]): Out = {
@@ -60,9 +62,7 @@ object Interpret {
 
   val natives: Env = Env.empty
     .defineWith("print", Callable.unarySuccess(_)(arg => print(Value.show(arg)).unit))
-    // we don't have standard library functions yet, so we are building a dedicated function for println for now.
-    // Once, user-defined functions are supported, we can just replace this with a call to `print`, applied
-    // to a string that ends in a newline character
+    // TODO: Add this to stdlib or prelude, defined in terms of `print`
     .defineWith("println", Callable.unarySuccess(_)(arg => println(Value.show(arg)).unit))
     .defineWith(
       "readLine",
@@ -76,15 +76,14 @@ object Interpret {
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
-    .defineWith("assert_true_with_message", Assertions.assertTrueWithMessage)
-    .defineWith("assert_error", Assertions.assertError)
-    .defineWith("show_test_results", Assertions.showTestResults)
     .defineWith("Errors", errors)
+    .pipe(Assertions.register)
+    .pipe(Exceptions.register)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))
 
   private def errors(env: Env): DClass =
-    Errors.allErrors.foldLeft(DClass("Errors", Map.empty, env)) { (dClass, error) =>
+    Errors.allErrors.foldLeft(DClass.default("Errors", env)) { (dClass, error) =>
       val fieldName = error.drop(2).dropRight(2).toUpperCase
       dClass.addField(fieldName, Str(error))
     }

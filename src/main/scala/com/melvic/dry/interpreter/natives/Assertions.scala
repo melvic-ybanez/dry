@@ -1,12 +1,14 @@
-package com.melvic.dry.interpreter
+package com.melvic.dry.interpreter.natives
 
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.aux.Show.ShowInterpolator
-import com.melvic.dry.interpreter.Keys.{SuccessCount, TestCount}
+import Keys.{SuccessCount, TestCount}
+import com.melvic.dry.interpreter.Env.Register
 import com.melvic.dry.interpreter.values.Callable
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types, typeOf}
+import com.melvic.dry.interpreter.{Env, Value}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Failure.RuntimeError._
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -76,6 +78,11 @@ object Assertions {
     }
     Value.unit.ok
   }
+
+  def register: Register =
+    _.defineWith("assert_true_with_message", Assertions.assertTrueWithMessage)
+      .defineWith("assert_error", Assertions.assertError)
+      .defineWith("show_test_results", Assertions.showTestResults)
 
   private def addSuccess(env: Env, description: Value, successCount: Num): Unit = {
     env.define(SuccessCount, Num(successCount.value + 1))

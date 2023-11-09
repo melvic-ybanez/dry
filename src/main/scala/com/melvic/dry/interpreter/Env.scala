@@ -59,6 +59,7 @@ sealed trait Env {
       env
     }
 
+  @tailrec
   private def ancestorAt(distance: Int): Env =
     if (distance == 0) this
     else
@@ -81,6 +82,7 @@ sealed trait Env {
 
 object Env {
   type Table = mutable.Map[String, Value]
+  type Register = Env => Env
 
   /**
    * An [[Env]] that has a pointer to its immediate enclosing environment, forming a Cactus Stack, to enable

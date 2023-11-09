@@ -1,4 +1,4 @@
-package com.melvic.dry.interpreter
+package com.melvic.dry.interpreter.natives
 
 object Keys {
   val TestCount = "__tests_count__"

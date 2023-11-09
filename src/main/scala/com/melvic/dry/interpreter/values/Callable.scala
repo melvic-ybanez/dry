@@ -5,7 +5,7 @@ import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.Keys.LineNumber
+import com.melvic.dry.interpreter.natives.Keys.LineNumber
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned

@@ -57,7 +57,7 @@ private[eval] trait EvalDecl extends EvalStmt {
     node match {
       case ClassDecl(name, methods) =>
         env.define(name, Value.None)
-        val klass = DClass(
+        val klass = new DClass(
           name.lexeme,
           methods
             .map(method =>

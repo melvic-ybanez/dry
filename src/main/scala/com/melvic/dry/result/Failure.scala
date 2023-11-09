@@ -63,7 +63,7 @@ object Failure {
   sealed trait RuntimeError extends Failure
 
   object RuntimeError {
-    final case class DivisionByZero(token: Token) extends RuntimeError
+    final case class DivisionByZero(message: String) extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String]) extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
     final case class UndefinedVariable(token: Token) extends RuntimeError
@@ -79,7 +79,10 @@ object Failure {
     final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
 
     def divisionByZero(token: Token): RuntimeError =
-      DivisionByZero(token)
+      DivisionByZero(errorMsgWithToken(token, "Division by zero"))
+
+    def divisionByZero(message: String, line: Int): RuntimeError =
+      DivisionByZero(errorMsg(message, line))
 
     def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperand(operator, expected)
@@ -120,31 +123,36 @@ object Failure {
     def moduleNotFound(name: String, token: Token): RuntimeError =
       ModuleNotFound(name, token)
 
+    // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token) => errorMsg(token, "Division by zero")
+      case DivisionByZero(msg) => msg
       case InvalidOperand(token, expected) =>
-        errorMsg(token, s"The operand must be any of the following: ${expected.toCsv}")
+        errorMsgWithToken(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
-        errorMsg(token, s"All operands must be any of the following: ${expected.toCsv}")
-      case UndefinedVariable(token) => errorMsg(token, show"Undefined variable: $token")
-      case NotCallable(token)       => errorMsg(token, "This expression is not callable.")
+        errorMsgWithToken(token, s"All operands must be any of the following: ${expected.toCsv}")
+      case UndefinedVariable(token) => errorMsgWithToken(token, show"Undefined variable: $token")
+      case NotCallable(token)       => errorMsgWithToken(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
-        errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
+        errorMsgWithToken(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>
-        errorMsg(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token)             => errorMsg(token, show"Undefined property: $token")
-      case UndefinedKey(key, token)             => errorMsg(token, show"Undefined key: $key")
-      case CanNotApplyIndexOperator(obj, token) => errorMsg(token, show"Can not apply [] operator to $obj")
+        errorMsgWithToken(token, show"$obj does not have properties or fields.")
+      case UndefinedProperty(token) => errorMsgWithToken(token, show"Undefined property: $token")
+      case UndefinedKey(key, token) => errorMsgWithToken(token, show"Undefined key: $key")
+      case CanNotApplyIndexOperator(obj, token) =>
+        errorMsgWithToken(token, show"Can not apply [] operator to $obj")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
-      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: $index")
+      case InvalidIndex(index, token) => errorMsgWithToken(token, show"Invalid index: $index")
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
-      case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")
+      case ModuleNotFound(name, token) => errorMsgWithToken(token, show"Module not found: $name")
     }
 
-    private def errorMsg(token: Token, message: String): String =
-      show"Runtime Error: $message\n${showLine(token.line)}. $token"
+    private def errorMsgWithToken(token: Token, message: String): String =
+      s"${errorMsg(message, token.line)} $token"
+
+    private def errorMsg(message: String, line: Int): String =
+      show"Runtime Error: $message\n$line."
   }
 
   sealed trait ResolverError extends Failure

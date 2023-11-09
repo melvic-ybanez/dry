@@ -43,6 +43,7 @@ object Value {
     val Dictionary = "dictionary"
     val Callable = "callable"
     val Tuple = "tuple"
+    val Exception = "exception"
   }
 
   def typeOf: Value => String = {
@@ -51,6 +52,7 @@ object Value {
     case Num(_)         => Types.Number
     case Str(_)         => Types.String
     case Value.Unit     => Types.Unit
+    case _: DException  => Types.Exception
     case _: DClass      => Types.Class
     case _: DInstance   => Types.Instance
     case _: DList       => Types.List

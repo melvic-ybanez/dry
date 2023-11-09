@@ -2,13 +2,14 @@ package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.Callable.{Function => DFunction}
+import com.melvic.dry.interpreter.values.DClass.Methods
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
-final case class DClass(name: String, methods: Map[String, DFunction], enclosing: Env)
+class DClass(val name: String, val methods: Methods, val enclosing: Env)
     extends Callable
     with Metaclass
     with DObject {
@@ -23,4 +24,17 @@ final case class DClass(name: String, methods: Map[String, DFunction], enclosing
   override def klass = Metaclass
 
   override val fields = mutable.Map.empty
+}
+
+object DClass {
+  type Methods = Map[String, DFunction]
+
+  def apply(name: String, methods: Methods, enclosing: Env): DClass =
+    new DClass(name, methods, enclosing)
+
+  def unapply(klass: DClass): Option[(String, Methods, Env)] =
+    Some(klass.name, klass.methods, klass.enclosing)
+
+  def default(name: String, env: Env): DClass =
+    new DClass(name, Map.empty, env)
 }
