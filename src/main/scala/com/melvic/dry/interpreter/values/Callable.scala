@@ -29,7 +29,7 @@ private[interpreter] trait Callable extends Value {
     call
   }
 
-  protected def local: Env = Env.fromEnclosing(enclosing)
+  protected lazy val local: Env = Env.fromEnclosing(enclosing)
 
   def lineNumber: Int = local.at(0, LineNumber).flatMap(_.toNum.map(_.value.toInt)).getOrElse(0)
 }

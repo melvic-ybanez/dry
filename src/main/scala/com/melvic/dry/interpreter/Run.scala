@@ -20,12 +20,15 @@ object Run {
   }
 
   def path(path: String, sourcePaths: List[Path]): Result[Env] = {
-    val env = Env.empty
-
     val source = Source.fromFile(path)
     val code = source.getLines().mkString("\n")
     source.close
 
+    Run.code(code, sourcePaths)
+  }
+
+  def code(code: String, sourcePaths: List[Path]): Result[Env] = {
+    val env = Env.empty
     val result = Interpret.script(code, env, Scopes.empty, sourcePaths)
     result.map(_ => env)
   }

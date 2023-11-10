@@ -149,7 +149,7 @@ object Failure {
     }
 
     private def errorMsgWithToken(token: Token, message: String): String =
-      s"${errorMsg(message, token.line)} $token"
+      show"${errorMsg(message, token.line)} $token"
 
     private def errorMsg(message: String, line: Int): String =
       show"Runtime Error: $message\n$line."
