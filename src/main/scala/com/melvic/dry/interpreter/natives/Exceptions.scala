@@ -12,6 +12,7 @@ object Exceptions {
   def register: Register =
     _.defineWith("raise", raise)
       .defineWith(DivisionByZero.name, DException(DivisionByZero, _))
+      .defineWith(UndefinedVariable.name, DException(UndefinedVariable, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -22,8 +23,12 @@ object Exceptions {
         def message: String =
           DException.messageOf(exception).getOrElse("An exception occurred")
 
-        DException.Kind.of(exception).fold(invalidArgument(exception)) { case DivisionByZero.name =>
-          RuntimeError.divisionByZero(message, line).fail
+        def fail(error: (String, Int) => RuntimeError) =
+          error(message, line).fail
+
+        DException.Kind.of(exception).fold(invalidArgument(exception)) {
+          case DivisionByZero.name    => fail(RuntimeError.divisionByZero)
+          case UndefinedVariable.name => fail(RuntimeError.undefinedVariable)
         }
       case arg :: _ => invalidArgument(arg)
     }

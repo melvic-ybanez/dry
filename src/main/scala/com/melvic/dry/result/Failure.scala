@@ -66,7 +66,7 @@ object Failure {
     final case class DivisionByZero(message: String) extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String]) extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
-    final case class UndefinedVariable(token: Token) extends RuntimeError
+    final case class UndefinedVariable(message: String) extends RuntimeError
     final case class NotCallable(token: Token) extends RuntimeError
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
@@ -91,7 +91,10 @@ object Failure {
       InvalidOperands(operator, expected)
 
     def undefinedVariable(token: Token): RuntimeError =
-      UndefinedVariable(token)
+      UndefinedVariable(errorMsgWithToken(token, show"Undefined variable: $token"))
+
+    def undefinedVariable(message: String, line: Int): RuntimeError =
+      UndefinedVariable(errorMsg(message, line))
 
     def notCallable(token: Token): RuntimeError =
       NotCallable(token)
@@ -130,8 +133,8 @@ object Failure {
         errorMsgWithToken(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
         errorMsgWithToken(token, s"All operands must be any of the following: ${expected.toCsv}")
-      case UndefinedVariable(token) => errorMsgWithToken(token, show"Undefined variable: $token")
-      case NotCallable(token)       => errorMsgWithToken(token, "This expression is not callable.")
+      case UndefinedVariable(msg) => msg
+      case NotCallable(token)     => errorMsgWithToken(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
         errorMsgWithToken(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>

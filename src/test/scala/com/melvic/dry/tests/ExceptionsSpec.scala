@@ -9,8 +9,12 @@ import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with Inside {
-  "Raising a DivisionByZero exception" should "return a runtime a runtime error" in {
+  "Raising a DivisionByZero exception" should "return a runtime" in {
     checkException("DivisionByZero")(RuntimeError.divisionByZero)
+  }
+
+  "Raising a UndefinedVariable exception" should "return a runtime error" in {
+    checkException("UndefinedVariable")(RuntimeError.undefinedVariable)
   }
 
   def checkException(exception: String)(error: (String, Int) => RuntimeError): Unit = {
