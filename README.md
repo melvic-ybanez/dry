@@ -221,7 +221,7 @@ in [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form):
 <expression>  ::= <assignment> | <lambda>
 <assignment>  ::= <call> "=" <expression>
 <call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  | <index>)*
-<index>       ::= "[" <constant> "]"   
+<index>       ::= "[" <expression> "]"   
 <identifier>  ::= <alpha>(<alpha>?<digit>?)*
 <lambda>      ::= "lambda" <params> <block> | <or>
 <block>       ::= "{" <declaration>* "}"
@@ -234,13 +234,12 @@ in [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form):
       | ">>>" | "<=" <factor>)*
 <factor>      ::= <unary> ("/" | "*" | "%" <unary>)*
 <unary>       ::= ("!" | "-" | "+" | "not")* <call>
-<primary>     ::= <constant> | "self" | <identifier> | <list> | <tuple> 
-      | <dictionary> | "(" <expression> ")"
-<constant>    ::= "false" | "true" | "none" | <number> | <string>
+<primary>     ::= "false" | "true" | "none" | <number> | <string> | "self" | <identifier> 
+      | <list> | <tuple> | <dictionary> | "(" <expression> ")"
 <list>        ::= "[" (<expression> ("," <expression>*))? "]"
 <tuple>       ::= "(" (<expression> ("," | ("," <expression>)*))? ")"
 <dictionary>  ::= "{" (<key-value> ("," <key-value>)*)? "}"
-<key-value>   ::= <constant> ":" <expression>
+<key-value>   ::= <expression> ":" <expression>
 <number>      ::= <sign>?<nat>("."<nat>)?
 <sign>        ::= "-" | "+"
 <string>      ::= '"'(.?"\n"?)*'"'

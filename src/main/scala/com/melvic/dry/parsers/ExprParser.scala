@@ -213,7 +213,8 @@ private[parsers] trait ExprParser { _: Parser =>
 
   /**
    * {{{
-   *   <primary> ::= <constant> | "self" | <identifier> | <tuple> | <dictionary> | "(" <expression> ")"
+   *   <primary> ::= "false" | "true" | "none" | <number> | <string> | "self" | <identifier>
+   *      | <list> | <tuple> | <dictionary> | "(" <expression> ")"
    * }}}
    */
   def primary: ParseResult[Expr] =
@@ -275,7 +276,7 @@ private[parsers] trait ExprParser { _: Parser =>
   /**
    * {{{
    *    <dictionary> ::= "{" (<key-value> ("," <key-value>)*)? "}"
-   *    <key-value>  ::= <constant> ":" <expression>
+   *    <key-value>  ::= <expression> ":" <expression>
    * }}}
    */
   def dictionary: ParseResult[Dictionary] =
