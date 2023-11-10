@@ -67,7 +67,8 @@ are true about you or your requirements, then you might want to give Dry a try:
 1. Install [Java](https://www.java.com/en/), if you haven't already.
 1. Since Dry is a Scala application, it is compiled to Java bytecode. This means you can
    run the Jar file you downloaded in the previous section the same way you run any Java
-   Jar application, using the `java -jar` command.
+   Jar application, using the `java -jar` command. Note however that **Dry programs are not
+   compiled to Java bytecode**, only Dry (the interpreter) itself is.
 
    Go to the downloaded jar's directory and enter the following:
 
