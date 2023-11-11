@@ -15,10 +15,10 @@ class DClass(val name: String, val methods: Methods, val enclosing: Env)
     with DObject {
   override def arity = findMethod(Lexemes.Init).map(_.arity).getOrElse(0)
 
-  override def call = arguments =>
+  override def call(lineNumber: Int) = arguments =>
     DInstance.fromClass(this).pipe { instance =>
       findMethod(Lexemes.Init)
-        .fold((instance: Value).ok)(_.bind(instance).call(arguments).map(_ => instance))
+        .fold((instance: Value).ok)(_.bind(instance).call(lineNumber)(arguments).map(_ => instance))
     }
 
   override def klass = Metaclass

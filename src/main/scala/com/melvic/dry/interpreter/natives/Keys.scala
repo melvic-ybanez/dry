@@ -3,7 +3,6 @@ package com.melvic.dry.interpreter.natives
 object Keys {
   val TestCount = "__tests_count__"
   val SuccessCount = "__tests_success_count__"
-  val LineNumber = "__line_number__"
   val MainModule = "__main_module__"
 
   object Errors {
