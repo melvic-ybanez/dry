@@ -18,6 +18,7 @@ object Exceptions {
       .defineWith(InvalidOperands.name, DException(InvalidOperands, _))
       .defineWith(NotCallable.name, DException(NotCallable, _))
       .defineWith(IncorrectArity.name, DException(IncorrectArity, _))
+      .defineWith(DoesNotHaveProperties.name, DException(DoesNotHaveProperties, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -32,12 +33,13 @@ object Exceptions {
           error(Token.fromLine(line), message).fail
 
         DException.Kind.of(exception).fold(invalidArgument(exception)) {
-          case DivisionByZero.name    => fail(RuntimeError.divisionByZero)
-          case UndefinedVariable.name => fail(RuntimeError.undefinedVariable)
-          case InvalidOperand.name    => fail(RuntimeError.invalidOperand)
-          case InvalidOperands.name   => fail(RuntimeError.invalidOperands)
-          case NotCallable.name       => fail(RuntimeError.notCallable)
-          case IncorrectArity.name    => fail(RuntimeError.incorrectArity)
+          case DivisionByZero.name        => fail(RuntimeError.divisionByZero)
+          case UndefinedVariable.name     => fail(RuntimeError.undefinedVariable)
+          case InvalidOperand.name        => fail(RuntimeError.invalidOperand)
+          case InvalidOperands.name       => fail(RuntimeError.invalidOperands)
+          case NotCallable.name           => fail(RuntimeError.notCallable)
+          case IncorrectArity.name        => fail(RuntimeError.incorrectArity)
+          case DoesNotHaveProperties.name => fail(RuntimeError.doesNotHaveProperties)
         }
       case arg :: _ => invalidArgument(arg)
     }
