@@ -71,7 +71,7 @@ object Failure {
     final case class IncorrectArity(token: Token, message: String) extends RuntimeError
     final case class DoesNotHaveProperties(token: Token, message: String) extends RuntimeError
     final case class UndefinedProperty(token: Token, message: String) extends RuntimeError
-    final case class UndefinedKey(key: Expr, token: Token) extends RuntimeError
+    final case class UndefinedKey(token: Token, message: String) extends RuntimeError
     final case class CanNotApplyIndexOperator(obj: Expr, token: Token) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
     final case class InvalidIndex(index: Expr, token: Token) extends RuntimeError
@@ -123,8 +123,11 @@ object Failure {
     def undefinedProperty(token: Token): RuntimeError =
       undefinedProperty(token, show"Undefined property: $token")
 
+    def undefinedKey(token: Token, message: String): RuntimeError =
+      UndefinedKey(token, message)
+
     def undefinedKey(key: Expr, token: Token): RuntimeError =
-      UndefinedKey(key, token)
+      undefinedKey(token, show"Undefined key: $key")
 
     def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
       CanNotApplyIndexOperator(obj, token)
@@ -143,15 +146,15 @@ object Failure {
 
     // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token, msg)            => errorMsg(token, msg)
+      case DivisionByZero(token, message)        => errorMsg(token, message)
       case InvalidOperand(token, message)        => errorMsg(token, message)
       case InvalidOperands(token, message)       => errorMsg(token, message)
-      case UndefinedVariable(token, msg)         => errorMsg(token, msg)
+      case UndefinedVariable(token, message)     => errorMsg(token, message)
       case NotCallable(token, message)           => errorMsg(token, message)
       case IncorrectArity(token, message)        => errorMsg(token, message)
       case DoesNotHaveProperties(token, message) => errorMsg(token, message)
       case UndefinedProperty(token, message)     => errorMsg(token, message)
-      case UndefinedKey(key, token)              => errorMsg(token, show"Undefined key: $key")
+      case UndefinedKey(token, message)          => errorMsg(token, message)
       case CanNotApplyIndexOperator(obj, token) =>
         errorMsg(token, show"Can not apply [] operator to $obj")
       case IndexOutOfBounds(index, line) =>

@@ -20,6 +20,7 @@ object Exceptions {
       .defineWith(IncorrectArity.name, DException(IncorrectArity, _))
       .defineWith(DoesNotHaveProperties.name, DException(DoesNotHaveProperties, _))
       .defineWith(UndefinedProperty.name, DException(UndefinedProperty, _))
+      .defineWith(UndefinedKey.name, DException(UndefinedKey, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -42,6 +43,7 @@ object Exceptions {
           case IncorrectArity.name        => fail(RuntimeError.incorrectArity)
           case DoesNotHaveProperties.name => fail(RuntimeError.doesNotHaveProperties)
           case UndefinedProperty.name     => fail(RuntimeError.undefinedProperty)
+          case UndefinedKey.name          => fail(RuntimeError.undefinedKey)
         }
       case arg :: _ => invalidArgument(arg)
     }
