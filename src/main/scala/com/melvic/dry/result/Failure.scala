@@ -64,7 +64,8 @@ object Failure {
 
   object RuntimeError {
     final case class DivisionByZero(token: Token, message: String) extends RuntimeError
-    final case class InvalidOperand(token: Token, expected: List[String]) extends RuntimeError
+    final case class InvalidOperand(token: Token, expected: List[String], message: String)
+        extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
     final case class UndefinedVariable(token: Token, message: String) extends RuntimeError
     final case class NotCallable(token: Token) extends RuntimeError
@@ -84,8 +85,11 @@ object Failure {
     def divisionByZero(token: Token): RuntimeError =
       DivisionByZero(token, "Division by zero")
 
+    def invalidOperand(operator: Token, expected: List[String], message: String): RuntimeError =
+      InvalidOperand(operator, expected, message: String)
+
     def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
-      InvalidOperand(operator, expected)
+      InvalidOperand(operator, expected, s"The operand must be any of the following: ${expected.toCsv}")
 
     def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperands(operator, expected)
@@ -128,9 +132,8 @@ object Failure {
 
     // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token, msg) => errorMsg(token, msg)
-      case InvalidOperand(token, expected) =>
-        errorMsg(token, s"The operand must be any of the following: ${expected.toCsv}")
+      case DivisionByZero(token, msg)        => errorMsg(token, msg)
+      case InvalidOperand(token, _, message) => errorMsg(token, message)
       case InvalidOperands(token, expected) =>
         errorMsg(token, s"All operands must be any of the following: ${expected.toCsv}")
       case UndefinedVariable(token, msg) => errorMsg(token, msg)

@@ -14,6 +14,7 @@ object Exceptions {
     _.defineWith("raise", raise)
       .defineWith(DivisionByZero.name, DException(DivisionByZero, _))
       .defineWith(UndefinedVariable.name, DException(UndefinedVariable, _))
+      .defineWith(InvalidOperand.name, DException(InvalidOperand, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -30,6 +31,7 @@ object Exceptions {
         DException.Kind.of(exception).fold(invalidArgument(exception)) {
           case DivisionByZero.name    => fail(RuntimeError.divisionByZero)
           case UndefinedVariable.name => fail(RuntimeError.undefinedVariable)
+          case InvalidOperand.name    => fail(RuntimeError.invalidOperand(_, Nil, _))
         }
       case arg :: _ => invalidArgument(arg)
     }

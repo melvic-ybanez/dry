@@ -18,6 +18,10 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("UndefinedVariable")(RuntimeError.undefinedVariable)
   }
 
+  "Raising a InvalidOperand exception" should "return a runtime error" in {
+    checkException("InvalidOperand")(RuntimeError.invalidOperand(_, Nil, _))
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 
