@@ -72,7 +72,7 @@ object Failure {
     final case class DoesNotHaveProperties(token: Token, message: String) extends RuntimeError
     final case class UndefinedProperty(token: Token, message: String) extends RuntimeError
     final case class UndefinedKey(token: Token, message: String) extends RuntimeError
-    final case class CanNotApplyIndexOperator(obj: Expr, token: Token) extends RuntimeError
+    final case class CanNotApplyIndexOperator(token: Token, message: String) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
     final case class InvalidIndex(index: Expr, token: Token) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
@@ -129,8 +129,11 @@ object Failure {
     def undefinedKey(key: Expr, token: Token): RuntimeError =
       undefinedKey(token, show"Undefined key: $key")
 
+    def canNotApplyIndexOperator(token: Token, message: String): RuntimeError =
+      CanNotApplyIndexOperator(token, message)
+
     def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
-      CanNotApplyIndexOperator(obj, token)
+      canNotApplyIndexOperator(token, show"Can not apply [] operator to $obj")
 
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       IndexOutOfBounds(index, line)
@@ -146,17 +149,16 @@ object Failure {
 
     // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token, message)        => errorMsg(token, message)
-      case InvalidOperand(token, message)        => errorMsg(token, message)
-      case InvalidOperands(token, message)       => errorMsg(token, message)
-      case UndefinedVariable(token, message)     => errorMsg(token, message)
-      case NotCallable(token, message)           => errorMsg(token, message)
-      case IncorrectArity(token, message)        => errorMsg(token, message)
-      case DoesNotHaveProperties(token, message) => errorMsg(token, message)
-      case UndefinedProperty(token, message)     => errorMsg(token, message)
-      case UndefinedKey(token, message)          => errorMsg(token, message)
-      case CanNotApplyIndexOperator(obj, token) =>
-        errorMsg(token, show"Can not apply [] operator to $obj")
+      case DivisionByZero(token, message)           => errorMsg(token, message)
+      case InvalidOperand(token, message)           => errorMsg(token, message)
+      case InvalidOperands(token, message)          => errorMsg(token, message)
+      case UndefinedVariable(token, message)        => errorMsg(token, message)
+      case NotCallable(token, message)              => errorMsg(token, message)
+      case IncorrectArity(token, message)           => errorMsg(token, message)
+      case DoesNotHaveProperties(token, message)    => errorMsg(token, message)
+      case UndefinedProperty(token, message)        => errorMsg(token, message)
+      case UndefinedKey(token, message)             => errorMsg(token, message)
+      case CanNotApplyIndexOperator(token, message) => errorMsg(token, message)
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
       case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: $index")

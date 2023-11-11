@@ -46,6 +46,10 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("UndefinedKey")(RuntimeError.undefinedKey)
   }
 
+  "Raising a CanNotApplyIndexOperator exception" should "return a runtime error" in {
+    checkException("CanNotApplyIndexOperator")(RuntimeError.canNotApplyIndexOperator)
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 

@@ -21,6 +21,7 @@ object Exceptions {
       .defineWith(DoesNotHaveProperties.name, DException(DoesNotHaveProperties, _))
       .defineWith(UndefinedProperty.name, DException(UndefinedProperty, _))
       .defineWith(UndefinedKey.name, DException(UndefinedKey, _))
+      .defineWith(CanNotApplyIndexOperator.name, DException(CanNotApplyIndexOperator, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -35,15 +36,16 @@ object Exceptions {
           error(Token.fromLine(line), message).fail
 
         DException.Kind.of(exception).fold(invalidArgument(exception)) {
-          case DivisionByZero.name        => fail(RuntimeError.divisionByZero)
-          case UndefinedVariable.name     => fail(RuntimeError.undefinedVariable)
-          case InvalidOperand.name        => fail(RuntimeError.invalidOperand)
-          case InvalidOperands.name       => fail(RuntimeError.invalidOperands)
-          case NotCallable.name           => fail(RuntimeError.notCallable)
-          case IncorrectArity.name        => fail(RuntimeError.incorrectArity)
-          case DoesNotHaveProperties.name => fail(RuntimeError.doesNotHaveProperties)
-          case UndefinedProperty.name     => fail(RuntimeError.undefinedProperty)
-          case UndefinedKey.name          => fail(RuntimeError.undefinedKey)
+          case DivisionByZero.name           => fail(RuntimeError.divisionByZero)
+          case UndefinedVariable.name        => fail(RuntimeError.undefinedVariable)
+          case InvalidOperand.name           => fail(RuntimeError.invalidOperand)
+          case InvalidOperands.name          => fail(RuntimeError.invalidOperands)
+          case NotCallable.name              => fail(RuntimeError.notCallable)
+          case IncorrectArity.name           => fail(RuntimeError.incorrectArity)
+          case DoesNotHaveProperties.name    => fail(RuntimeError.doesNotHaveProperties)
+          case UndefinedProperty.name        => fail(RuntimeError.undefinedProperty)
+          case UndefinedKey.name             => fail(RuntimeError.undefinedKey)
+          case CanNotApplyIndexOperator.name => fail(RuntimeError.canNotApplyIndexOperator)
         }
       case arg :: _ => invalidArgument(arg)
     }
