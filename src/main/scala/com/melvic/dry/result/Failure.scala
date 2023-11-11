@@ -73,7 +73,7 @@ object Failure {
     final case class UndefinedProperty(token: Token, message: String) extends RuntimeError
     final case class UndefinedKey(token: Token, message: String) extends RuntimeError
     final case class CanNotApplyIndexOperator(token: Token, message: String) extends RuntimeError
-    final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
+    final case class IndexOutOfBounds(token: Token, message: String) extends RuntimeError
     final case class InvalidIndex(index: Expr, token: Token) extends RuntimeError
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
     final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
@@ -135,8 +135,11 @@ object Failure {
     def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
       canNotApplyIndexOperator(token, show"Can not apply [] operator to $obj")
 
+    def indexOutOfBounds(line: Int, message: String): RuntimeError =
+      IndexOutOfBounds(Token.fromLine(line), message)
+
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
-      IndexOutOfBounds(index, line)
+      indexOutOfBounds(line, show"Runtime Error. Index out of bounds: $index\n[line $line].")
 
     def invalidIndex(index: Expr, token: Token): RuntimeError =
       InvalidIndex(index, token)
@@ -159,9 +162,8 @@ object Failure {
       case UndefinedProperty(token, message)        => errorMsg(token, message)
       case UndefinedKey(token, message)             => errorMsg(token, message)
       case CanNotApplyIndexOperator(token, message) => errorMsg(token, message)
-      case IndexOutOfBounds(index, line) =>
-        show"Runtime Error. Index out of bounds: $index\n[line $line]."
-      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: $index")
+      case IndexOutOfBounds(token, message)         => errorMsg(token, message)
+      case InvalidIndex(index, token)               => errorMsg(token, show"Invalid index: $index")
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
       case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")

@@ -50,6 +50,10 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("CanNotApplyIndexOperator")(RuntimeError.canNotApplyIndexOperator)
   }
 
+  "Raising a IndexOutOfBounds exception" should "return a runtime error" in {
+    checkException("IndexOutOfBounds")((token, msg) => RuntimeError.indexOutOfBounds(token.line, msg))
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 

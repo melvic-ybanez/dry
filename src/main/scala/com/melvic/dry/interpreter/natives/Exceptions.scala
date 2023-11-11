@@ -22,6 +22,7 @@ object Exceptions {
       .defineWith(UndefinedProperty.name, DException(UndefinedProperty, _))
       .defineWith(UndefinedKey.name, DException(UndefinedKey, _))
       .defineWith(CanNotApplyIndexOperator.name, DException(CanNotApplyIndexOperator, _))
+      .defineWith(IndexOutOfBounds.name, DException(IndexOutOfBounds, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -46,6 +47,7 @@ object Exceptions {
           case UndefinedProperty.name        => fail(RuntimeError.undefinedProperty)
           case UndefinedKey.name             => fail(RuntimeError.undefinedKey)
           case CanNotApplyIndexOperator.name => fail(RuntimeError.canNotApplyIndexOperator)
+          case IndexOutOfBounds.name => fail((token, msg) => RuntimeError.indexOutOfBounds(token.line, msg))
         }
       case arg :: _ => invalidArgument(arg)
     }

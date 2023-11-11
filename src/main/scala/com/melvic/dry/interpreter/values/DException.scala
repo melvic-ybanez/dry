@@ -39,6 +39,7 @@ object DException {
   case object UndefinedProperty extends Kind
   case object UndefinedKey extends Kind
   case object CanNotApplyIndexOperator extends Kind
+  case object IndexOutOfBounds extends Kind
 
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)
