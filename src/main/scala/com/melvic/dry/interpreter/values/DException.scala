@@ -34,6 +34,7 @@ object DException {
   case object InvalidOperand extends Kind
   case object InvalidOperands extends Kind
   case object NotCallable extends Kind
+  case object IncorrectArity extends Kind
 
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)

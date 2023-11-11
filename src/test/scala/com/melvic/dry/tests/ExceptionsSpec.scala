@@ -19,15 +19,19 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
   }
 
   "Raising a InvalidOperand exception" should "return a runtime error" in {
-    checkException("InvalidOperand")(RuntimeError.invalidOperand(_, Nil, _))
+    checkException("InvalidOperand")(RuntimeError.invalidOperand)
   }
 
   "Raising a InvalidOperands exception" should "return a runtime error" in {
-    checkException("InvalidOperands")(RuntimeError.invalidOperands(_, Nil, _))
+    checkException("InvalidOperands")(RuntimeError.invalidOperands)
   }
 
   "Raising a NotCallable exception" should "return a runtime error" in {
     checkException("NotCallable")(RuntimeError.notCallable)
+  }
+
+  "Raising a IncorrectArity exception" should "return a runtime error" in {
+    checkException("IncorrectArity")(RuntimeError.incorrectArity)
   }
 
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {

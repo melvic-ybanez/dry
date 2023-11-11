@@ -104,11 +104,11 @@ object Assertions {
   private def errorKey(failure: RuntimeError): String =
     failure match {
       case DivisionByZero(_, _)           => Keys.Errors.DivisionByZero
-      case InvalidOperand(_, _, _)        => Keys.Errors.InvalidOperand
-      case InvalidOperands(_, _, _)       => Keys.Errors.InvalidOperands
+      case InvalidOperand(_, _)           => Keys.Errors.InvalidOperand
+      case InvalidOperands(_, _)          => Keys.Errors.InvalidOperands
       case UndefinedVariable(_, _)        => Keys.Errors.UndefinedVariable
       case NotCallable(_, _)              => Keys.Errors.NotCallable
-      case IncorrectArity(_, _, _)        => Keys.Errors.IncorrectArity
+      case IncorrectArity(_, _)           => Keys.Errors.IncorrectArity
       case DoesNotHaveProperties(_, _)    => Keys.Errors.DoesNotHaveProperties
       case CanNotApplyIndexOperator(_, _) => Keys.Errors.CanNotApplyIndexOperator
       case IndexOutOfBounds(_, _)         => Keys.Errors.IndexOutOfBounds
