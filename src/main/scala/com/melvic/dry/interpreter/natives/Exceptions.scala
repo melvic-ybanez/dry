@@ -16,6 +16,7 @@ object Exceptions {
       .defineWith(UndefinedVariable.name, DException(UndefinedVariable, _))
       .defineWith(InvalidOperand.name, DException(InvalidOperand, _))
       .defineWith(InvalidOperands.name, DException(InvalidOperands, _))
+      .defineWith(NotCallable.name, DException(NotCallable, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -34,6 +35,7 @@ object Exceptions {
           case UndefinedVariable.name => fail(RuntimeError.undefinedVariable)
           case InvalidOperand.name    => fail(RuntimeError.invalidOperand(_, Nil, _))
           case InvalidOperands.name   => fail(RuntimeError.invalidOperands(_, Nil, _))
+          case NotCallable.name       => fail(RuntimeError.notCallable)
         }
       case arg :: _ => invalidArgument(arg)
     }

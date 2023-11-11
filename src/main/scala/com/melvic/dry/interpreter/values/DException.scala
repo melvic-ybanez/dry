@@ -33,6 +33,7 @@ object DException {
   case object UndefinedVariable extends Kind
   case object InvalidOperand extends Kind
   case object InvalidOperands extends Kind
+  case object NotCallable extends Kind
 
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)

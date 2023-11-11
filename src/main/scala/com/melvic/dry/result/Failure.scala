@@ -69,7 +69,7 @@ object Failure {
     final case class InvalidOperands(token: Token, expected: List[String], message: String)
         extends RuntimeError
     final case class UndefinedVariable(token: Token, message: String) extends RuntimeError
-    final case class NotCallable(token: Token) extends RuntimeError
+    final case class NotCallable(token: Token, message: String) extends RuntimeError
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
     final case class UndefinedProperty(token: Token) extends RuntimeError
@@ -104,8 +104,8 @@ object Failure {
     def undefinedVariable(token: Token): RuntimeError =
       undefinedVariable(token, show"Undefined variable: $token")
 
-    def notCallable(token: Token): RuntimeError =
-      NotCallable(token)
+    def notCallable(token: Token, message: String = "This expression is not callable."): RuntimeError =
+      NotCallable(token, message)
 
     def incorrectArity(token: Token, expected: Int, got: Int): RuntimeError =
       IncorrectArity(token, expected, got)
@@ -140,7 +140,7 @@ object Failure {
       case InvalidOperand(token, _, message)         => errorMsg(token, message)
       case InvalidOperands(token, expected, message) => errorMsg(token, message)
       case UndefinedVariable(token, msg)             => errorMsg(token, msg)
-      case NotCallable(token)                        => errorMsg(token, "This expression is not callable.")
+      case NotCallable(token, message)               => errorMsg(token, message)
       case IncorrectArity(token, expected, got) =>
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>

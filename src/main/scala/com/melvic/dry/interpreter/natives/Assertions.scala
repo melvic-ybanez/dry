@@ -107,7 +107,7 @@ object Assertions {
       case InvalidOperand(_, _, _)        => Keys.Errors.InvalidOperand
       case InvalidOperands(_, _, _)       => Keys.Errors.InvalidOperands
       case UndefinedVariable(_, _)        => Keys.Errors.UndefinedVariable
-      case NotCallable(_)                 => Keys.Errors.NotCallable
+      case NotCallable(_, _)              => Keys.Errors.NotCallable
       case IncorrectArity(_, _, _)        => Keys.Errors.IncorrectArity
       case DoesNotHaveProperties(_, _)    => Keys.Errors.DoesNotHaveProperties
       case CanNotApplyIndexOperator(_, _) => Keys.Errors.CanNotApplyIndexOperator
