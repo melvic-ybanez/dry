@@ -5,7 +5,6 @@ import com.melvic.dry.ast.Decl.Def
 import com.melvic.dry.ast.Stmt.BlockStmt
 import com.melvic.dry.ast.{Decl, Expr}
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.Keys.LineNumber
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.values.Callable.Call
 import com.melvic.dry.interpreter.values.Value.Returned
@@ -20,18 +19,14 @@ import java.nio.file.Path
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
-  def call: Call
+  def call(lineNumber: Int): Call
 
   def enclosing: Env
 
-  def callWithPos(token: Token): Call = {
-    local.define(LineNumber, Value.Num(token.line))
-    call
-  }
+  def callWithPos(token: Token): Call =
+    call(token.line)
 
   protected def local: Env = Env.fromEnclosing(enclosing)
-
-  def lineNumber: Int = local.at(0, LineNumber).flatMap(_.toNum.map(_.value.toInt)).getOrElse(0)
 }
 
 object Callable {
@@ -47,7 +42,7 @@ object Callable {
 
     override def arity = params.size
 
-    override def call: Call = { args =>
+    override def call(lineNumber: Int): Call = { args =>
       val env = params.zip(args).foldLeft(local) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
@@ -85,8 +80,11 @@ object Callable {
     override def isInit: Boolean = false
   }
 
-  final case class Varargs(enclosing: Env, call: Call) extends Callable {
+  // TODO: See if we need to remove this one for now
+  final case class Varargs(enclosing: Env, _call: Int => Call) extends Callable {
     override def arity = Int.MaxValue
+
+    override def call(lineNumber: Int): Call = _call(lineNumber)
   }
 
   abstract class CustomCallable(val arity: Int, val enclosing: Env) extends Callable
@@ -96,7 +94,7 @@ object Callable {
 
   def withLineNo(arity: Int, enclosing: Env)(initCall: Int => Call): Callable =
     new CustomCallable(arity, enclosing) {
-      override def call = initCall(lineNumber).orElse(_ => Value.None.ok)
+      override def call(lineNumber: Int) = initCall(lineNumber).orElse(_ => Value.None.ok)
     }
 
   def noArg(enclosing: Env)(initCall: => Result[Value]): Callable =

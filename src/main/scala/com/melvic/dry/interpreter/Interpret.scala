@@ -5,7 +5,6 @@ import com.melvic.dry.interpreter.Env.LocalEnv
 import com.melvic.dry.interpreter.Keys.{Errors, SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
-import com.melvic.dry.interpreter.values.Callable.Varargs
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
 import com.melvic.dry.lexer.Lexer
@@ -18,7 +17,6 @@ import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import java.nio.file.Path
-import scala.collection.mutable.ListBuffer
 import scala.io.StdIn.readLine
 
 object Interpret {
