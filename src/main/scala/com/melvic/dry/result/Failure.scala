@@ -70,7 +70,7 @@ object Failure {
     final case class NotCallable(token: Token, message: String) extends RuntimeError
     final case class IncorrectArity(token: Token, message: String) extends RuntimeError
     final case class DoesNotHaveProperties(token: Token, message: String) extends RuntimeError
-    final case class UndefinedProperty(token: Token) extends RuntimeError
+    final case class UndefinedProperty(token: Token, message: String) extends RuntimeError
     final case class UndefinedKey(key: Expr, token: Token) extends RuntimeError
     final case class CanNotApplyIndexOperator(obj: Expr, token: Token) extends RuntimeError
     final case class IndexOutOfBounds(index: Int, line: Int) extends RuntimeError
@@ -117,8 +117,11 @@ object Failure {
     def doesNotHaveProperties(obj: Expr, token: Token): RuntimeError =
       doesNotHaveProperties(token, show"$obj does not have properties or fields.")
 
+    def undefinedProperty(token: Token, message: String): RuntimeError =
+      UndefinedProperty(token, message)
+
     def undefinedProperty(token: Token): RuntimeError =
-      UndefinedProperty(token)
+      undefinedProperty(token, show"Undefined property: $token")
 
     def undefinedKey(key: Expr, token: Token): RuntimeError =
       UndefinedKey(key, token)
@@ -147,7 +150,7 @@ object Failure {
       case NotCallable(token, message)           => errorMsg(token, message)
       case IncorrectArity(token, message)        => errorMsg(token, message)
       case DoesNotHaveProperties(token, message) => errorMsg(token, message)
-      case UndefinedProperty(token)              => errorMsg(token, show"Undefined property: $token")
+      case UndefinedProperty(token, message)     => errorMsg(token, message)
       case UndefinedKey(key, token)              => errorMsg(token, show"Undefined key: $key")
       case CanNotApplyIndexOperator(obj, token) =>
         errorMsg(token, show"Can not apply [] operator to $obj")

@@ -36,6 +36,7 @@ object DException {
   case object NotCallable extends Kind
   case object IncorrectArity extends Kind
   case object DoesNotHaveProperties extends Kind
+  case object UndefinedProperty extends Kind
 
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)

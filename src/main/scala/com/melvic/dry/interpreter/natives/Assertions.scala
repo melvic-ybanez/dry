@@ -114,7 +114,7 @@ object Assertions {
       case IndexOutOfBounds(_, _)         => Keys.Errors.IndexOutOfBounds
       case InvalidIndex(_, _)             => Keys.Errors.InvalidIndex
       case InvalidArgument(_, _, _)       => Keys.Errors.InvalidArgument
-      case UndefinedProperty(_)           => Keys.Errors.UndefinedProperty
+      case UndefinedProperty(_, _)        => Keys.Errors.UndefinedProperty
       case UndefinedKey(_, _)             => Keys.Errors.UndefinedKey
       case ModuleNotFound(_, _)           => Keys.Errors.ModuleNotFound
     }

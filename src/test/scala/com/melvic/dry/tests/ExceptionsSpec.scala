@@ -38,6 +38,10 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("DoesNotHaveProperties")(RuntimeError.doesNotHaveProperties)
   }
 
+  "Raising a UndefinedProperty exception" should "return a runtime error" in {
+    checkException("UndefinedProperty")(RuntimeError.undefinedProperty)
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 
