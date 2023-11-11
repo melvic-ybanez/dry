@@ -2,9 +2,9 @@ package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.values.DException.Kind
 import com.melvic.dry.interpreter.values.Value.{Types, typeOf}
 import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.result.Failure.RuntimeError.Kind
 import com.melvic.dry.result.Result.implicits.ToResult
 
 class DException(val kind: Kind, val env: Env) extends DClass(kind.name, Map.empty, env) {
@@ -20,32 +20,14 @@ class DException(val kind: Kind, val env: Env) extends DClass(kind.name, Map.emp
 }
 
 object DException {
-  sealed trait Kind {
-    val name: String = this.toString
-  }
-
-  object Kind {
-    def of(instance: DInstance): Option[String] =
-      asString(instance.fields.get("exception_type"))
-  }
-
-  case object DivisionByZero extends Kind
-  case object UndefinedVariable extends Kind
-  case object InvalidOperand extends Kind
-  case object InvalidOperands extends Kind
-  case object NotCallable extends Kind
-  case object IncorrectArity extends Kind
-  case object DoesNotHaveProperties extends Kind
-  case object UndefinedProperty extends Kind
-  case object UndefinedKey extends Kind
-  case object CanNotApplyIndexOperator extends Kind
-  case object IndexOutOfBounds extends Kind
-
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)
 
   def unapply(exception: DException): Option[(Kind, Env)] =
     Some(exception.kind, exception.env)
+
+  def kindOf(instance: DInstance): Option[String] =
+    asString(instance.fields.get("exception_type"))
 
   def messageOf(exception: DInstance): Option[String] =
     asString(exception.fields.get("message"))

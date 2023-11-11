@@ -54,6 +54,18 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("IndexOutOfBounds")((token, msg) => RuntimeError.indexOutOfBounds(token.line, msg))
   }
 
+  "Raising a InvalidIndex exception" should "return a runtime error" in {
+    checkException("InvalidIndex")(RuntimeError.invalidIndex)
+  }
+
+  "Raising a InvalidArgument exception" should "return a runtime error" in {
+    checkException("InvalidArgument")((token, msg) => RuntimeError.invalidArgument(token.line, msg))
+  }
+
+  "Raising a ModuleNotFound exception" should "return a runtime error" in {
+    checkException("ModuleNotFound")(RuntimeError.moduleNotFound)
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 

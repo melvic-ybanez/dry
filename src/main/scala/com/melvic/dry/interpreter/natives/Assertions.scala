@@ -4,13 +4,13 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.aux.Show.ShowInterpolator
-import Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.Env.Register
+import com.melvic.dry.interpreter.natives.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.values.Callable
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types, typeOf}
 import com.melvic.dry.interpreter.{Env, Value}
 import com.melvic.dry.result.Failure.RuntimeError
-import com.melvic.dry.result.Failure.RuntimeError._
+import com.melvic.dry.result.Failure.RuntimeError.Kind._
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.Console._
@@ -102,22 +102,7 @@ object Assertions {
     env.define(TestCount, Num(testsCount.value + 1))
 
   private def errorKey(failure: RuntimeError): String =
-    failure match {
-      case DivisionByZero(_, _)           => Keys.Errors.DivisionByZero
-      case InvalidOperand(_, _)           => Keys.Errors.InvalidOperand
-      case InvalidOperands(_, _)          => Keys.Errors.InvalidOperands
-      case UndefinedVariable(_, _)        => Keys.Errors.UndefinedVariable
-      case NotCallable(_, _)              => Keys.Errors.NotCallable
-      case IncorrectArity(_, _)           => Keys.Errors.IncorrectArity
-      case DoesNotHaveProperties(_, _)    => Keys.Errors.DoesNotHaveProperties
-      case CanNotApplyIndexOperator(_, _) => Keys.Errors.CanNotApplyIndexOperator
-      case IndexOutOfBounds(_, _)         => Keys.Errors.IndexOutOfBounds
-      case InvalidIndex(_, _)             => Keys.Errors.InvalidIndex
-      case InvalidArgument(_, _, _)       => Keys.Errors.InvalidArgument
-      case UndefinedProperty(_, _)        => Keys.Errors.UndefinedProperty
-      case UndefinedKey(_, _)             => Keys.Errors.UndefinedKey
-      case ModuleNotFound(_, _)           => Keys.Errors.ModuleNotFound
-    }
+    Keys.Errors.fromErrorKind(failure.kind)
 
   private def getTestData(env: Env): Option[(Num, Num, Num)] =
     for {

@@ -4,6 +4,8 @@ import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
+import com.melvic.dry.result.Failure.RuntimeError.Kind
+import com.melvic.dry.result.Failure.RuntimeError.Kind._
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.{Show, Token}
 
@@ -60,23 +62,32 @@ object Failure {
     }
   }
 
-  sealed trait RuntimeError extends Failure
+  final case class RuntimeError(kind: Kind, token: Token, message: String) extends Failure
 
   object RuntimeError {
-    final case class DivisionByZero(token: Token, message: String) extends RuntimeError
-    final case class InvalidOperand(token: Token, message: String) extends RuntimeError
-    final case class InvalidOperands(token: Token, message: String) extends RuntimeError
-    final case class UndefinedVariable(token: Token, message: String) extends RuntimeError
-    final case class NotCallable(token: Token, message: String) extends RuntimeError
-    final case class IncorrectArity(token: Token, message: String) extends RuntimeError
-    final case class DoesNotHaveProperties(token: Token, message: String) extends RuntimeError
-    final case class UndefinedProperty(token: Token, message: String) extends RuntimeError
-    final case class UndefinedKey(token: Token, message: String) extends RuntimeError
-    final case class CanNotApplyIndexOperator(token: Token, message: String) extends RuntimeError
-    final case class IndexOutOfBounds(token: Token, message: String) extends RuntimeError
-    final case class InvalidIndex(index: Expr, token: Token) extends RuntimeError
-    final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
-    final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
+    sealed trait Kind {
+      def apply(token: Token, message: String): RuntimeError =
+        RuntimeError(this, token, message)
+
+      val name: String = this.toString
+    }
+
+    object Kind {
+      case object DivisionByZero extends Kind
+      case object InvalidOperand extends Kind
+      case object InvalidOperands extends Kind
+      case object UndefinedVariable extends Kind
+      case object NotCallable extends Kind
+      case object IncorrectArity extends Kind
+      case object DoesNotHaveProperties extends Kind
+      case object UndefinedProperty extends Kind
+      case object UndefinedKey extends Kind
+      case object CanNotApplyIndexOperator extends Kind
+      case object IndexOutOfBounds extends Kind
+      case object InvalidIndex extends Kind
+      case object InvalidArgument extends Kind
+      case object ModuleNotFound extends Kind
+    }
 
     def divisionByZero(token: Token, message: String): RuntimeError =
       DivisionByZero(token, message)
@@ -141,36 +152,30 @@ object Failure {
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       indexOutOfBounds(line, show"Runtime Error. Index out of bounds: $index\n[line $line].")
 
+    def invalidIndex(token: Token, message: String): RuntimeError =
+      InvalidIndex(token, message)
+
     def invalidIndex(index: Expr, token: Token): RuntimeError =
-      InvalidIndex(index, token)
+      invalidIndex(token, show"Invalid index: $index")
+
+    def invalidArgument(line: Int, message: String): RuntimeError =
+      InvalidArgument(Token.fromLine(line), message)
 
     def invalidArgument(expected: String, got: String, line: Int): RuntimeError =
-      InvalidArgument(expected, got, line)
+      invalidArgument(
+        line,
+        show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
+      )
+
+    def moduleNotFound(token: Token, message: String): RuntimeError =
+      ModuleNotFound(token, message)
 
     def moduleNotFound(name: String, token: Token): RuntimeError =
-      ModuleNotFound(name, token)
+      moduleNotFound(token, show"Module not found: $name")
 
-    // TODO: Once all runtime errors get their own message fields, refactor this
-    def show: Show[RuntimeError] = {
-      case DivisionByZero(token, message)           => errorMsg(token, message)
-      case InvalidOperand(token, message)           => errorMsg(token, message)
-      case InvalidOperands(token, message)          => errorMsg(token, message)
-      case UndefinedVariable(token, message)        => errorMsg(token, message)
-      case NotCallable(token, message)              => errorMsg(token, message)
-      case IncorrectArity(token, message)           => errorMsg(token, message)
-      case DoesNotHaveProperties(token, message)    => errorMsg(token, message)
-      case UndefinedProperty(token, message)        => errorMsg(token, message)
-      case UndefinedKey(token, message)             => errorMsg(token, message)
-      case CanNotApplyIndexOperator(token, message) => errorMsg(token, message)
-      case IndexOutOfBounds(token, message)         => errorMsg(token, message)
-      case InvalidIndex(index, token)               => errorMsg(token, show"Invalid index: $index")
-      case InvalidArgument(expected, got, line) =>
-        show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
-      case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")
-    }
-
-    private def errorMsg(token: Token, message: String): String =
+    def show: Show[RuntimeError] = { case RuntimeError(_, token, message) =>
       show"Runtime Error: $message\n${showLine(token.line)}. $token"
+    }
   }
 
   sealed trait ResolverError extends Failure
