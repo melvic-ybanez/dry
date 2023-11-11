@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter.natives
 
+import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.Env.Register
 import com.melvic.dry.interpreter.values.DException._
@@ -23,8 +24,8 @@ object Exceptions {
         def message: String =
           DException.messageOf(exception).getOrElse("An exception occurred")
 
-        def fail(error: (String, Int) => RuntimeError) =
-          error(message, line).fail
+        def fail(error: (Token, String) => RuntimeError) =
+          error(Token.fromLine(line), message).fail
 
         DException.Kind.of(exception).fold(invalidArgument(exception)) {
           case DivisionByZero.name    => fail(RuntimeError.divisionByZero)

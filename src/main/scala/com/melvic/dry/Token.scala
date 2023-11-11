@@ -82,5 +82,8 @@ object Token {
     case object Delete extends TokenType
   }
 
+  def fromLine(line: Int): Token =
+    Token(TokenType.Eof, "", line)
+
   def show: Show[Token] = _.lexeme
 }

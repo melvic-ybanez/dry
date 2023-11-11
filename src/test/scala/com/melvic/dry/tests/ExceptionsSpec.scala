@@ -1,5 +1,6 @@
 package com.melvic.dry.tests
 
+import com.melvic.dry.Token
 import com.melvic.dry.aux.Nel.One
 import com.melvic.dry.interpreter.Run
 import com.melvic.dry.result.Failure.RuntimeError
@@ -17,7 +18,7 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("UndefinedVariable")(RuntimeError.undefinedVariable)
   }
 
-  def checkException(exception: String)(error: (String, Int) => RuntimeError): Unit = {
+  def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 
     val code =
@@ -29,6 +30,6 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
           |get_money();
           |""".stripMargin
 
-    Run.code(code, Nil) should be(Left(One(error(errorMsg, 2))))
+    Run.code(code, Nil) should be(Left(One(error(Token.fromLine(2), errorMsg))))
   }
 }

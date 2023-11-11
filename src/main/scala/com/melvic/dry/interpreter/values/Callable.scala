@@ -19,12 +19,9 @@ import java.nio.file.Path
 private[interpreter] trait Callable extends Value {
   def arity: Int
 
-  def call(lineNumber: Int): Call
-
   def enclosing: Env
 
-  def callWithPos(token: Token): Call =
-    call(token.line)
+  def call(token: Token): Call
 
   protected def local: Env = Env.fromEnclosing(enclosing)
 }
@@ -42,7 +39,7 @@ object Callable {
 
     override def arity = params.size
 
-    override def call(lineNumber: Int): Call = { args =>
+    override def call(token: Token): Call = { args =>
       val env = params.zip(args).foldLeft(local) { case (env, (param, arg)) =>
         env.define(param.lexeme, arg)
       }
@@ -81,10 +78,10 @@ object Callable {
   }
 
   // TODO: See if we need to remove this one for now
-  final case class Varargs(enclosing: Env, _call: Int => Call) extends Callable {
+  final case class Varargs(enclosing: Env, _call: Token => Call) extends Callable {
     override def arity = Int.MaxValue
 
-    override def call(lineNumber: Int): Call = _call(lineNumber)
+    override def call(token: Token): Call = _call(token)
   }
 
   abstract class CustomCallable(val arity: Int, val enclosing: Env) extends Callable
@@ -94,14 +91,14 @@ object Callable {
 
   def withLineNo(arity: Int, enclosing: Env)(initCall: Int => Call): Callable =
     new CustomCallable(arity, enclosing) {
-      override def call(lineNumber: Int) = initCall(lineNumber).orElse(_ => Value.None.ok)
+      override def call(token: Token) = initCall(token.line).orElse(_ => Value.None.ok)
     }
 
   def noArg(enclosing: Env)(initCall: => Result[Value]): Callable =
     Callable(0, enclosing)(_ => initCall)
 
   def unapply(callable: Callable): Option[(Int, Env, Token => Call)] =
-    Some(callable.arity, callable.enclosing, callable.callWithPos)
+    Some(callable.arity, callable.enclosing, callable.call)
 
   def unary(enclosing: Env)(call: PartialFunction[Value, Result[Value]]): Callable =
     Callable(1, enclosing) { case arg :: _ => call(arg) }

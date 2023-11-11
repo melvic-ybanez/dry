@@ -63,10 +63,10 @@ object Failure {
   sealed trait RuntimeError extends Failure
 
   object RuntimeError {
-    final case class DivisionByZero(message: String) extends RuntimeError
+    final case class DivisionByZero(token: Token, message: String) extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String]) extends RuntimeError
     final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
-    final case class UndefinedVariable(message: String) extends RuntimeError
+    final case class UndefinedVariable(token: Token, message: String) extends RuntimeError
     final case class NotCallable(token: Token) extends RuntimeError
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
     final case class DoesNotHaveProperties(obj: Expr, token: Token) extends RuntimeError
@@ -78,11 +78,11 @@ object Failure {
     final case class InvalidArgument(expected: String, got: String, line: Int) extends RuntimeError
     final case class ModuleNotFound(name: String, token: Token) extends RuntimeError
 
-    def divisionByZero(token: Token): RuntimeError =
-      DivisionByZero(errorMsgWithToken(token, "Division by zero"))
+    def divisionByZero(token: Token, message: String): RuntimeError =
+      DivisionByZero(token, message)
 
-    def divisionByZero(message: String, line: Int): RuntimeError =
-      DivisionByZero(errorMsg(message, line))
+    def divisionByZero(token: Token): RuntimeError =
+      DivisionByZero(token, "Division by zero")
 
     def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperand(operator, expected)
@@ -90,11 +90,11 @@ object Failure {
     def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperands(operator, expected)
 
-    def undefinedVariable(token: Token): RuntimeError =
-      UndefinedVariable(errorMsgWithToken(token, show"Undefined variable: $token"))
+    def undefinedVariable(token: Token, message: String): RuntimeError =
+      UndefinedVariable(token, message)
 
-    def undefinedVariable(message: String, line: Int): RuntimeError =
-      UndefinedVariable(errorMsg(message, line))
+    def undefinedVariable(token: Token): RuntimeError =
+      undefinedVariable(token, show"Undefined variable: $token")
 
     def notCallable(token: Token): RuntimeError =
       NotCallable(token)
@@ -128,34 +128,31 @@ object Failure {
 
     // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(msg) => msg
+      case DivisionByZero(token, msg) => errorMsg(token, msg)
       case InvalidOperand(token, expected) =>
-        errorMsgWithToken(token, s"The operand must be any of the following: ${expected.toCsv}")
+        errorMsg(token, s"The operand must be any of the following: ${expected.toCsv}")
       case InvalidOperands(token, expected) =>
-        errorMsgWithToken(token, s"All operands must be any of the following: ${expected.toCsv}")
-      case UndefinedVariable(msg) => msg
-      case NotCallable(token)     => errorMsgWithToken(token, "This expression is not callable.")
+        errorMsg(token, s"All operands must be any of the following: ${expected.toCsv}")
+      case UndefinedVariable(token, msg) => errorMsg(token, msg)
+      case NotCallable(token)            => errorMsg(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
-        errorMsgWithToken(token, s"Incorrect arity. Expected: $expected. Got: $got")
+        errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>
-        errorMsgWithToken(token, show"$obj does not have properties or fields.")
-      case UndefinedProperty(token) => errorMsgWithToken(token, show"Undefined property: $token")
-      case UndefinedKey(key, token) => errorMsgWithToken(token, show"Undefined key: $key")
+        errorMsg(token, show"$obj does not have properties or fields.")
+      case UndefinedProperty(token) => errorMsg(token, show"Undefined property: $token")
+      case UndefinedKey(key, token) => errorMsg(token, show"Undefined key: $key")
       case CanNotApplyIndexOperator(obj, token) =>
-        errorMsgWithToken(token, show"Can not apply [] operator to $obj")
+        errorMsg(token, show"Can not apply [] operator to $obj")
       case IndexOutOfBounds(index, line) =>
         show"Runtime Error. Index out of bounds: $index\n[line $line]."
-      case InvalidIndex(index, token) => errorMsgWithToken(token, show"Invalid index: $index")
+      case InvalidIndex(index, token) => errorMsg(token, show"Invalid index: $index")
       case InvalidArgument(expected, got, line) =>
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
-      case ModuleNotFound(name, token) => errorMsgWithToken(token, show"Module not found: $name")
+      case ModuleNotFound(name, token) => errorMsg(token, show"Module not found: $name")
     }
 
-    private def errorMsgWithToken(token: Token, message: String): String =
-      show"${errorMsg(message, token.line)} $token"
-
-    private def errorMsg(message: String, line: Int): String =
-      show"Runtime Error: $message\n$line."
+    private def errorMsg(token: Token, message: String): String =
+      show"Runtime Error: $message\n${showLine(token.line)}. $token"
   }
 
   sealed trait ResolverError extends Failure

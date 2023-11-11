@@ -1,5 +1,6 @@
 package com.melvic.dry.interpreter.values
 
+import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
 import com.melvic.dry.interpreter.values.DException.Kind
 import com.melvic.dry.interpreter.values.Value.{Types, typeOf}
@@ -9,12 +10,12 @@ import com.melvic.dry.result.Result.implicits.ToResult
 class DException(val kind: Kind, val env: Env) extends DClass(kind.name, Map.empty, env) {
   override def arity = 1
 
-  override def call = {
+  override def call(token: Token) = {
     case args @ ((message: Value.Str) :: _) =>
-      super.call(args).flatMap { case instance: DInstance =>
+      super.call(token)(args).flatMap { case instance: DInstance =>
         instance.addField("exception_type", Value.Str(kind.name)).addField("message", message).ok
       }
-    case arg :: _ => RuntimeError.invalidArgument(s"${Types.String}", typeOf(arg), lineNumber).fail
+    case arg :: _ => RuntimeError.invalidArgument(s"${Types.String}", typeOf(arg), token.line).fail
   }
 }
 
@@ -43,6 +44,6 @@ object DException {
   private def asString(value: Option[Value]): Option[String] =
     value.flatMap {
       case Value.Str(value) => Some(value)
-      case _ => None
+      case _                => None
     }
 }

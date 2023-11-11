@@ -198,7 +198,7 @@ object Lexer {
         }
 
     loop(Lexer(source, 0, 0, 1, Nil))
-      .map(lexer => lexer.updateTokens(_ :+ Token(TokenType.Eof, "", lexer.line)))
+      .map(lexer => lexer.updateTokens(_ :+ Token.fromLine(lexer.line)))
   }
 
   private def isDigit(char: Char): Boolean =
