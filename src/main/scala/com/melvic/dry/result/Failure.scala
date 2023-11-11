@@ -66,7 +66,8 @@ object Failure {
     final case class DivisionByZero(token: Token, message: String) extends RuntimeError
     final case class InvalidOperand(token: Token, expected: List[String], message: String)
         extends RuntimeError
-    final case class InvalidOperands(token: Token, expected: List[String]) extends RuntimeError
+    final case class InvalidOperands(token: Token, expected: List[String], message: String)
+        extends RuntimeError
     final case class UndefinedVariable(token: Token, message: String) extends RuntimeError
     final case class NotCallable(token: Token) extends RuntimeError
     final case class IncorrectArity(token: Token, expected: Int, got: Int) extends RuntimeError
@@ -91,8 +92,11 @@ object Failure {
     def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
       InvalidOperand(operator, expected, s"The operand must be any of the following: ${expected.toCsv}")
 
+    def invalidOperands(operator: Token, expected: List[String], message: String): RuntimeError =
+      InvalidOperands(operator, expected, message)
+
     def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
-      InvalidOperands(operator, expected)
+      InvalidOperands(operator, expected, s"All operands must be any of the following: ${expected.toCsv}")
 
     def undefinedVariable(token: Token, message: String): RuntimeError =
       UndefinedVariable(token, message)
@@ -132,12 +136,11 @@ object Failure {
 
     // TODO: Once all runtime errors get their own message fields, refactor this
     def show: Show[RuntimeError] = {
-      case DivisionByZero(token, msg)        => errorMsg(token, msg)
-      case InvalidOperand(token, _, message) => errorMsg(token, message)
-      case InvalidOperands(token, expected) =>
-        errorMsg(token, s"All operands must be any of the following: ${expected.toCsv}")
-      case UndefinedVariable(token, msg) => errorMsg(token, msg)
-      case NotCallable(token)            => errorMsg(token, "This expression is not callable.")
+      case DivisionByZero(token, msg)                => errorMsg(token, msg)
+      case InvalidOperand(token, _, message)         => errorMsg(token, message)
+      case InvalidOperands(token, expected, message) => errorMsg(token, message)
+      case UndefinedVariable(token, msg)             => errorMsg(token, msg)
+      case NotCallable(token)                        => errorMsg(token, "This expression is not callable.")
       case IncorrectArity(token, expected, got) =>
         errorMsg(token, s"Incorrect arity. Expected: $expected. Got: $got")
       case DoesNotHaveProperties(obj, token) =>

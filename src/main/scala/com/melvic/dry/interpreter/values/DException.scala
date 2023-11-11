@@ -32,6 +32,7 @@ object DException {
   case object DivisionByZero extends Kind
   case object UndefinedVariable extends Kind
   case object InvalidOperand extends Kind
+  case object InvalidOperands extends Kind
 
   def apply(kind: Kind, env: Env): DException =
     new DException(kind, env)

@@ -22,6 +22,10 @@ class ExceptionsSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     checkException("InvalidOperand")(RuntimeError.invalidOperand(_, Nil, _))
   }
 
+  "Raising a InvalidOperands exception" should "return a runtime error" in {
+    checkException("InvalidOperands")(RuntimeError.invalidOperands(_, Nil, _))
+  }
+
   def checkException(exception: String)(error: (Token, String) => RuntimeError): Unit = {
     val errorMsg = "No money for you!"
 
