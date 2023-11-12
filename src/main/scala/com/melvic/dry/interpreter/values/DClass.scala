@@ -24,7 +24,7 @@ class DClass(val name: String, val methods: Methods, val enclosing: Env)
 
   override def klass = Metaclass
 
-  override val fields = mutable.Map.empty
+  override val fields = mutable.Map("__name__" -> Value.Str(name))
 }
 
 object DClass {
