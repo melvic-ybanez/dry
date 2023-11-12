@@ -70,6 +70,7 @@ object Failure {
         RuntimeError(this, token, message)
 
       val name: String = this.toString
+      val exceptionName: String = name + "Error"
     }
 
     object Kind {

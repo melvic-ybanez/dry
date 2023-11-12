@@ -36,10 +36,17 @@ sealed trait Nel[+A] {
   }
 
   def toList: List[A] =
-    foldLeft(List.empty[A]) { case (acc, value) => value :: acc }.reverse
+    foldLeft(List.empty[A]) { (acc, value) => value :: acc }.reverse
 
   def length: Int =
-    foldLeft(0) { case (sum, _) => sum + 1 }
+    foldLeft(0) { (sum, _) => sum + 1 }
+
+  def reverse: Nel[A] =
+    this match {
+      case One(_) => this
+      case Many(head, tail) =>
+        tail.foldLeft(One(head): Nel[A])((acc, value) => value :: acc)
+    }
 }
 
 object Nel {

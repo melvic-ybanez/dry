@@ -60,7 +60,7 @@ object Expr {
     }
   }
 
-  implicit def implicitShow: Show[Expr] = show
+  implicit val implicitShow: Show[Expr] = show
 
   def show: Show[Expr] = {
     case literal: Literal               => Literal.show(literal)

@@ -210,7 +210,7 @@ in [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form):
 <class>       ::= "class" <identifier> "{" <function>* "}"
 <function>    ::= "def" <identifier> <params> <block>
 <let>         ::= "let" <identifier> ("=" <expression>)? ";"
-<statement>   ::= <expr-stmt> | <block> | <if> | <while> | <for> | <return> | <import> | <delete>
+<statement>   ::= <expr-stmt> | <block> | <if> | <while> | <for> | <return> | <import> | <delete> | <try-catch>
 <expr-stmt>   ::= <expression> ";"
 <if>          ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
 <while>       ::= "while" "(" <expression> ")" <statement>
@@ -219,6 +219,7 @@ in [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form):
 <return>      ::= "return" <expression>? ";"
 <import>      ::= "import" <identifier>("."<identifier>)* ";"
 <delete>      ::= "del" <call><index> ";"
+<try-catch>   ::= "try" <block> ("catch" "(" (<identifier> ":") <identifier> ")" <block>)+
 <expression>  ::= <assignment> | <lambda>
 <assignment>  ::= <call> "=" <expression>
 <call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  | <index>)*

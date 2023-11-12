@@ -17,6 +17,8 @@ import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}
 
+import scala.annotation.nowarn
+
 //noinspection SpellCheckingInspection
 object Resolve {
   type Resolve = ResultFrom[Context]
@@ -51,6 +53,13 @@ object Resolve {
       context => Resolve.classDecl(context.classType)(klass)(context.withClassType(ClassType.Class))
   }
 
+  private def tryCatch: TryCatch => Resolve = { case TryCatch(tryBlock, catchBlocks) =>
+    Resolve.blockStmt(tryBlock) >=> sequence(catchBlocks.toList) {
+      case CatchBlock(Variable(_), block, _) => Resolve.blockStmt(block)
+      case _ => _.ok
+    }
+  }
+
   def stmt: Stmt => Resolve = {
     case ExprStmt(expr)            => Resolve.expr(expr)
     case IfThen(condition, branch) => Resolve.expr(condition) >=> Resolve.stmt(branch)
@@ -58,6 +67,7 @@ object Resolve {
       Resolve.expr(condition) >=> Resolve.stmt(thenBranch) >=> Resolve.stmt(elseBranch)
     case returnStmt: ReturnStmt => Resolve.returnStmt(returnStmt)
     case DeleteStmt(obj, _, _)  => Resolve.expr(obj)
+    case tryCatch: TryCatch     => Resolve.tryCatch(tryCatch)
     case While(condition, body) => Resolve.expr(condition) >=> Resolve.stmt(body)
     case blockStmt: BlockStmt   => Resolve.blockStmt(blockStmt)
     case importStmt: Import     => Scopes.declare(importStmt.name).ok >=> Scopes.define(importStmt.name).ok
@@ -107,9 +117,9 @@ object Resolve {
   }
 
   def lambda(oldFunctionType: FunctionType): Lambda => Resolve = { case Lambda(params, body) =>
-    val result = Scopes.start.ok >=> { contexts =>
-      params.foldFailFast(contexts.ok) { (contexts, param) =>
-        (Scopes.declare(param).ok >=> Scopes.define(param).ok)(contexts)
+    val result = Scopes.start.ok >=> { context =>
+      params.foldFailFast(context.ok) { (context, param) =>
+        (Scopes.declare(param).ok >=> Scopes.define(param).ok)(context)
       }
     } >=> Resolve.blockStmt(BlockStmt(body)) >=> Scopes.end.ok
 
@@ -136,7 +146,7 @@ object Resolve {
 
   def classDecl(oldClassType: ClassType): ClassDecl => Resolve = { case ClassDecl(name, methods) =>
     def resolveMethods: Resolve = context =>
-      methods.foldFailFast(context.withFunctionType(FunctionType.Method).ok) { case (context, method) =>
+      methods.foldFailFast(context.withFunctionType(FunctionType.Method).ok) { (context, method) =>
         val functionType = if (method.name.lexeme == Lexemes.Init) FunctionType.Init else FunctionType.Method
         Resolve.function(context.functionType)(method)(context.withFunctionType(functionType))
       }

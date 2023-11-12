@@ -2,6 +2,7 @@ package com.melvic.dry.ast
 
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Stmt.Loop.While
+import com.melvic.dry.aux.{Nel, Show}
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.{Show, Token}
@@ -58,9 +59,29 @@ object Stmt {
   final case class ReturnStmt(keyword: Token, value: Expr) extends Stmt
   final case class DeleteStmt(obj: Expr, key: Expr, token: Token) extends Stmt
 
+  final case class TryCatch(tryBlock: BlockStmt, catchBlocks: Nel[CatchBlock]) extends Stmt
+
+  object TryCatch {
+    def show: Show[TryCatch] = { case TryCatch(tryBlock, catchBlocks) =>
+      show"${Lexemes.Try} $tryBlock ${Show.list(catchBlocks.toList.map(CatchBlock.show))}"
+    }
+  }
+
+  final case class CatchBlock(exception: Expr, block: BlockStmt, paren: Token)
+
+  object CatchBlock {
+    implicit val implicitShow: Show[CatchBlock] = show
+
+    def show: Show[CatchBlock] = { case CatchBlock(exception, block, paren) =>
+      show"${Lexemes.Catch} $block"
+    }
+  }
+
   final case class Import(path: List[Token]) extends Stmt {
     def name: Token = path.last
   }
+
+  implicit val implicitShow: Show[Stmt] = show
 
   def show: Show[Stmt] = {
     case ExprStmt(expr)       => show"$expr;"
@@ -70,6 +91,7 @@ object Stmt {
     case While(condition, body)  => show"${Lexemes.While} ($condition) $body"
     case ReturnStmt(_, value)    => show"${Lexemes.Return} $value;"
     case DeleteStmt(obj, key, _) => show"${Lexemes.Delete} $obj[$key]"
+    case tryCatch: TryCatch      => tryCatch
     case Import(path)            => show"${Lexemes.Import} ${path.map(Token.show).mkString(".")};"
   }
 }

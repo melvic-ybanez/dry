@@ -1,18 +1,22 @@
 package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.Token
+import com.melvic.dry.ast.Expr.Variable
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
 import com.melvic.dry.ast.{Decl, Stmt}
+import com.melvic.dry.aux.Nel
+import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
-import com.melvic.dry.interpreter.values.Value.ToValue
-import com.melvic.dry.interpreter.values.{DDictionary, DList, DModule, Value}
+import com.melvic.dry.interpreter.values.Value.{ToValue, Types}
+import com.melvic.dry.interpreter.values.{DDictionary, DException, DList, DModule, Value}
 import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
+import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits._
 
 //noinspection ScalaWeakerAccess
@@ -25,6 +29,7 @@ private[eval] trait EvalStmt {
     case deleteStmt: DeleteStmt => Evaluate.deleteStmt(deleteStmt)
     case returnStmt: ReturnStmt => Evaluate.returnStmt(returnStmt)
     case importStmt: Import     => Evaluate.importStmt(importStmt)
+    case tryCatch: TryCatch     => Evaluate.tryCatch(tryCatch)
   }
 
   def exprStmt(implicit context: Context[ExprStmt]): Out =
@@ -85,6 +90,40 @@ private[eval] trait EvalStmt {
         case (list: DList, evaluatedKey) =>
           Evaluate.accessNumericIndex(evaluatedKey, key, list.size, token)(list.deleteByIndex(_).ok)
       }
+  }
+
+  def tryCatch(implicit context: Context[TryCatch]): Out = node match {
+    case TryCatch(tryBlock, catchBlocks) =>
+      Evaluate
+        .blockStmt(tryBlock)
+        .fold(
+          {
+            case One(runtimeError @ RuntimeError(kind, _, _)) =>
+              def invalidArg(got: String, paren: Token): Result[Option[Value]] =
+                RuntimeError.invalidArgument(Types.Exception, got, paren.line).fail
+
+              def evalCatchBlock: CatchBlock => Result[Option[Value]] = {
+                case CatchBlock(exception: Variable, block, paren) =>
+                  Evaluate.variable(exception).flatMap {
+                    case DException(`kind`, _) => Evaluate.blockStmt(block).map(Some(_))
+                    case DException(_, _)      => Right(None)
+                    case arg                   => invalidArg(Value.typeOf(arg), paren)
+                  }
+                case CatchBlock(_, _, paren) => invalidArg("expression", paren)
+              }
+
+              def findCatchBlock(catchBlocks: Nel[CatchBlock]): Out =
+                catchBlocks match {
+                  case One(head) => evalCatchBlock(head).flatMap(_.fold[Out](runtimeError.fail)(_.ok))
+                  case Many(head, tail) =>
+                    evalCatchBlock(head).flatMap(_.fold[Out](findCatchBlock(tail))(_.ok))
+                }
+
+              findCatchBlock(catchBlocks)
+            case errors => Result.failAll(errors)
+          },
+          _.ok
+        )
   }
 
   def importStmt(implicit context: Context[Import]): Out = {

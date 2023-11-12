@@ -80,6 +80,8 @@ object Token {
     case object Lambda extends TokenType
     case object Import extends TokenType
     case object Delete extends TokenType
+    case object Try extends TokenType
+    case object Catch extends TokenType
   }
 
   def fromLine(line: Int): Token =

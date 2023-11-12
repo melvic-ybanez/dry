@@ -3,11 +3,14 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl.StmtDecl
-import com.melvic.dry.ast.Expr.{IndexGet, Literal}
+import com.melvic.dry.ast.Expr.{IndexGet, Literal, Variable}
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
 import com.melvic.dry.ast.{Decl, Expr, Stmt}
+import com.melvic.dry.aux.Nel
+import com.melvic.dry.aux.Nel.{Many, One}
+import com.melvic.dry.lexer.Lexemes
 
 //noinspection ScalaWeakerAccess
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
@@ -18,12 +21,13 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   def statement: ParseResult[Stmt] =
     select(
       expressionStatement,
-      TokenType.LeftBrace -> { _.block },
+      TokenType.LeftBrace -> { _.blockWithoutOpening },
       TokenType.If        -> { _.ifStatement },
       TokenType.While     -> { _.whileStatement },
       TokenType.For       -> { _.forStatement },
       TokenType.Return    -> { _.returnStatement },
       TokenType.Delete    -> { _.deleteStatement },
+      TokenType.Try       -> { _.tryStatement },
       TokenType.Import    -> { _.importStatement }
     )
 
@@ -36,12 +40,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       semicolon <- expr.consumeAfter(TokenType.Semicolon, ";", "statement")
     } yield Step(ExprStmt(expr.value), semicolon.next)
 
-  /**
-   * {{{<block> ::= "{" <declaration>* "}"}}}
-   *
-   * Note: the parsing of `{` is assumed to have already been done. Not very neat, I know.
-   */
-  def block: ParseResult[BlockStmt] = {
+  def blockWithoutOpening: ParseResult[BlockStmt] = {
     def recurse(result: ParseResult[List[Decl]]): ParseResult[List[Decl]] =
       result.flatMap { case Step(declarations, parser) =>
         if (parser.check(TokenType.RightBrace) || parser.isAtEnd) result.mapValue(_.reverse)
@@ -58,6 +57,15 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       parser.consumeAfter(TokenType.RightBrace, "}", "block").as(BlockStmt(decls))
     }
   }
+
+  /**
+   * {{{<block> ::= "{" <declaration>* "}"}}}
+   */
+  def block(after: String): ParseResult[BlockStmt] =
+    for {
+      leftBrace <- consumeAfter(TokenType.LeftBrace, "{", after)
+      rest      <- leftBrace.blockWithoutOpening
+    } yield rest
 
   /**
    * {{{<if> ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?}}}
@@ -167,6 +175,37 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
             .flatMap(next => next.indexAccess(DeleteStmt(expr, _, next.previousToken)))
       }
       .flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "]"))
+
+  /**
+   * {{{<try-catch> ::= "try" <block> ("catch" "(" (<identifier> ":") <identifier> ")" <block>)+}}}
+   */
+  def tryStatement: ParseResult[Stmt] = {
+    def catchStmt(parser: Parser): ParseResult[CatchBlock] =
+      for {
+        leftParen <- parser.consumeAfter(TokenType.LeftParen, "(", Lexemes.Catch)
+        exception <- leftParen
+          .consumeAfter(TokenType.Identifier, "identifier", "(")
+          .map(p => Step(Variable(p.next.previousToken), p))
+        rightParen <- exception.consumeAfter(TokenType.RightParen, ")", "identifier")
+        block      <- rightParen.block(")")
+      } yield Step(CatchBlock(exception.value, block.value, leftParen.value), block.next)
+
+    for {
+      tryBlock   <- block(Lexemes.Try)
+      catch_     <- tryBlock.consumeAfter(TokenType.Catch, Lexemes.Catch, "try block")
+      catchBlock <- catchStmt(catch_)
+      catchBlocks <- {
+        def whileCatchBlock(parser: Parser, catchBlocks: Nel[CatchBlock]): ParseResult[Nel[CatchBlock]] =
+          parser.matchAny(TokenType.Catch).fold(ParseResult.succeed(catchBlocks.reverse, parser)) { next =>
+            catchStmt(next).flatMap { case Step(block, next2) =>
+              whileCatchBlock(next2, block :: catchBlocks)
+            }
+          }
+
+        whileCatchBlock(catchBlock.next, One(catchBlock.value))
+      }
+    } yield Step(TryCatch(tryBlock.value, Many(catchBlock.value, catchBlocks.value)), catchBlocks.next)
+  }
 
   /**
    * {{{<import> ::= "import" <identifier>("."<identifier>)* ";"}}}

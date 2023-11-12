@@ -12,20 +12,20 @@ import com.melvic.dry.result.Result.Result
 object Exceptions {
   def register: Register =
     _.defineWith("raise", raise)
-      .defineWith(DivisionByZero.name, DException(DivisionByZero, _))
-      .defineWith(UndefinedVariable.name, DException(UndefinedVariable, _))
-      .defineWith(InvalidOperand.name, DException(InvalidOperand, _))
-      .defineWith(InvalidOperands.name, DException(InvalidOperands, _))
-      .defineWith(NotCallable.name, DException(NotCallable, _))
-      .defineWith(IncorrectArity.name, DException(IncorrectArity, _))
-      .defineWith(DoesNotHaveProperties.name, DException(DoesNotHaveProperties, _))
-      .defineWith(UndefinedProperty.name, DException(UndefinedProperty, _))
-      .defineWith(UndefinedKey.name, DException(UndefinedKey, _))
-      .defineWith(CanNotApplyIndexOperator.name, DException(CanNotApplyIndexOperator, _))
-      .defineWith(IndexOutOfBounds.name, DException(IndexOutOfBounds, _))
-      .defineWith(InvalidIndex.name, DException(InvalidIndex, _))
-      .defineWith(InvalidArgument.name, DException(InvalidArgument, _))
-      .defineWith(ModuleNotFound.name, DException(ModuleNotFound, _))
+      .defineWith(DivisionByZero.exceptionName, DException(DivisionByZero, _))
+      .defineWith(UndefinedVariable.exceptionName, DException(UndefinedVariable, _))
+      .defineWith(InvalidOperand.exceptionName, DException(InvalidOperand, _))
+      .defineWith(InvalidOperands.exceptionName, DException(InvalidOperands, _))
+      .defineWith(NotCallable.exceptionName, DException(NotCallable, _))
+      .defineWith(IncorrectArity.exceptionName, DException(IncorrectArity, _))
+      .defineWith(DoesNotHaveProperties.exceptionName, DException(DoesNotHaveProperties, _))
+      .defineWith(UndefinedProperty.exceptionName, DException(UndefinedProperty, _))
+      .defineWith(UndefinedKey.exceptionName, DException(UndefinedKey, _))
+      .defineWith(CanNotApplyIndexOperator.exceptionName, DException(CanNotApplyIndexOperator, _))
+      .defineWith(IndexOutOfBounds.exceptionName, DException(IndexOutOfBounds, _))
+      .defineWith(InvalidIndex.exceptionName, DException(InvalidIndex, _))
+      .defineWith(InvalidArgument.exceptionName, DException(InvalidArgument, _))
+      .defineWith(ModuleNotFound.exceptionName, DException(ModuleNotFound, _))
 
   private def raise(env: Env): Callable = Callable.withLineNo(1, env) { line =>
     def invalidArgument(got: Value): Result[Value] =
@@ -40,20 +40,20 @@ object Exceptions {
           error(Token.fromLine(line), message).fail
 
         DException.kindOf(exception).fold(invalidArgument(exception)) {
-          case DivisionByZero.name           => fail(RuntimeError.divisionByZero)
-          case UndefinedVariable.name        => fail(RuntimeError.undefinedVariable)
-          case InvalidOperand.name           => fail(RuntimeError.invalidOperand)
-          case InvalidOperands.name          => fail(RuntimeError.invalidOperands)
-          case NotCallable.name              => fail(RuntimeError.notCallable)
-          case IncorrectArity.name           => fail(RuntimeError.incorrectArity)
-          case DoesNotHaveProperties.name    => fail(RuntimeError.doesNotHaveProperties)
-          case UndefinedProperty.name        => fail(RuntimeError.undefinedProperty)
-          case UndefinedKey.name             => fail(RuntimeError.undefinedKey)
-          case CanNotApplyIndexOperator.name => fail(RuntimeError.canNotApplyIndexOperator)
-          case IndexOutOfBounds.name         => RuntimeError.indexOutOfBounds(line, message).fail
-          case InvalidIndex.name             => fail(RuntimeError.invalidIndex)
-          case InvalidArgument.name          => RuntimeError.invalidArgument(line, message).fail
-          case ModuleNotFound.name           => fail(RuntimeError.moduleNotFound)
+          case DivisionByZero.`exceptionName`           => fail(RuntimeError.divisionByZero)
+          case UndefinedVariable.`exceptionName`        => fail(RuntimeError.undefinedVariable)
+          case InvalidOperand.`exceptionName`           => fail(RuntimeError.invalidOperand)
+          case InvalidOperands.`exceptionName`          => fail(RuntimeError.invalidOperands)
+          case NotCallable.`exceptionName`              => fail(RuntimeError.notCallable)
+          case IncorrectArity.`exceptionName`           => fail(RuntimeError.incorrectArity)
+          case DoesNotHaveProperties.`exceptionName`    => fail(RuntimeError.doesNotHaveProperties)
+          case UndefinedProperty.`exceptionName`        => fail(RuntimeError.undefinedProperty)
+          case UndefinedKey.`exceptionName`             => fail(RuntimeError.undefinedKey)
+          case CanNotApplyIndexOperator.`exceptionName` => fail(RuntimeError.canNotApplyIndexOperator)
+          case IndexOutOfBounds.`exceptionName`         => RuntimeError.indexOutOfBounds(line, message).fail
+          case InvalidIndex.`exceptionName`             => fail(RuntimeError.invalidIndex)
+          case InvalidArgument.`exceptionName`          => RuntimeError.invalidArgument(line, message).fail
+          case ModuleNotFound.`exceptionName`           => fail(RuntimeError.moduleNotFound)
         }
       case arg :: _ => invalidArgument(arg)
     }

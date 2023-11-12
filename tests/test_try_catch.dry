@@ -1,0 +1,60 @@
+class TestTryCatch {
+    def test_single_catch() {
+        let x = 10;
+
+        try {
+            19 / 0;
+            x = 20;  // shouldn't be executed
+        } catch (DivisionByZeroError) {}
+
+        assert_equals("Handle an exception with a single empty catch-block", 10, x);
+
+        try {
+            19 / 0;
+            x = 20;
+        } catch (DivisionByZeroError) {
+            x = 30;
+        }
+
+        assert_equals("Handle an exception with a single non-empty catch-block", 30, x);
+    }
+
+    def test_multiple_catches() {
+        let x = 10;
+        let y = 10;
+        let xs = [1, 2, 3];
+
+        try {
+            xs[3];
+        } catch (DivisionByZeroError) {
+            y = 20; // skipped
+        } catch (IndexOutOfBoundsError) {
+            x = 50;
+        }
+
+        assert_equals("Skip catch-blocks that don't capture the exception", (50, 10), (x, y));
+
+        try {
+            raise(UndefinedVariableError("x"));
+        } catch (UndefinedVariableError) {
+            x = 20;
+        } catch (IncorrectArityError) {
+            x = 70; // ignored
+        }
+
+        assert_equals("Stop at the first catch-block that captures the exception", 20, x);
+    }
+
+    def test_no_match() {
+        assert_error("Throw the error if no catch-blocks capture it", Errors.UNDEFINED_VARIABLE, lambda() {
+            try {
+                raise(UndefinedVariableError("y"));
+            } catch (IncorrectArityError) {} catch (DivisionByZeroError) {}
+        });
+    }
+}
+
+let try_catch = TestTryCatch();
+try_catch.test_single_catch();
+try_catch.test_multiple_catches();
+try_catch.test_no_match();

@@ -59,7 +59,7 @@ private[parsers] trait DeclParser extends StmtParser { _: Parser =>
   private[parsers] def functionBody(kind: String): ParseResult[BlockStmt] =
     for {
       leftBrace <- consumeAfter(TokenType.LeftBrace, "{", kind + " signature")
-      body      <- leftBrace.block
+      body      <- leftBrace.blockWithoutOpening
     } yield body
 
   /**

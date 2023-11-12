@@ -21,4 +21,6 @@ object Lexemes {
   val Import: String = "import"
   val Wildcard: String = "_"
   val Delete: String = "del"
+  val Try: String = "try"
+  val Catch: String = "catch"
 }
