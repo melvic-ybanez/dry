@@ -177,7 +177,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       .flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "]"))
 
   /**
-   * {{{<try-catch> ::= "try" <block> ("catch" "(" (<identifier> ":") <identifier> ")" <block>)+}}}
+   * {{{<try-catch> ::= "try" <block> ("catch" "(" (<identifier> ":")? <identifier> ")" <block>)+}}}
    */
   def tryStatement: ParseResult[Stmt] = {
     def catchStmt(parser: Parser): ParseResult[CatchBlock] =
