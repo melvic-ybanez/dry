@@ -42,6 +42,7 @@ object Assertions {
           .fail
     })
 
+  // TODO: Replace this with the `assert_error` function from the standard `assert` module
   private[interpreter] def assertError(env: Env): Callable =
     Callable.withLineNo(3, env) { lineNo =>
       lazy val token = Token(TokenType.LeftParen, "(", lineNo)

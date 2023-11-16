@@ -2,8 +2,7 @@ package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
-import com.melvic.dry.interpreter.eval.Evaluate.Out
-import com.melvic.dry.interpreter.values.DException.{Fields, addFields}
+import com.melvic.dry.interpreter.values.DException.Fields
 import com.melvic.dry.interpreter.values.Value.{Types, typeOf}
 import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Failure.RuntimeError.Kind
@@ -66,11 +65,4 @@ object DException {
       case Value.Str(value) => Some(value)
       case _                => None
     }
-
-  private def addFields(instance: DInstance, kind: Kind, message: String, token: Token): Out =
-    instance
-      .addField(Fields.Kind, Value.Str(kind.exceptionName))
-      .addField(Fields.Message, Value.Str(message))
-      .addField(Fields.Line, Value.Num(token.line))
-      .ok
 }

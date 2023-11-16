@@ -8,6 +8,7 @@ object Keys {
   val MainModule = "__main_module__"
 
   object Errors {
+    // TODO: We might no longer need this once the native `assert_error` function is removed
     def fromErrorKind(kind: RuntimeError.Kind): String = {
       val name = s"${kind.name.head.toLower}${kind.name.tail}"
       val snakeCase = name.foldLeft("")((name, c) => name + (if (c.isUpper) "_" + c.toLower else c))
