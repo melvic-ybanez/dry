@@ -1,6 +1,7 @@
 package com.melvic.dry.ast
 
 import com.melvic.dry.ast.Decl.StmtDecl
+import com.melvic.dry.ast.Expr.Variable
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.aux.{Nel, Show}
 import com.melvic.dry.aux.Show.ShowInterpolator
@@ -67,13 +68,16 @@ object Stmt {
     }
   }
 
-  final case class CatchBlock(exception: Expr, block: BlockStmt, paren: Token)
+  final case class CatchBlock(instance: Option[Variable], kind: Variable, block: BlockStmt, paren: Token)
 
   object CatchBlock {
     implicit val implicitShow: Show[CatchBlock] = show
 
-    def show: Show[CatchBlock] = { case CatchBlock(exception, block, paren) =>
-      show"${Lexemes.Catch} $block"
+    def show: Show[CatchBlock] = {
+      case CatchBlock(None, kind, block, _) =>
+        show"${Lexemes.Catch} ($kind) $block"
+      case CatchBlock(Some(instance), kind, block, _) =>
+        show"${Lexemes.Catch} ($instance: $kind) $block"
     }
   }
 

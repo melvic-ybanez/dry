@@ -17,8 +17,6 @@ import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}
 
-import scala.annotation.nowarn
-
 //noinspection SpellCheckingInspection
 object Resolve {
   type Resolve = ResultFrom[Context]
@@ -55,7 +53,9 @@ object Resolve {
 
   private def tryCatch: TryCatch => Resolve = { case TryCatch(tryBlock, catchBlocks) =>
     Resolve.blockStmt(tryBlock) >=> sequence(catchBlocks.toList) {
-      case CatchBlock(Variable(_), block, _) => Resolve.blockStmt(block)
+      case CatchBlock(None, _, block, _) => Resolve.blockStmt(block)
+      case CatchBlock(Some(Variable(instance)), _, BlockStmt(declarations), _) =>
+        Resolve.blockStmt(BlockStmt(LetInit(instance, Literal.None) :: declarations))
       case _ => _.ok
     }
   }

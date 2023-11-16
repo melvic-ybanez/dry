@@ -46,9 +46,10 @@ class TestTryCatch {
     }
 
     def test_no_match() {
-        assert_error("Throw the error if no catch-blocks capture it", Errors.UNDEFINED_VARIABLE, lambda() {
+        let exception = UndefinedVariableError("y");
+        assert.assert_error("Throw the error if no catch-blocks capture it", exception, lambda() {
             try {
-                raise(UndefinedVariableError("y"));
+                raise(exception);
             } catch (IncorrectArityError) {} catch (DivisionByZeroError) {}
         });
     }

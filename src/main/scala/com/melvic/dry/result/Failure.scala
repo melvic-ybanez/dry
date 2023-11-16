@@ -4,6 +4,8 @@ import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.aux.implicits.ListOps
+import com.melvic.dry.interpreter.Value
+import com.melvic.dry.interpreter.values.{DException, DInstance}
 import com.melvic.dry.result.Failure.RuntimeError.Kind
 import com.melvic.dry.result.Failure.RuntimeError.Kind._
 import com.melvic.dry.result.Result.Result
@@ -88,64 +90,42 @@ object Failure {
       case object InvalidIndex extends Kind
       case object InvalidArgument extends Kind
       case object ModuleNotFound extends Kind
+
+      def all: List[Kind] = DivisionByZero :: InvalidOperand :: InvalidOperands :: UndefinedVariable ::
+        NotCallable :: IncorrectArity :: DoesNotHaveProperties :: UndefinedProperty ::
+        UndefinedKey :: CanNotApplyIndexOperator :: IndexOutOfBounds :: InvalidIndex ::
+        InvalidArgument :: ModuleNotFound :: Nil
     }
 
-    def divisionByZero(token: Token, message: String): RuntimeError =
-      DivisionByZero(token, message)
-
     def divisionByZero(token: Token): RuntimeError =
-      divisionByZero(token, "Division by zero")
-
-    def invalidOperand(operator: Token, message: String): RuntimeError =
-      InvalidOperand(operator, message)
+      DivisionByZero(token, "Division by zero")
 
     def invalidOperand(operator: Token, expected: List[String]): RuntimeError =
-      invalidOperand(operator, s"The operand must be any of the following: ${expected.toCsv}")
-
-    def invalidOperands(operator: Token, message: String): RuntimeError =
-      InvalidOperands(operator, message)
+      InvalidOperand(operator, s"The operand must be any of the following: ${expected.toCsv}")
 
     def invalidOperands(operator: Token, expected: List[String]): RuntimeError =
-      invalidOperands(operator, s"All operands must be any of the following: ${expected.toCsv}")
-
-    def undefinedVariable(token: Token, message: String): RuntimeError =
-      UndefinedVariable(token, message)
+      InvalidOperands(operator, s"All operands must be any of the following: ${expected.toCsv}")
 
     def undefinedVariable(token: Token): RuntimeError =
-      undefinedVariable(token, show"Undefined variable: $token")
+      UndefinedVariable(token, show"Undefined variable: $token")
 
     def notCallable(token: Token, message: String = "This expression is not callable."): RuntimeError =
       NotCallable(token, message)
 
-    def incorrectArity(token: Token, message: String): RuntimeError =
-      IncorrectArity(token, message)
-
     def incorrectArity(token: Token, expected: Int, got: Int): RuntimeError =
-      incorrectArity(token, s"Incorrect arity. Expected: $expected. Got: $got")
-
-    def doesNotHaveProperties(token: Token, message: String): RuntimeError =
-      DoesNotHaveProperties(token, message)
+      IncorrectArity(token, s"Incorrect arity. Expected: $expected. Got: $got")
 
     def doesNotHaveProperties(obj: Expr, token: Token): RuntimeError =
-      doesNotHaveProperties(token, show"$obj does not have properties or fields.")
-
-    def undefinedProperty(token: Token, message: String): RuntimeError =
-      UndefinedProperty(token, message)
+      DoesNotHaveProperties(token, show"$obj does not have properties or fields.")
 
     def undefinedProperty(token: Token): RuntimeError =
-      undefinedProperty(token, show"Undefined property: $token")
-
-    def undefinedKey(token: Token, message: String): RuntimeError =
-      UndefinedKey(token, message)
+      UndefinedProperty(token, show"Undefined property: $token")
 
     def undefinedKey(key: Expr, token: Token): RuntimeError =
-      undefinedKey(token, show"Undefined key: $key")
-
-    def canNotApplyIndexOperator(token: Token, message: String): RuntimeError =
-      CanNotApplyIndexOperator(token, message)
+      UndefinedKey(token, show"Undefined key: $key")
 
     def canNotApplyIndexOperator(obj: Expr, token: Token): RuntimeError =
-      canNotApplyIndexOperator(token, show"Can not apply [] operator to $obj")
+      CanNotApplyIndexOperator(token, show"Can not apply [] operator to $obj")
 
     def indexOutOfBounds(line: Int, message: String): RuntimeError =
       IndexOutOfBounds(Token.fromLine(line), message)
@@ -153,11 +133,8 @@ object Failure {
     def indexOutOfBounds(index: Int, line: Int): RuntimeError =
       indexOutOfBounds(line, show"Runtime Error. Index out of bounds: $index\n[line $line].")
 
-    def invalidIndex(token: Token, message: String): RuntimeError =
-      InvalidIndex(token, message)
-
     def invalidIndex(index: Expr, token: Token): RuntimeError =
-      invalidIndex(token, show"Invalid index: $index")
+      InvalidIndex(token, show"Invalid index: $index")
 
     def invalidArgument(line: Int, message: String): RuntimeError =
       InvalidArgument(Token.fromLine(line), message)
@@ -168,11 +145,8 @@ object Failure {
         show"Runtime Error. Invalid argument. Expected: $expected. Got: $got\n${showLine(line)}."
       )
 
-    def moduleNotFound(token: Token, message: String): RuntimeError =
-      ModuleNotFound(token, message)
-
     def moduleNotFound(name: String, token: Token): RuntimeError =
-      moduleNotFound(token, show"Module not found: $name")
+      ModuleNotFound(token, show"Module not found: $name")
 
     def show: Show[RuntimeError] = { case RuntimeError(_, token, message) =>
       show"Runtime Error: $message\n${showLine(token.line)}. $token"
@@ -216,12 +190,25 @@ object Failure {
       showLineAndMessage(token.line, s"Resolver Error: $message")
   }
 
+  final case class Raised(instance: DInstance) extends Failure with Value
+
+  object Raised {
+    def show: Show[Raised] = { case Raised(instance) =>
+      val maybeShow = for {
+        message <- DException.messageOf(instance)
+        line    <- DException.lineOf(instance)
+      } yield show"Runtime Exception: $message\n${showLine(line)}."
+      maybeShow.getOrElse("Runtime Exception")
+    }
+  }
+
   def show: Show[Failure] = {
     case Line(line, where, message)     => showFullLine(line, where, message)
     case lexerError: LexerError         => LexerError.show(lexerError)
     case parseError: ParseError         => ParseError.show(parseError)
     case runtimeError: RuntimeError     => RuntimeError.show(runtimeError)
     case resolutionError: ResolverError => ResolverError.show(resolutionError)
+    case exception: Raised              => Raised.show(exception)
   }
 
   implicit class FailureOps(failure: Failure) {

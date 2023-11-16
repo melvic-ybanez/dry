@@ -63,11 +63,12 @@ trait Repl {
   private def prioritizeErrors(errors: Nel[Failure]): List[Failure] = {
     val allErrors = errors.toList.distinct
     val priorities = allErrors.map {
-      case _: RuntimeError  => 1
-      case _: ResolverError => 2
-      case _: ParseError    => 3
-      case _: LexerError    => 4
-      case _: Line          => 5
+      case _: Failure.Raised => 1
+      case _: RuntimeError   => 2
+      case _: ResolverError  => 3
+      case _: ParseError     => 4
+      case _: LexerError     => 5
+      case _: Line           => 6
     }
     val priorityTable = allErrors.zip(priorities).groupBy(_._2)
     val topPrio = priorityTable.toList.minBy(_._1)

@@ -11,13 +11,14 @@ import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
+import com.melvic.dry.interpreter.values.DException.NoArgDException
 import com.melvic.dry.interpreter.values.Value.{ToValue, Types}
-import com.melvic.dry.interpreter.values.{DDictionary, DException, DList, DModule, Value}
+import com.melvic.dry.interpreter.values._
 import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
-import com.melvic.dry.result.Failure.RuntimeError
-import com.melvic.dry.result.Result
+import com.melvic.dry.result.Failure.{Raised, RuntimeError}
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits._
+import com.melvic.dry.result.{Failure, Result}
 
 //noinspection ScalaWeakerAccess
 private[eval] trait EvalStmt {
@@ -35,8 +36,11 @@ private[eval] trait EvalStmt {
   def exprStmt(implicit context: Context[ExprStmt]): Out =
     Evaluate.expr(node.expr).map(_.unit)
 
-  def blockStmt(implicit context: Context[BlockStmt]): Out = {
-    val localEnv = Env.fromEnclosing(env)
+  def blockStmt(implicit context: Context[BlockStmt]): Out =
+    blockStmtWith(Env.fromEnclosing)
+
+  def blockStmtWith(envF: Env => Env)(implicit context: Context[BlockStmt]): Out = {
+    val localEnv = envF(env)
     def recurse(outcome: Out, decls: List[Decl]): Out = {
       decls match {
         case Nil => outcome
@@ -94,32 +98,57 @@ private[eval] trait EvalStmt {
 
   def tryCatch(implicit context: Context[TryCatch]): Out = node match {
     case TryCatch(tryBlock, catchBlocks) =>
+      def handleException(raised: Raised) = {
+        def invalidArg(got: String, paren: Token): Failure =
+          RuntimeError.invalidArgument(Types.Exception, got, paren.line)
+
+        lazy val dExceptionKind: Option[String] = DException.kindOf(raised.instance)
+
+        def evalCatchBlock: CatchBlock => Result[Option[Value]] = {
+          case CatchBlock(None, exceptionKind, block, paren) =>
+            Evaluate.variable(exceptionKind).flatMap {
+              case DException(kind, _) if dExceptionKind.contains(kind.exceptionName) =>
+                Evaluate.blockStmt(block).map(Some(_))
+              case DException(_, _) => Right(None)
+              case arg              => invalidArg(Value.typeOf(arg), paren).fail
+            }
+          case catchBlock @ CatchBlock(_, Variable(token @ Token(_, "GenericError", _)), _, paren) =>
+            dExceptionKind.toRight(One(invalidArg("unknown exception", paren))).flatMap { dExceptionKind =>
+              evalCatchBlock(catchBlock.copy(kind = Variable(token.copy(lexeme = dExceptionKind))))
+            }
+          case CatchBlock(Some(Variable(instance)), exceptionKind, block, paren) =>
+            Evaluate.variable(exceptionKind).flatMap {
+              case DException(kind, _) if dExceptionKind.contains(kind.exceptionName) =>
+                Evaluate
+                  .blockStmtWith { env =>
+                    val localEnv = Env.fromEnclosing(env)
+                    localEnv.define(instance, raised.instance)
+                  }(block)
+                  .map(Some(_))
+              case DException(_, _) => Right(None)
+              case arg              => invalidArg(Value.typeOf(arg), paren).fail
+            }
+          case CatchBlock(_, _, _, paren) => invalidArg("expression", paren).fail
+        }
+
+        def findCatchBlock(catchBlocks: Nel[CatchBlock]): Out =
+          catchBlocks match {
+            case One(head) => evalCatchBlock(head).flatMap(_.fold[Out](raised.fail)(_.ok))
+            case Many(head, tail) =>
+              evalCatchBlock(head).flatMap(_.fold[Out](findCatchBlock(tail))(_.ok))
+          }
+
+        findCatchBlock(catchBlocks)
+      }
       Evaluate
         .blockStmt(tryBlock)
         .fold(
           {
-            case One(runtimeError @ RuntimeError(kind, _, _)) =>
-              def invalidArg(got: String, paren: Token): Result[Option[Value]] =
-                RuntimeError.invalidArgument(Types.Exception, got, paren.line).fail
-
-              def evalCatchBlock: CatchBlock => Result[Option[Value]] = {
-                case CatchBlock(exception: Variable, block, paren) =>
-                  Evaluate.variable(exception).flatMap {
-                    case DException(`kind`, _) => Evaluate.blockStmt(block).map(Some(_))
-                    case DException(_, _)      => Right(None)
-                    case arg                   => invalidArg(Value.typeOf(arg), paren)
-                  }
-                case CatchBlock(_, _, paren) => invalidArg("expression", paren)
+            case One(failure @ Failure.Raised(_)) => handleException(failure)
+            case One(RuntimeError(kind, token, _)) =>
+              NoArgDException(kind, env).call(token)(Nil).flatMap { instance =>
+                handleException(Raised(instance.asInstanceOf[DInstance]))
               }
-
-              def findCatchBlock(catchBlocks: Nel[CatchBlock]): Out =
-                catchBlocks match {
-                  case One(head) => evalCatchBlock(head).flatMap(_.fold[Out](runtimeError.fail)(_.ok))
-                  case Many(head, tail) =>
-                    evalCatchBlock(head).flatMap(_.fold[Out](findCatchBlock(tail))(_.ok))
-                }
-
-              findCatchBlock(catchBlocks)
             case errors => Result.failAll(errors)
           },
           _.ok

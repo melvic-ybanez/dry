@@ -61,7 +61,7 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
   /**
    * {{{<block> ::= "{" <declaration>* "}"}}}
    */
-  def block(after: String): ParseResult[BlockStmt] =
+  def blockAfter(after: String): ParseResult[BlockStmt] =
     for {
       leftBrace <- consumeAfter(TokenType.LeftBrace, "{", after)
       rest      <- leftBrace.blockWithoutOpening
@@ -183,15 +183,29 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
     def catchStmt(parser: Parser): ParseResult[CatchBlock] =
       for {
         leftParen <- parser.consumeAfter(TokenType.LeftParen, "(", Lexemes.Catch)
-        exception <- leftParen
+        variable <- leftParen
           .consumeAfter(TokenType.Identifier, "identifier", "(")
           .map(p => Step(Variable(p.next.previousToken), p))
+        exception <- variable
+          .matchAny(TokenType.Colon)
+          .fold[ParseResult[(Option[Variable], Variable)]](
+            // the parsed variable becomes the exception type
+            ParseResult.fromStep(variable.map(v => (None, v)))
+          ) {
+            // the parsed variable becomes the exception instance, and we parse
+            // another variable for the type
+            _.consumeAfter(TokenType.Identifier, "identifier", "(")
+              .map(p => Step((Some(variable.value), Variable(p.next.previousToken)), p))
+          }
         rightParen <- exception.consumeAfter(TokenType.RightParen, ")", "identifier")
-        block      <- rightParen.block(")")
-      } yield Step(CatchBlock(exception.value, block.value, leftParen.value), block.next)
+        block      <- rightParen.blockAfter(")")
+      } yield Step(
+        CatchBlock(exception.value._1, exception.value._2, block.value, leftParen.value),
+        block.next
+      )
 
     for {
-      tryBlock   <- block(Lexemes.Try)
+      tryBlock   <- blockAfter(Lexemes.Try)
       catch_     <- tryBlock.consumeAfter(TokenType.Catch, Lexemes.Catch, "try block")
       catchBlock <- catchStmt(catch_)
       catchBlocks <- {

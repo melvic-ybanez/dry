@@ -11,3 +11,11 @@ def assert_equals(description, expected, got) {
             expected == got,
             "Expected: " + str(expected) + ". Got: " + str(got));
 }
+
+def assert_error(description, expected_error, code) {
+    try {
+        code();
+    } catch (error: GenericError) {
+        assert_equals(description, expected_error.kind, error.kind);
+    }
+}
