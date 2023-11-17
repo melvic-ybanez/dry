@@ -13,6 +13,8 @@ class DException(val kind: Kind, val env: Env) extends DClass(kind.exceptionName
 
   override def arity = 1
 
+  // TODO: Add support for the other exception constructors. This would
+  //  make it more convenient to compare exception objects (no more direct message comparison)
   override def call(token: Token) = {
     case args @ ((message: Value.Str) :: _) =>
       super.call(token)(args).flatMap { case instance: DInstance =>
@@ -29,20 +31,6 @@ class DException(val kind: Kind, val env: Env) extends DClass(kind.exceptionName
 }
 
 object DException {
-  class NoArgDException(override val kind: Kind, override val env: Env) extends DException(kind, env) {
-    override def arity = 0
-
-    override def call(token: Token) = {
-      case Nil => super.call(token)(Value.Str(kind.exceptionName) :: Nil)
-      case _   => RuntimeError.invalidArgument(s"${Types.String}", typeOf(Value.Unit), token.line).fail
-    }
-  }
-
-  object NoArgDException {
-    def apply(kind: Kind, env: Env): NoArgDException =
-      new NoArgDException(kind, env)
-  }
-
   object Attributes {
     val Message: String = "__message__"
     val Kind: String = "__kind__"

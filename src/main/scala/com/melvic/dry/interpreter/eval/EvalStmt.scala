@@ -13,7 +13,6 @@ import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
-import com.melvic.dry.interpreter.values.DException.NoArgDException
 import com.melvic.dry.interpreter.values.Value.{ToValue, Types}
 import com.melvic.dry.interpreter.values._
 import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
@@ -155,8 +154,8 @@ private[eval] trait EvalStmt {
         .fold(
           {
             case One(failure @ Failure.Raised(_)) => handleException(failure)
-            case One(RuntimeError(kind, token, _)) =>
-              NoArgDException(kind, env).call(token)(Nil).flatMap { instance =>
+            case One(RuntimeError(kind, token, message)) =>
+              DException(kind, env).call(token)(Value.Str(message) :: Nil).flatMap { instance =>
                 handleException(Raised(instance.asInstanceOf[DInstance]))
               }
             case errors => Result.failAll(errors)

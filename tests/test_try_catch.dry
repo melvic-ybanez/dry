@@ -53,9 +53,22 @@ class TestTryCatch {
                 } catch (: IncorrectArityError) {} catch (: DivisionByZeroError) {}
             });
     }
+
+    def test_captured_error_scope() {
+        try {
+            10 / 0;
+        } catch (division_by_zero_error: DivisionByZeroError) {}
+
+        assert_error("Captured errors should not be visible outside of the catch block",
+            UndefinedVariableError("Undefined variable: division_by_zero_error"),
+            lambda() {
+                println(division_by_zero_error);
+            });
+    }
 }
 
 let try_catch = TestTryCatch();
 try_catch.test_single_catch();
 try_catch.test_multiple_catches();
 try_catch.test_no_match();
+try_catch.test_captured_error_scope();

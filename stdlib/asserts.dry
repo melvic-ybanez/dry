@@ -16,7 +16,9 @@ def assert_error(description, expected_error, code) {
     try {
         code();
     } catch (error:) {
-        assert_equals(description, expected_error, error);
+        let expected_details = (expected_error.__kind__, expected_error.__message__);
+        let actual_details = (error.__kind__, error.__message__);
+        assert_equals(description, expected_details, actual_details);
     }
 }
 
