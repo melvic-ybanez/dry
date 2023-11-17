@@ -25,7 +25,7 @@ class TestFields {
         let foo = Foo();
         foo.bar = "not fn";
 
-        assert_error("Call non-function field", Errors.NOT_CALLABLE, lambda() {
+        assert_error_type("Call non-function field", NotCallableError, lambda() {
             foo.bar();
         });
     }
@@ -50,20 +50,20 @@ class TestFields {
     }
 
     def test_bool_properties() {
-        assert_error("Bool has no properties", Errors.DOES_NOT_HAVE_PROPERTIES, lambda() {
+        assert_error_type("Bool has no properties", DoesNotHavePropertiesError, lambda() {
             true.foo();
         });
     }
 
     def test_class_properties() {
-        assert_error("Undefined class property", Errors.UNDEFINED_PROPERTY, lambda() {
+        assert_error_type("Undefined class property", UndefinedPropertyError, lambda() {
             class Foo {}
             Foo.bar;
         });
     }
 
     def test_get_on_function() {
-        assert_error("Function has no property", Errors.DOES_NOT_HAVE_PROPERTIES, lambda() {
+        assert_error_type("Function has no property", DoesNotHavePropertiesError, lambda() {
             def foo() {}
             foo.bar;
         });

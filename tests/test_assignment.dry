@@ -19,7 +19,7 @@ def test_rhs() {
 }
 
 def test_lhs() {
-    assert_error("RHS should not be an undefined variable", Errors.UNDEFINED_VARIABLE,
+    assert_error_type("RHS should not be an undefined variable", UndefinedVariableError,
             lambda() { unknown = "what"; });
 }
 

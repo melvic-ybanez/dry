@@ -9,19 +9,23 @@ import com.melvic.dry.result.Failure.RuntimeError.Kind
 import com.melvic.dry.result.Result.implicits.ToResult
 
 class DException(val kind: Kind, val env: Env) extends DClass(kind.exceptionName, Map.empty, env) {
+  addKindField(this)
+
   override def arity = 1
 
   override def call(token: Token) = {
     case args @ ((message: Value.Str) :: _) =>
       super.call(token)(args).flatMap { case instance: DInstance =>
-        instance
-          .addField(Attributes.Kind, Value.Str(kind.exceptionName))
+        addKindField(instance)
           .addField(Attributes.Message, message)
           .addField(Attributes.Line, Value.Num(token.line))
           .ok
       }
     case arg :: _ => RuntimeError.invalidArgument(s"${Types.String}", typeOf(arg), token.line).fail
   }
+
+  private def addKindField(dObject: DObject): DObject =
+    dObject.addField(Attributes.Kind, Value.Str(kind.exceptionName))
 }
 
 object DException {

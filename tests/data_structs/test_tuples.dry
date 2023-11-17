@@ -17,16 +17,16 @@ class TestTuple {
 
     def test_get() {
         let singleton = (1,);
-        assert_error("Reading tuple elements with string index", Errors.INVALID_INDEX, lambda() {
+        assert_error_type("Reading tuple elements with string index", InvalidIndexError, lambda() {
             singleton[""];
         });
-        assert_error("Reading tuple elements with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading tuple elements with index < 0", IndexOutOfBoundsError, lambda() {
             singleton[-1];
         });
-        assert_error("Reading tuple elements with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading tuple elements with index == size", IndexOutOfBoundsError, lambda() {
             singleton[1];
         });
-        assert_error("Reading tuple elements with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading tuple elements with index > size", IndexOutOfBoundsError, lambda() {
             singleton[2];
         });
 

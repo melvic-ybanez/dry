@@ -24,6 +24,6 @@ def assert_error_type(description, expected_error_type, code) {
     try {
         code();
     } catch (error:) {
-        assert_equals(description, error.__kind__, error.__kind__);
+        assert_equals(description, error.__kind__, expected_error_type.__kind__);
     }
 }

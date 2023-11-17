@@ -2,9 +2,9 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
-import com.melvic.dry.interpreter.natives.Keys.{Errors, SuccessCount, TestCount}
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
+import com.melvic.dry.interpreter.natives.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.natives.{Assertions, Exceptions}
 import com.melvic.dry.interpreter.values.Value.{Num, Str, ToValue, Types}
 import com.melvic.dry.interpreter.values._
@@ -74,15 +74,8 @@ object Interpret {
     .defineWith("typeof", typeOf)
     .define(TestCount, Num(0))
     .define(SuccessCount, Num(0))
-    .defineWith("Errors", errors)
     .pipe(Assertions.register)
     .pipe(Exceptions.register)
 
   private def typeOf: Env => Callable = Callable.unarySuccess(_)(value => Str(Value.typeOf(value)))
-
-  private def errors(env: Env): DClass =
-    Errors.allErrors.foldLeft(DClass.default("Errors", env)) { (dClass, error) =>
-      val fieldName = error.drop(2).dropRight(2).toUpperCase
-      dClass.addField(fieldName, Str(error))
-    }
 }

@@ -25,11 +25,13 @@ object DryTests {
 
     // We manually give aliases because we can only import functions for now.
     // We can't do from-imports yet.
-    val contentImports = """import assert;
+    val contentImports = """import asserts;
                         |
-                        |let assert_equals = assert.assert_equals;
-                        |let assert_true = assert.assert_true;
-                        |let assert_false = assert.assert_false;
+                        |let assert_equals = asserts.assert_equals;
+                        |let assert_true = asserts.assert_true;
+                        |let assert_false = asserts.assert_false;
+                        |let assert_error_type = asserts.assert_error_type;
+                        |let assert_error = asserts.assert_error;
                         |""".stripMargin
 
     val note = "// Note: This is an auto-generated script\n\n\n"

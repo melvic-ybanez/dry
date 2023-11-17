@@ -46,7 +46,7 @@ class TestTryCatch {
     }
 
     def test_no_match() {
-        assert.assert_error_type("Throw the error if no catch-blocks capture it", UndefinedVariableError,
+        assert_error_type("Throw the error if no catch-blocks capture it", UndefinedVariableError,
             lambda() {
                 try {
                     raise(UndefinedVariableError("y"));

@@ -22,10 +22,10 @@ class TestDictionary {
         assert_equals("Get dictionary field value by false key", dict[false], 10);
         assert_equals("Get dictionary field value by none key", dict[none], "none");
 
-        assert_error("Accessing undefined dictionary key", Errors.UNDEFINED_KEY, lambda() {
+        assert_error_type("Accessing undefined dictionary key", UndefinedKeyError, lambda() {
             dict["foo"];
         });
-        assert_error("Accessing from a non-dictionary by key", Errors.CAN_NOT_APPLY_INDEX_OPERATOR, lambda() {
+        assert_error_type("Accessing from a non-dictionary by key", CanNotApplyIndexOperatorError, lambda() {
             let foo = lambda() {};
             foo["numbers"];
         });
@@ -43,7 +43,7 @@ class TestDictionary {
         assert_equals("Updated dictionary with new fields",
             {"number": 3, 1: "one", true: 11, false: 10, none: "none", "food": "burger"}, dict);
 
-        assert_error("Updating a non-dictionary by key", Errors.CAN_NOT_APPLY_INDEX_OPERATOR, lambda() {
+        assert_error_type("Updating a non-dictionary by key", CanNotApplyIndexOperatorError, lambda() {
             let foo = lambda() {};
             foo["numbers"] = 30;
         });
@@ -55,7 +55,7 @@ class TestDictionary {
         del dict["first"];
         assert_equals("Delete existing field from a dictionary", {"second": 2}, dict);
 
-        assert_error("Delete non-existing field from a dictionary", Errors.UNDEFINED_KEY, lambda() {
+        assert_error_type("Delete non-existing field from a dictionary", UndefinedKeyError, lambda() {
             del dict["third"];
         });
     }

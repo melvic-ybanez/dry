@@ -13,17 +13,17 @@ class TestList {
         assert_equals("Third element", 3, xs[2]);
 
         let empty = [];
-        assert_error("Reading list elements with string index", Errors.INVALID_INDEX, lambda() {
+        assert_error_type("Reading list elements with string index", InvalidIndexError, lambda() {
             empty[""];
         });
-        assert_error("Reading list elements with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading list elements with index < 0", IndexOutOfBoundsError, lambda() {
             empty[-1];
         });
 
-        assert_error("Reading list elements with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading list elements with index == size", IndexOutOfBoundsError, lambda() {
             xs[3];
         });
-        assert_error("Reading list elements with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Reading list elements with index > size", IndexOutOfBoundsError, lambda() {
             xs[4];
         });
     }
@@ -31,17 +31,17 @@ class TestList {
     def test_set() {
         let xs = [1, "two", 3];
 
-        assert_error("Updating list with string index", Errors.INVALID_INDEX, lambda() {
+        assert_error_type("Updating list with string index", InvalidIndexError, lambda() {
             xs[""] = 20;
         });
-        assert_error("Updating list with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Updating list with index < 0", IndexOutOfBoundsError, lambda() {
             xs[-1] = 0;
         });
 
-        assert_error("Updating list with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Updating list with index == size", IndexOutOfBoundsError, lambda() {
             xs[3] = 19;
         });
-        assert_error("Updating list with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Updating list with index > size", IndexOutOfBoundsError, lambda() {
             xs[4] = 1;
         });
 
@@ -52,17 +52,17 @@ class TestList {
 
     def test_delete() {
         let xs = ["apple", "banana", "orange"];
-        assert_error("Deleting a list element with string index", Errors.INVALID_INDEX, lambda() {
+        assert_error_type("Deleting a list element with string index", InvalidIndexError, lambda() {
             del xs[""];
         });
-        assert_error("Deleting a list element with index < 0", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Deleting a list element with index < 0", IndexOutOfBoundsError, lambda() {
             del xs[-1];
         });
 
-        assert_error("Deleting a list element with index == size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Deleting a list element with index == size", IndexOutOfBoundsError, lambda() {
             del xs[3];
         });
-        assert_error("Deleting a list element with index > size", Errors.INDEX_OUT_OF_BOUNDS, lambda() {
+        assert_error_type("Deleting a list element with index > size", IndexOutOfBoundsError, lambda() {
             del xs[4];
         });
         del xs[1];
