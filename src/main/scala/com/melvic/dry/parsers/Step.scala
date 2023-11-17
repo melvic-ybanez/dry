@@ -7,7 +7,7 @@ final case class Step[+A](value: A, next: Parser) {
     Step(f(value), next)
 
   def toParseResult: ParseResult[A] =
-    ParseResult.succeed(value, next)
+    ParseResult.fromStep(this)
 }
 
 object Step {

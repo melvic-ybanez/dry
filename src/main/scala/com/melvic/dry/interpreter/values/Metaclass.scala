@@ -1,6 +1,7 @@
 package com.melvic.dry.interpreter.values
 
-trait Metaclass {
+//noinspection SpellCheckingInspection
+trait Metaclass extends Value {
   def methods: Map[String, Callable.Function]
 
   def findMethod(name: String): Option[Callable.Function] =

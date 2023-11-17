@@ -1,7 +1,9 @@
 package com.melvic.dry.interpreter.eval
 
 import com.melvic.dry.Token
+import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Expr.Variable
+import com.melvic.dry.ast.Stmt.CatchBlock.{CatchAll, CatchType, CatchTypedVar, CatchUntypedVar}
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
@@ -102,23 +104,24 @@ private[eval] trait EvalStmt {
         def invalidArg(got: String, paren: Token): Failure =
           RuntimeError.invalidArgument(Types.Exception, got, paren.line)
 
-        lazy val dExceptionKind: Option[String] = DException.kindOf(raised.instance)
+        lazy val raisedKind = DException.kindOf(raised.instance)
+
+        def catchGeneric(paren: Token)(catchFromRaised: String => CatchBlock) =
+          raisedKind.toRight(One(invalidArg("unknown exception", paren))).flatMap { raised =>
+            evalCatchBlock(catchFromRaised(raised))
+          }
 
         def evalCatchBlock: CatchBlock => Result[Option[Value]] = {
-          case CatchBlock(None, exceptionKind, block, paren) =>
+          case CatchType(exceptionKind, block, paren) =>
             Evaluate.variable(exceptionKind).flatMap {
-              case DException(kind, _) if dExceptionKind.contains(kind.exceptionName) =>
+              case DException(kind, _) if raisedKind.contains(kind.exceptionName) =>
                 Evaluate.blockStmt(block).map(Some(_))
               case DException(_, _) => Right(None)
               case arg              => invalidArg(Value.typeOf(arg), paren).fail
             }
-          case catchBlock @ CatchBlock(_, Variable(token @ Token(_, "GenericError", _)), _, paren) =>
-            dExceptionKind.toRight(One(invalidArg("unknown exception", paren))).flatMap { dExceptionKind =>
-              evalCatchBlock(catchBlock.copy(kind = Variable(token.copy(lexeme = dExceptionKind))))
-            }
-          case CatchBlock(Some(Variable(instance)), exceptionKind, block, paren) =>
+          case CatchTypedVar(Variable(instance), exceptionKind, block, paren) =>
             Evaluate.variable(exceptionKind).flatMap {
-              case DException(kind, _) if dExceptionKind.contains(kind.exceptionName) =>
+              case DException(kind, _) if raisedKind.contains(kind.exceptionName) =>
                 Evaluate
                   .blockStmtWith { env =>
                     val localEnv = Env.fromEnclosing(env)
@@ -128,7 +131,14 @@ private[eval] trait EvalStmt {
               case DException(_, _) => Right(None)
               case arg              => invalidArg(Value.typeOf(arg), paren).fail
             }
-          case CatchBlock(_, _, _, paren) => invalidArg("expression", paren).fail
+          case CatchAll(block, paren) =>
+            catchGeneric(paren)(raised =>
+              CatchType(Variable(Token(TokenType.Identifier, raised, paren.line)), block, paren)
+            )
+          case CatchUntypedVar(instance, block, paren) =>
+            catchGeneric(paren)(raised =>
+              CatchTypedVar(instance, Variable(Token(TokenType.Identifier, raised, paren.line)), block, paren)
+            )
         }
 
         def findCatchBlock(catchBlocks: Nel[CatchBlock]): Out =

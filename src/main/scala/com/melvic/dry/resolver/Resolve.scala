@@ -4,6 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.ast.Decl.Let.{LetDecl, LetInit}
 import com.melvic.dry.ast.Decl.{ClassDecl, Def, StmtDecl}
 import com.melvic.dry.ast.Expr.{List => _, _}
+import com.melvic.dry.ast.Stmt.CatchBlock.{CatchType, CatchTypedVar, CatchUntypedVar}
 import com.melvic.dry.ast.Stmt.IfStmt.{IfThen, IfThenElse}
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
@@ -52,10 +53,15 @@ object Resolve {
   }
 
   private def tryCatch: TryCatch => Resolve = { case TryCatch(tryBlock, catchBlocks) =>
+    def catchVar(instance: Token, declarations: List[Decl]) =
+      Resolve.blockStmt(BlockStmt(LetDecl(instance) :: declarations))
+
     Resolve.blockStmt(tryBlock) >=> sequence(catchBlocks.toList) {
-      case CatchBlock(None, _, block, _) => Resolve.blockStmt(block)
-      case CatchBlock(Some(Variable(instance)), _, BlockStmt(declarations), _) =>
-        Resolve.blockStmt(BlockStmt(LetInit(instance, Literal.None) :: declarations))
+      case CatchType(_, block, _) => Resolve.blockStmt(block)
+      case CatchUntypedVar(Variable(instance), BlockStmt(declarations), _) =>
+        catchVar(instance, declarations)
+      case CatchTypedVar(Variable(instance), _, BlockStmt(declarations), _) =>
+        catchVar(instance, declarations)
       case _ => _.ok
     }
   }

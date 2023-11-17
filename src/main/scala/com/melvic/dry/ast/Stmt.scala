@@ -68,16 +68,27 @@ object Stmt {
     }
   }
 
-  final case class CatchBlock(instance: Option[Variable], kind: Variable, block: BlockStmt, paren: Token)
+  sealed trait CatchBlock
 
   object CatchBlock {
+    final case class CatchType(kind: Variable, block: BlockStmt, paren: Token) extends CatchBlock
+    final case class CatchUntypedVar(instance: Variable, block: BlockStmt, paren: Token) extends CatchBlock
+    final case class CatchTypedVar(instance: Variable, kind: Variable, blockStmt: BlockStmt, paren: Token)
+        extends CatchBlock
+    final case class CatchAll(blockStmt: BlockStmt, paren: Token) extends CatchBlock
+
     implicit val implicitShow: Show[CatchBlock] = show
 
     def show: Show[CatchBlock] = {
-      case CatchBlock(None, kind, block, _) =>
-        show"${Lexemes.Catch} ($kind) $block"
-      case CatchBlock(Some(instance), kind, block, _) =>
-        show"${Lexemes.Catch} ($instance: $kind) $block"
+      def show(insideParens: String, block: BlockStmt): String =
+        show"${Lexemes.Catch} ($insideParens) $block"
+
+      {
+        case CatchUntypedVar(instance, block, _)     => show(show"$instance:", block)
+        case CatchType(kind, block, _)               => show(show": $kind", block)
+        case CatchTypedVar(instance, kind, block, _) => show(show"$instance: $kind", block)
+        case CatchAll(block, _)                      => show(":", block)
+      }
     }
   }
 

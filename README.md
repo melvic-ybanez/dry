@@ -219,7 +219,7 @@ in [BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form):
 <return>      ::= "return" <expression>? ";"
 <import>      ::= "import" <identifier>("."<identifier>)* ";"
 <delete>      ::= "del" <call><index> ";"
-<try-catch>   ::= "try" <block> ("catch" "(" (<identifier> ":")? <identifier> ")" <block>)+
+<try-catch>   ::= "try" <block> ("catch" "(" <identifier>? ":" <identifier>? ")" <block>)+
 <expression>  ::= <assignment> | <lambda>
 <assignment>  ::= <call> "=" <expression>
 <call>        ::= <primary> ("(" (<expression> | ("," <expression>)*)? ")" | "." <identifier>  | <index>)*

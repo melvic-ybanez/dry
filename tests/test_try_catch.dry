@@ -5,14 +5,14 @@ class TestTryCatch {
         try {
             19 / 0;
             x = 20;  // shouldn't be executed
-        } catch (DivisionByZeroError) {}
+        } catch (: DivisionByZeroError) {}
 
         assert_equals("Handle an exception with a single empty catch-block", 10, x);
 
         try {
             19 / 0;
             x = 20;
-        } catch (DivisionByZeroError) {
+        } catch (: DivisionByZeroError) {
             x = 30;
         }
 
@@ -26,9 +26,9 @@ class TestTryCatch {
 
         try {
             xs[3];
-        } catch (DivisionByZeroError) {
+        } catch (: DivisionByZeroError) {
             y = 20; // skipped
-        } catch (IndexOutOfBoundsError) {
+        } catch (: IndexOutOfBoundsError) {
             x = 50;
         }
 
@@ -36,9 +36,9 @@ class TestTryCatch {
 
         try {
             raise(UndefinedVariableError("x"));
-        } catch (UndefinedVariableError) {
+        } catch (: UndefinedVariableError) {
             x = 20;
-        } catch (IncorrectArityError) {
+        } catch (: IncorrectArityError) {
             x = 70; // ignored
         }
 
@@ -46,12 +46,12 @@ class TestTryCatch {
     }
 
     def test_no_match() {
-        let exception = UndefinedVariableError("y");
-        assert.assert_error("Throw the error if no catch-blocks capture it", exception, lambda() {
-            try {
-                raise(exception);
-            } catch (IncorrectArityError) {} catch (DivisionByZeroError) {}
-        });
+        assert.assert_error_type("Throw the error if no catch-blocks capture it", UndefinedVariableError,
+            lambda() {
+                try {
+                    raise(UndefinedVariableError("y"));
+                } catch (: IncorrectArityError) {} catch (: DivisionByZeroError) {}
+            });
     }
 }
 

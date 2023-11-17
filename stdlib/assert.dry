@@ -15,7 +15,15 @@ def assert_equals(description, expected, got) {
 def assert_error(description, expected_error, code) {
     try {
         code();
-    } catch (error: GenericError) {
-        assert_equals(description, expected_error.kind, error.kind);
+    } catch (error:) {
+        assert_equals(description, expected_error, error);
+    }
+}
+
+def assert_error_type(description, expected_error_type, code) {
+    try {
+        code();
+    } catch (error:) {
+        assert_equals(description, error.__kind__, error.__kind__);
     }
 }

@@ -4,6 +4,7 @@ import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl.StmtDecl
 import com.melvic.dry.ast.Expr.{IndexGet, Literal, Variable}
+import com.melvic.dry.ast.Stmt.CatchBlock.{CatchAll, CatchType, CatchTypedVar, CatchUntypedVar}
 import com.melvic.dry.ast.Stmt.IfStmt._
 import com.melvic.dry.ast.Stmt.Loop.While
 import com.melvic.dry.ast.Stmt._
@@ -11,6 +12,8 @@ import com.melvic.dry.ast.{Decl, Expr, Stmt}
 import com.melvic.dry.aux.Nel
 import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.lexer.Lexemes
+
+import scala.util.chaining.scalaUtilChainingOps
 
 //noinspection ScalaWeakerAccess
 private[parsers] trait StmtParser { _: Parser with DeclParser =>
@@ -177,32 +180,29 @@ private[parsers] trait StmtParser { _: Parser with DeclParser =>
       .flatMapParser(_.consumeAfter(TokenType.Semicolon, ";", "]"))
 
   /**
-   * {{{<try-catch> ::= "try" <block> ("catch" "(" (<identifier> ":")? <identifier> ")" <block>)+}}}
+   * {{{<try-catch> ::= "try" <block> ("catch" "(" <identifier>? ":" <identifier>? ")" <block>)+}}}
    */
   def tryStatement: ParseResult[Stmt] = {
+    def consumeIdentifier(parser: Parser, after: String): ParseResult[Option[Variable]] =
+      parser
+        .matchAny(TokenType.Identifier)
+        .map(p => Step(Some(Variable(p.previousToken)), p).toParseResult)
+        .getOrElse(ParseResult.succeed(None, parser))
+
     def catchStmt(parser: Parser): ParseResult[CatchBlock] =
       for {
-        leftParen <- parser.consumeAfter(TokenType.LeftParen, "(", Lexemes.Catch)
-        variable <- leftParen
-          .consumeAfter(TokenType.Identifier, "identifier", "(")
-          .map(p => Step(Variable(p.next.previousToken), p))
-        exception <- variable
-          .matchAny(TokenType.Colon)
-          .fold[ParseResult[(Option[Variable], Variable)]](
-            // the parsed variable becomes the exception type
-            ParseResult.fromStep(variable.map(v => (None, v)))
-          ) {
-            // the parsed variable becomes the exception instance, and we parse
-            // another variable for the type
-            _.consumeAfter(TokenType.Identifier, "identifier", "(")
-              .map(p => Step((Some(variable.value), Variable(p.next.previousToken)), p))
-          }
-        rightParen <- exception.consumeAfter(TokenType.RightParen, ")", "identifier")
+        leftParen  <- parser.consumeAfter(TokenType.LeftParen, "(", Lexemes.Catch)
+        instance   <- consumeIdentifier(leftParen, "(")
+        colon      <- instance.consumeAfter(TokenType.Colon, ":", "identifier")
+        kind       <- consumeIdentifier(colon, ":")
+        rightParen <- kind.consumeAfter(TokenType.RightParen, ")", "identifier")
         block      <- rightParen.blockAfter(")")
-      } yield Step(
-        CatchBlock(exception.value._1, exception.value._2, block.value, leftParen.value),
-        block.next
-      )
+      } yield ((instance.value, kind.value) match {
+        case (Some(instance), Some(kind)) => CatchTypedVar(instance, kind, block.value, leftParen.value)
+        case (Some(instance), None)       => CatchUntypedVar(instance, block.value, leftParen.value)
+        case (_, Some(kind))              => CatchType(kind, block.value, leftParen.value)
+        case _                            => CatchAll(block.value, leftParen.value)
+      }).pipe(Step(_, block.next))
 
     for {
       tryBlock   <- blockAfter(Lexemes.Try)

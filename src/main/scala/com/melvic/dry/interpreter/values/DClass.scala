@@ -10,7 +10,7 @@ import com.melvic.dry.result.Result.implicits.ToResult
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 
-class DClass(val name: String, val methods: Methods, val enclosing: Env)
+class DClass private[values] (val name: String, val methods: Methods, val enclosing: Env)
     extends Callable
     with Metaclass
     with DObject {
@@ -24,14 +24,14 @@ class DClass(val name: String, val methods: Methods, val enclosing: Env)
 
   override def klass = Metaclass
 
-  override val fields = mutable.Map("__name__" -> Value.Str(name))
+  override val fields = mutable.Map(Attributes.Name -> Value.Str(name))
 }
 
 object DClass {
   type Methods = Map[String, DFunction]
 
   def apply(name: String, methods: Methods, enclosing: Env): DClass =
-    new DClass(name, methods, enclosing)
+    new DClass(name, methods, enclosing).addField(Attributes.Class, Metaclass)
 
   def unapply(klass: DClass): Option[(String, Methods, Env)] =
     Some(klass.name, klass.methods, klass.enclosing)
