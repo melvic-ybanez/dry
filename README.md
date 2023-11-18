@@ -23,6 +23,7 @@ language [here](#contents).
     - [Classes](https://github.com/melvic-ybanez/dry/blob/main/tests/test_class.dry)
       and [Constructors](https://github.com/melvic-ybanez/dry/blob/main/tests/test_init.dry)
     - [Lists](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_lists.dry), [Tuples](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_tuples.dry), and [Dictionaries](https://github.com/melvic-ybanez/dry/blob/main/tests/data_structs/test_dictionaries.dry)
+    - [Exception Handling](https://github.com/melvic-ybanez/dry/blob/main/examples/try_catch.dry)
     - [Modules](https://github.com/melvic-ybanez/dry/blob/main/tests/test_modules.dry)
     - More [here](https://github.com/melvic-ybanez/dry/blob/main/tests/)
       and [here](https://github.com/melvic-ybanez/dry/blob/main/examples/)
