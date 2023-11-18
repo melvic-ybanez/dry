@@ -1,0 +1,54 @@
+import asserts;
+
+let assert_equals = asserts.assert_equals;
+let assert_error_type = asserts.assert_error_type;
+
+def test_handle_with_both_object_and_type_names() {
+    try {
+        raise(DivisionByZeroError("you shall not pass!"));
+    } catch (error: DivisionByZeroError) {
+        assert_equals("Handle an exception by specifying both object and type names",
+                "you shall not pass!", error.__message__);
+    }
+}
+
+def test_handle_with_type_name() {
+    let x = 10;
+    let y = 10;
+
+    try {
+        [1, 2, 3][3];
+    } catch (: DivisionByZeroError) {
+        y = 20; // skipped
+    } catch (: IndexOutOfBoundsError) {
+        x = 50;
+    }
+
+    assert_equals("Handle an exception by specifying the type name only", (50, 10), (x, y));
+}
+
+def test_handle_with_object_name() {
+    let x;
+
+    try {
+        raise(IndexOutOfBoundsError("I'm out, man"));
+    } catch (: IncorrectArityError) {
+        x = 10;
+    } catch (error:) { // catch-all
+        x = 20;
+    }
+    assert_equals("Handle an exception by specifying the object name only", 20, x);
+}
+
+def test_no_match() {
+    assert_error_type("Throw the error if no catch-blocks capture it", UndefinedVariableError,
+            lambda() {
+                try { println(x); }
+                catch (: IncorrectArityError) {} catch (: DivisionByZeroError) {}
+            });
+}
+
+test_handle_with_both_object_and_type_names();
+test_handle_with_type_name();
+test_handle_with_object_name();
+test_no_match();
