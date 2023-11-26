@@ -6,7 +6,6 @@ import com.melvic.dry.lexer.LexerError
 import com.melvic.dry.parsers.ParseError
 import com.melvic.dry.resolver.{ResolverError, Scopes}
 import com.melvic.dry.result.Failure
-import com.melvic.dry.result.Failure.Line
 
 import scala.io.StdIn.readLine
 import scala.util.chaining.scalaUtilChainingOps
@@ -71,7 +70,6 @@ trait Repl {
       case _: ResolverError => 3
       case _: ParseError    => 4
       case _: LexerError    => 5
-      case _: Line          => 6
     }
     val priorityTable = allErrors.zip(priorities).groupBy(_._2)
     val topPrio = priorityTable.toList.minBy(_._1)

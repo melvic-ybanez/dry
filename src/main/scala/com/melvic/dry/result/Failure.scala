@@ -10,10 +10,9 @@ import com.melvic.dry.result.Result.Result
 trait Failure
 
 object Failure {
-  final case class Line(line: Int, where: String, message: String) extends Failure
-
-  def line(line: Int, message: String): Failure =
-    Line(line, "", message)
+  implicit class FailureOps(failure: Failure) {
+    def fail[A]: Result[A] = Result.fail(failure)
+  }
 
   def showFullLine(line: Int, where: String, message: String): String =
     s"${showLine(line)} Error $where: $message"
@@ -21,19 +20,14 @@ object Failure {
   def showLineAndMessage(line: Int, message: String): String =
     showFullLine(line, "", message)
 
+  def showLine(line: Int): String =
+    s"[line $line]"
+
   def show: Show[Failure] = {
-    case Line(line, where, message)     => showFullLine(line, where, message)
     case lexerError: LexerError         => LexerError.show(lexerError)
     case parseError: ParseError         => ParseError.show(parseError)
     case runtimeError: RuntimeError     => RuntimeError.show(runtimeError)
     case resolutionError: ResolverError => ResolverError.show(resolutionError)
     case exception: RaisedError         => RaisedError.show(exception)
   }
-
-  implicit class FailureOps(failure: Failure) {
-    def fail[A]: Result[A] = Result.fail(failure)
-  }
-
-  def showLine(line: Int): String =
-    s"[line $line]"
 }
