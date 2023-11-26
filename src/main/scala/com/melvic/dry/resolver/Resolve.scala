@@ -13,7 +13,6 @@ import com.melvic.dry.aux.HasFlatMap._
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.lexer.Lexemes
 import com.melvic.dry.resolver.ScopesFunction._
-import com.melvic.dry.result.Failure.ResolverError
 import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult
 import com.melvic.dry.result.{Failure, Result}

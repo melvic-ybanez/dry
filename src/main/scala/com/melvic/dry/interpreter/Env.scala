@@ -2,7 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.{GlobalEnv, LocalEnv, Table}
-import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.interpreter.errors.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.{Show, Token}

@@ -2,8 +2,8 @@ package com.melvic.dry.tests
 
 import com.melvic.dry.aux.Nel.One
 import com.melvic.dry.interpreter.{Env, Interpret, Value}
+import com.melvic.dry.parsers.ParseError.{Expected, InvalidAssignmentTarget}
 import com.melvic.dry.resolver.Scopes
-import com.melvic.dry.result.Failure.ParseError.{Expected, InvalidAssignmentTarget}
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.tests.ParserSpec.interpret
 import org.scalatest.flatspec.AnyFlatSpec
@@ -11,8 +11,8 @@ import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 /**
- * Houses the test cases for the parsing phase that are difficult to implement in Dry (because the
- * parser would fail in the first place).
+ * Houses the test cases for the parsing phase that are difficult to implement in Dry (because the parser
+ * would fail in the first place).
  *
  * Note: many of the test cases here are based on the lox test suite:
  * https://github.com/munificent/craftinginterpreters/blob/master/test/

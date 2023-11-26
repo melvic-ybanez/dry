@@ -2,11 +2,11 @@ package com.melvic.dry.interpreter.natives
 
 import com.melvic.dry.aux.Show.ShowInterpolator
 import com.melvic.dry.interpreter.Env.Register
+import com.melvic.dry.interpreter.errors.RuntimeError
 import com.melvic.dry.interpreter.natives.Keys.{SuccessCount, TestCount}
 import com.melvic.dry.interpreter.values.Callable
 import com.melvic.dry.interpreter.values.Value.{Num, ToValue, Types, typeOf}
 import com.melvic.dry.interpreter.{Env, Value}
-import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result.implicits.ToResult
 
 import scala.Console._

@@ -1,7 +1,7 @@
 package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
-import com.melvic.dry.result.Failure.RuntimeError
+import com.melvic.dry.interpreter.errors.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 

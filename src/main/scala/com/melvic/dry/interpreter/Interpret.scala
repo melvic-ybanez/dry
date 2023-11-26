@@ -2,6 +2,7 @@ package com.melvic.dry.interpreter
 
 import com.melvic.dry.ast.Decl
 import com.melvic.dry.interpreter.Env.LocalEnv
+import com.melvic.dry.interpreter.errors.RuntimeError
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.eval.{Context, Evaluate}
 import com.melvic.dry.interpreter.natives.Keys.{SuccessCount, TestCount}
@@ -12,7 +13,6 @@ import com.melvic.dry.lexer.Lexer
 import com.melvic.dry.parsers.Parser
 import com.melvic.dry.resolver
 import com.melvic.dry.resolver.{Locals, Resolve, Scopes}
-import com.melvic.dry.result.Failure.RuntimeError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult

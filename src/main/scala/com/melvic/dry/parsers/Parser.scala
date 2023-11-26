@@ -3,7 +3,6 @@ package com.melvic.dry.parsers
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.ast.Decl
-import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.tailrec
 import scala.util.chaining._

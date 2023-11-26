@@ -1,9 +1,12 @@
 package com.melvic.dry.interpreter
 
 import com.melvic.dry.aux.Nel
-import com.melvic.dry.resolver.Scopes
+import com.melvic.dry.interpreter.errors.{RaisedError, RuntimeError}
+import com.melvic.dry.lexer.LexerError
+import com.melvic.dry.parsers.ParseError
+import com.melvic.dry.resolver.{ResolverError, Scopes}
 import com.melvic.dry.result.Failure
-import com.melvic.dry.result.Failure.{LexerError, Line, ParseError, ResolverError, RuntimeError}
+import com.melvic.dry.result.Failure.Line
 
 import scala.io.StdIn.readLine
 import scala.util.chaining.scalaUtilChainingOps
@@ -63,12 +66,12 @@ trait Repl {
   private def prioritizeErrors(errors: Nel[Failure]): List[Failure] = {
     val allErrors = errors.toList.distinct
     val priorities = allErrors.map {
-      case _: Failure.Raised => 1
-      case _: RuntimeError   => 2
-      case _: ResolverError  => 3
-      case _: ParseError     => 4
-      case _: LexerError     => 5
-      case _: Line           => 6
+      case _: RaisedError   => 1
+      case _: RuntimeError  => 2
+      case _: ResolverError => 3
+      case _: ParseError    => 4
+      case _: LexerError    => 5
+      case _: Line          => 6
     }
     val priorityTable = allErrors.zip(priorities).groupBy(_._2)
     val topPrio = priorityTable.toList.minBy(_._1)

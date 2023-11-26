@@ -3,7 +3,6 @@ package com.melvic.dry.lexer
 import com.melvic.dry.Token
 import com.melvic.dry.Token.TokenType
 import com.melvic.dry.lexer.Lexer.enableEscapeSequences
-import com.melvic.dry.result.Failure.LexerError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits.ToResult
@@ -18,8 +17,6 @@ final case class Lexer(
     tokens: List[Token]
 ) {
   def lexeme: String = source.substring(start, current)
-
-  def currentChar: Char = source(current)
 
   def scanNext: Result[Lexer] = prepareNext.scan
 

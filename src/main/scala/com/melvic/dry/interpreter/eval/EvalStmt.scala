@@ -11,12 +11,12 @@ import com.melvic.dry.ast.{Decl, Stmt}
 import com.melvic.dry.aux.Nel
 import com.melvic.dry.aux.Nel.{Many, One}
 import com.melvic.dry.interpreter.Value.{Returned, Unit => VUnit}
+import com.melvic.dry.interpreter.errors.{RaisedError, RuntimeError}
 import com.melvic.dry.interpreter.eval.Context.implicits._
 import com.melvic.dry.interpreter.eval.Evaluate.Out
 import com.melvic.dry.interpreter.values.Value.{ToValue, Types}
 import com.melvic.dry.interpreter.values._
 import com.melvic.dry.interpreter.{Env, ModuleManager, Run}
-import com.melvic.dry.result.Failure.{Raised, RuntimeError}
 import com.melvic.dry.result.Result.Result
 import com.melvic.dry.result.Result.implicits._
 import com.melvic.dry.result.{Failure, Result}
@@ -99,7 +99,7 @@ private[eval] trait EvalStmt {
 
   def tryCatch(implicit context: Context[TryCatch]): Out = node match {
     case TryCatch(tryBlock, catchBlocks) =>
-      def handleException(raised: Raised) = {
+      def handleException(raised: RaisedError) = {
         def invalidArg(got: String, paren: Token): Failure =
           RuntimeError.invalidArgument(Types.Exception, got, paren.line)
 
@@ -153,10 +153,10 @@ private[eval] trait EvalStmt {
         .blockStmt(tryBlock)
         .fold(
           {
-            case One(failure @ Failure.Raised(_)) => handleException(failure)
+            case One(failure @ RaisedError(_)) => handleException(failure)
             case One(RuntimeError(kind, token, message)) =>
               DException(kind, env).call(token)(Value.Str(message) :: Nil).flatMap { instance =>
-                handleException(Raised(instance.asInstanceOf[DInstance]))
+                handleException(RaisedError(instance.asInstanceOf[DInstance]))
               }
             case errors => Result.failAll(errors)
           },

@@ -3,7 +3,6 @@ package com.melvic.dry.resolver
 import com.melvic.dry.Token
 import com.melvic.dry.aux.implicits._
 import com.melvic.dry.resolver.ScopesFunction.ScopesFunction
-import com.melvic.dry.result.Failure.ResolverError
 import com.melvic.dry.result.Result
 import com.melvic.dry.result.Result.ResultFrom
 import com.melvic.dry.result.Result.implicits.ToResult

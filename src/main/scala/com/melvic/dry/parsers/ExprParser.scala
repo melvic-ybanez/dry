@@ -6,7 +6,6 @@ import com.melvic.dry.ast.Expr
 import com.melvic.dry.ast.Expr.{List => _, _}
 import com.melvic.dry.ast.Stmt.ReturnStmt
 import com.melvic.dry.lexer.Lexemes
-import com.melvic.dry.result.Failure.ParseError
 
 import scala.annotation.nowarn
 

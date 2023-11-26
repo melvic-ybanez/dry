@@ -2,10 +2,10 @@ package com.melvic.dry.interpreter.values
 
 import com.melvic.dry.Token
 import com.melvic.dry.interpreter.Env
+import com.melvic.dry.interpreter.errors.RuntimeError
+import com.melvic.dry.interpreter.errors.RuntimeError.Kind
 import com.melvic.dry.interpreter.values.DException.Attributes
 import com.melvic.dry.interpreter.values.Value.{Types, typeOf}
-import com.melvic.dry.result.Failure.RuntimeError
-import com.melvic.dry.result.Failure.RuntimeError.Kind
 import com.melvic.dry.result.Result.implicits.ToResult
 
 class DException(val kind: Kind, val env: Env) extends DClass(kind.exceptionName, Map.empty, env) {
